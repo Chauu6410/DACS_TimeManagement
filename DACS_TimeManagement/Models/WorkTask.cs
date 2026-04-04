@@ -31,6 +31,13 @@ namespace DACS_TimeManagement.Models
         public int? ProjectId { get; set; }
         public Project? Project { get; set; }
 
+        // Position within a board column for ordering
+        public int Position { get; set; }
+
+        // Optional relation to a BoardList (column) so a task can belong to a column
+        public int? BoardListId { get; set; }
+        public BoardList? BoardList { get; set; }
+
         public string? UserId { get; set; }
 
         public ICollection<TimeLog> TimeLogs { get; set; } = new List<TimeLog>();

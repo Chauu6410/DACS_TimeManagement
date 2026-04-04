@@ -72,6 +72,92 @@ namespace DACS_TimeManagement.Controllers
             return Json(new { success });
         }
 
+        // POST: /WorkTask/UpdateTaskPosition
+        // Called when a task is dragged to a new list or reordered within the same list.
+        [HttpPost]
+        public async Task<IActionResult> UpdateTaskPosition(int taskId, int? newListId, int newPosition)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Load the task ensuring it belongs to the current user
+            var task = await _taskRepo.GetByIdAsync(taskId, userId);
+            if (task == null)
+            {
+                return Json(new { success = false, message = "Task not found" });
+            }
+
+            var oldListId = task.BoardListId;
+
+            try
+            {
+                if (oldListId == newListId)
+                {
+                    // Reorder within the same list
+                    var tasksInList = (await _taskRepo.FindAsync(t => t.BoardListId == newListId && t.UserId == userId))
+                        .OrderBy(t => t.Position)
+                        .ToList();
+
+                    // Remove the moving task from the sequence
+                    tasksInList.RemoveAll(t => t.Id == taskId);
+
+                    // Clamp the insert position
+                    var insertPos = Math.Max(0, Math.Min(newPosition, tasksInList.Count));
+
+                    // Insert the task object at the new position
+                    tasksInList.Insert(insertPos, task);
+
+                    // Reassign positions
+                    for (int i = 0; i < tasksInList.Count; i++)
+                    {
+                        tasksInList[i].Position = i;
+                        _taskRepo.Update(tasksInList[i]);
+                    }
+                }
+                else
+                {
+                    // Remove from old list (if any) and reindex
+                    if (oldListId != null)
+                    {
+                        var oldTasks = (await _taskRepo.FindAsync(t => t.BoardListId == oldListId && t.UserId == userId))
+                            .OrderBy(t => t.Position)
+                            .ToList();
+
+                        oldTasks.RemoveAll(t => t.Id == taskId);
+                        for (int i = 0; i < oldTasks.Count; i++)
+                        {
+                            oldTasks[i].Position = i;
+                            _taskRepo.Update(oldTasks[i]);
+                        }
+                    }
+
+                    // Insert into new list and reindex
+                    var newTasks = (await _taskRepo.FindAsync(t => t.BoardListId == newListId && t.UserId == userId))
+                        .OrderBy(t => t.Position)
+                        .ToList();
+
+                    var insertPos = Math.Max(0, Math.Min(newPosition, newTasks.Count));
+
+                    // Set task's new list id before inserting so updates reflect correctly
+                    task.BoardListId = newListId;
+
+                    newTasks.Insert(insertPos, task);
+                    for (int i = 0; i < newTasks.Count; i++)
+                    {
+                        newTasks[i].Position = i;
+                        _taskRepo.Update(newTasks[i]);
+                    }
+                }
+
+                // Persist all changes
+                var saved = await _taskRepo.SaveAsync();
+                return Json(new { success = saved });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         // GET: WorkTask/Details/5
         public async Task<IActionResult> Details(int id)
         {

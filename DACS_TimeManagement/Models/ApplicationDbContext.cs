@@ -21,6 +21,7 @@ namespace DACS_TimeManagement.Models
         public DbSet<SharedTask> SharedTasks { get; set; }
         public DbSet<SharedEvent> SharedEvents { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<BoardList> BoardLists { get; set; }
 
         // Cấu hình quan hệ và ràng buộc dữ liệu
         protected override void OnModelCreating(ModelBuilder builder)
@@ -47,6 +48,20 @@ namespace DACS_TimeManagement.Models
             builder.Entity<CalendarEvent>().Property(e => e.UserId).IsRequired();
             builder.Entity<PersonalGoal>().Property(g => g.UserId).IsRequired();
             builder.Entity<Notification>().Property(n => n.UserId).IsRequired();
+
+            // 4. Project - BoardList (1 - n)
+            builder.Entity<BoardList>()
+                .HasOne(b => b.Project)
+                .WithMany(p => p.BoardLists)
+                .HasForeignKey(b => b.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // 5. BoardList - WorkTask (1 - n)
+            builder.Entity<WorkTask>()
+                .HasOne(t => t.BoardList)
+                .WithMany(b => b.WorkTasks)
+                .HasForeignKey(t => t.BoardListId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Cấu hình thêm cho Priority và Status (Lưu dưới dạng String trong DB cho dễ đọc)
             builder.Entity<WorkTask>()

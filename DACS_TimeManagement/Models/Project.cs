@@ -12,6 +12,9 @@ namespace DACS_TimeManagement.Models
         // Liên kết với Identity User sau này
         public string UserId { get; set; }
         public ICollection<WorkTask> Tasks { get; set; }
+
+        // Board lists (columns) for this project (e.g., To Do, Doing, Done)
+        public ICollection<BoardList> BoardLists { get; set; } = new List<BoardList>();
     }
 }
 

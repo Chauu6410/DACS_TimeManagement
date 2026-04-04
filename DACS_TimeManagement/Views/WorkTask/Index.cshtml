@@ -1,127 +1,221 @@
-@model IEnumerable<DACS_TimeManagement.Models.WorkTask>
-
 @{
-    ViewData["Title"] = "My Tasks";
+    ViewData["Title"] = "Kanban Board";
 }
 
+<!-- Bootstrap 5 CSS (CDN) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="" crossorigin="anonymous">
+
 <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-tasks text-primary me-2"></i>My Tasks</h2>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i> New Task
-        </a>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-0"><i class="fas fa-columns text-primary me-2"></i> Bảng công việc (Kanban)</h3>
+            <small class="text-muted">Kéo-thả giữa các cột và sắp xếp thứ tự</small>
+        </div>
+        <div>
+            <button class="btn btn-outline-secondary btn-sm me-2" id="btnReset">Reset sample</button>
+            <button class="btn btn-primary btn-sm" id="btnAdd">Thêm task (demo)</button>
+        </div>
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-body p-0">
-            @if (Model != null && Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Task Title</th>
-                                <th>Project</th>
-                                <th>Due Date</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Progress</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model)
-                            {
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold">@item.Title</div>
-                                        @if (!string.IsNullOrEmpty(item.Description))
-                                        {
-                                            <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">
-                                                @item.Description
-                                            </small>
-                                        }
-                                    </td>
-                                    <td>
-                                        @(item.Project != null ? item.Project.Name : "No Project")
-                                    </td>
-                                    <td>
-                                        <span class="@(item.EndDate < DateTime.Now && item.Status != DACS_TimeManagement.Models.TaskStatus.Completed ? "text-danger fw-bold" : "")">
-                                            @item.EndDate.ToString("MMM dd, yyyy HH:mm")
-                                        </span>
-                                    </td>
-                                    <td>
-                                        @if (item.Priority == DACS_TimeManagement.Models.Priority.High || item.Priority == DACS_TimeManagement.Models.Priority.Urgent)
-                                        {
-                                            <span class="badge bg-danger">@item.Priority</span>
-                                        }
-                                        else if (item.Priority == DACS_TimeManagement.Models.Priority.Medium)
-                                        {
-                                            <span class="badge bg-warning text-dark">@item.Priority</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-info">@item.Priority</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (item.Status == DACS_TimeManagement.Models.TaskStatus.Completed)
-                                        {
-                                            <span class="badge bg-success">@item.Status</span>
-                                        }
-                                        else if (item.Status == DACS_TimeManagement.Models.TaskStatus.InProgress)
-                                        {
-                                            <span class="badge bg-primary">@item.Status</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">@item.Status</span>
-                                        }
-                                    </td>
-                                    <td style="width: 15%">
-                                        <div class="d-flex align-items-center">
-                                            <div class="progress flex-grow-1" style="height: 10px;">
-                                                <div class="progress-bar @(item.Progress == 100 ? "bg-success" : "")" 
-                                                     role="progressbar" 
-                                                     style="width: @item.Progress%;" 
-                                                     aria-valuenow="@item.Progress" 
-                                                     aria-valuemin="0" 
-                                                     aria-valuemax="100">
-                                                </div>
-                                            </div>
-                                            <span class="ms-2 small">@item.Progress%</span>
-                                        </div>
-                                    </td>
-                                    <td class="text-end">
-                                        <div class="btn-group">
-                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-5">
-                    <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">No tasks found</h5>
-                    <p class="text-muted mb-4">Ready to boost your productivity?</p>
-                    <a asp-action="Create" class="btn btn-primary">
-                        Create Your First Task
-                    </a>
-                </div>
-            }
+        <div class="card-body">
+            <!-- Board wrapper -->
+            <div id="boardWrapper" class="overflow-auto">
+                <!-- Columns container (sortable by columns) -->
+                <div id="board" class="d-flex align-items-start" style="gap:1rem; min-height:320px;">
+                    <!-- Column: Cần làm -->
+                    <div class="column bg-light rounded p-2" style="min-width: 300px; max-width:360px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="fw-semibold">
+                                <span class="column-handle me-2" style="cursor:grab">☰</span> Cần làm
+                            </div>
+                            <small class="text-muted count">3</small>
+                        </div>
+
+                        <div class="task-list" data-list-id="todo">
+                            <div class="card mb-2 task-card" data-task-id="t1">
+                                <div class="card-body p-2">
+                                    <div class="fw-bold">Lập yêu cầu báo cáo</div>
+                                    <div class="small text-muted">Mô tả ngắn</div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-2 task-card" data-task-id="t2">
+                                <div class="card-body p-2">
+                                    <div class="fw-bold">Thiết kế giao diện</div>
+                                    <div class="small text-muted">Wireframe</div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-2 task-card" data-task-id="t3">
+                                <div class="card-body p-2">
+                                    <div class="fw-bold">Chuẩn bị dữ liệu</div>
+                                    <div class="small text-muted">Import CSV</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column: Đang làm -->
+                    <div class="column bg-light rounded p-2" style="min-width: 300px; max-width:360px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="fw-semibold">
+                                <span class="column-handle me-2" style="cursor:grab">☰</span> Đang làm
+                            </div>
+                            <small class="text-muted count">1</small>
+                        </div>
+
+                        <div class="task-list" data-list-id="doing">
+                            <div class="card mb-2 task-card" data-task-id="t4">
+                                <div class="card-body p-2">
+                                    <div class="fw-bold">Xây API</div>
+                                    <div class="small text-muted">Endpoints cơ bản</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column: Hoàn thành -->
+                    <div class="column bg-light rounded p-2" style="min-width: 300px; max-width:360px;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="fw-semibold">
+                                <span class="column-handle me-2" style="cursor:grab">☰</span> Hoàn thành
+                            </div>
+                            <small class="text-muted count">2</small>
+                        </div>
+
+                        <div class="task-list" data-list-id="done">
+                            <div class="card mb-2 task-card" data-task-id="t5">
+                                <div class="card-body p-2">
+                                    <div class="fw-bold">Tạo repository</div>
+                                    <div class="small text-muted">Init Git</div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-2 task-card" data-task-id="t6">
+                                <div class="card-body p-2">
+                                    <div class="fw-bold">Cấu hình CI</div>
+                                    <div class="small text-muted">Pipeline</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> <!-- /board -->
+            </div> <!-- /boardWrapper -->
         </div>
     </div>
 </div>
+
+<!-- Inline CSS for board (you can move to a stylesheet) -->
+<style>
+    .column { flex: 0 0 auto; width: 100%; box-shadow: 0 0 0 rgba(0,0,0,0); }
+    .task-list { min-height: 100px; padding-bottom: 8px; }
+    .task-card { cursor: grab; }
+    .task-card:active { cursor: grabbing; }
+    .column .card { transition: box-shadow .15s ease; }
+    .column .card.dragging { box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+    /* Visual for placeholder during drag (Sortable will use this class) */
+    .sortable-ghost { opacity: 0.6; }
+    .sortable-chosen { background: #fffbe6; }
+
+    /* Small responsive tweak */
+    @@media (max-width: 768px) {
+        #board { gap: .75rem; }
+        .column { min-width: 260px; }
+    }
+</style>
+
+<!-- Font Awesome for icons (optional) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="" crossorigin="anonymous" />
+
+<!-- SortableJS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<!-- Inline JS to enable drag/drop for columns and tasks -->
+<script>
+    (function () {
+        // Initialize column dragging (reorder columns)
+        var boardEl = document.getElementById('board');
+        var columnSortable = new Sortable(boardEl, {
+            animation: 150,
+            handle: '.column-handle',
+            draggable: '.column',
+            onEnd: function (evt) {
+                console.log('Column moved:', { from: evt.oldIndex, to: evt.newIndex });
+                // Optionally update server about column order here
+                updateCounts();
+            }
+        });
+
+        // Initialize task lists (allow moving between lists)
+        function initTaskLists() {
+            var lists = document.querySelectorAll('.task-list');
+            lists.forEach(function (el) {
+                // If already initialized, Skip (Sortable stores a property)
+                if (el._sortable) return;
+
+                var s = new Sortable(el, {
+                    group: 'kanban-tasks',
+                    animation: 150,
+                    draggable: '.task-card',
+                    onStart: function (evt) {
+                        evt.item.classList.add('dragging');
+                    },
+                    onEnd: function (evt) {
+                        evt.item.classList.remove('dragging');
+                        var fromList = evt.from.getAttribute('data-list-id');
+                        var toList = evt.to.getAttribute('data-list-id');
+                        var taskId = evt.item.getAttribute('data-task-id');
+                        var newIndex = evt.newIndex;
+                        console.log('Task moved:', { taskId: taskId, from: fromList, to: toList, newIndex: newIndex });
+                        // TODO: call server to update this single task:
+                        // fetch('/WorkTask/UpdateTaskPosition', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ taskId: parseInt(taskId), newListId: toList, newPosition: newIndex })});
+                        updateCounts();
+                    },
+                    onAdd: function () { updateCounts(); },
+                    onRemove: function () { updateCounts(); }
+                });
+
+                // mark as inited to avoid duplicate initialization
+                el._sortable = s;
+            });
+        }
+
+        initTaskLists();
+
+        // Helper: update counters shown in column headers
+        function updateCounts() {
+            document.querySelectorAll('.column').forEach(function (col) {
+                var countEl = col.querySelector('.count');
+                var list = col.querySelector('.task-list');
+                if (countEl && list) {
+                    countEl.textContent = list.querySelectorAll('.task-card').length;
+                }
+            });
+        }
+
+        // Demo helpers
+        document.getElementById('btnAdd').addEventListener('click', function () {
+            // add a new task to the first column (todo)
+            var firstList = document.querySelector('.task-list[data-list-id="todo"]');
+            if (!firstList) return;
+            var id = 't' + Math.floor(Math.random() * 10000);
+            var card = document.createElement('div');
+            card.className = 'card mb-2 task-card';
+            card.setAttribute('data-task-id', id);
+            card.innerHTML = '<div class=\"card-body p-2\"><div class=\"fw-bold\">Task mới ('+id+')</div><div class=\"small text-muted\">Demo</div></div>';
+            firstList.appendChild(card);
+            // re-init lists in case new nodes added
+            initTaskLists();
+            updateCounts();
+        });
+
+        document.getElementById('btnReset').addEventListener('click', function () {
+            location.reload();
+        });
+
+        // initial counts
+        updateCounts();
+    })();
+</script>
