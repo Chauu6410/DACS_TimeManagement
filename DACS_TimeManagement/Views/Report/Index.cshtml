@@ -1,0 +1,186 @@
+@model IEnumerable<DACS_TimeManagement.Models.Project>
+@{
+    ViewData["Title"] = "Analytics & Reports";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 fw-bold text-dark"><i class="fas fa-chart-pie text-primary me-2"></i>Time Usage Analytics</h2>
+    <button class="btn btn-outline-primary shadow-sm px-4 fw-bold" onclick="window.print()">
+        <i class="fas fa-file-export me-2"></i>Export Report
+    </button>
+</div>
+
+<!-- Overview Stats Cards -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 bg-primary text-white position-relative overflow-hidden">
+            <div class="card-body p-4 position-relative z-1">
+                <p class="text-uppercase small fw-bold mb-1 opacity-75">Time Logged (30d)</p>
+                <h3 class="fw-bold mb-0">@ViewBag.TotalTimeLogged hrs</h3>
+            </div>
+            <i class="fas fa-stopwatch fa-4x position-absolute opacity-25" style="right: -10px; bottom: -10px;"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 bg-success text-white position-relative overflow-hidden">
+            <div class="card-body p-4 position-relative z-1">
+                <p class="text-uppercase small fw-bold mb-1 opacity-75">Tasks Completed</p>
+                <h3 class="fw-bold mb-0">@ViewBag.TotalTasksCompleted</h3>
+            </div>
+            <i class="fas fa-check-double fa-4x position-absolute opacity-25" style="right: -10px; bottom: -10px;"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 bg-info text-white position-relative overflow-hidden">
+            <div class="card-body p-4 position-relative z-1">
+                <p class="text-uppercase small fw-bold mb-1 opacity-75">Completion Rate</p>
+                <h3 class="fw-bold mb-0">@ViewBag.TaskCompletionRate%</h3>
+            </div>
+            <i class="fas fa-bullseye fa-4x position-absolute opacity-25" style="right: -10px; bottom: -10px;"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm h-100 bg-secondary text-white position-relative overflow-hidden">
+            <div class="card-body p-4 position-relative z-1">
+                <p class="text-uppercase small fw-bold mb-1 opacity-75">Active Projects</p>
+                <h3 class="fw-bold mb-0">@ViewBag.TotalProjects</h3>
+            </div>
+            <i class="fas fa-project-diagram fa-4x position-absolute opacity-25" style="right: -10px; bottom: -10px;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Data Visualizations -->
+<div class="row g-4 mb-4">
+    <!-- Line Chart: Daily Time Logging -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom p-4">
+                <h6 class="mb-0 fw-bold text-dark text-uppercase">Hours Logged (Last 7 Days)</h6>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="dailyHoursChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pie Chart: Task Status -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom p-4">
+                <h6 class="mb-0 fw-bold text-dark text-uppercase">Task Distribution</h6>
+            </div>
+            <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                <canvas id="taskStatusChart" style="max-height: 250px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Bar Chart: Time by Project -->
+    <div class="col-lg-12">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom p-4">
+                <h6 class="mb-0 fw-bold text-dark text-uppercase">Time Invested per Project (30d)</h6>
+            </div>
+            <div class="card-body p-4">
+                <canvas id="projectTimeChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Data injected from ReportController backend
+        const statusData = @Html.Raw(ViewBag.StatusJson);
+        const statusLabels = @Html.Raw(ViewBag.StatusLabelsJson);
+        
+        const projData = @Html.Raw(ViewBag.ProjectTimeDataJson);
+        const projLabels = @Html.Raw(ViewBag.ProjectTimeLabelsJson);
+        
+        const dailyData = @Html.Raw(ViewBag.DailyTimeDataJson);
+        const dailyLabels = @Html.Raw(ViewBag.DailyTimeLabelsJson);
+
+        // Chart Global Setting
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#6c757d';
+        
+        // 1. Line Chart: Daily Hours
+        new Chart(document.getElementById('dailyHoursChart'), {
+            type: 'line',
+            data: {
+                labels: dailyLabels,
+                datasets: [{
+                    label: 'Hours Logged',
+                    data: dailyData,
+                    borderColor: '#4361ee',
+                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#4361ee',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Pie Chart: Task Status
+        new Chart(document.getElementById('taskStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: ['#06ffa5', '#4361ee', '#f8961e', '#ef476f'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
+                }
+            }
+        });
+
+        // 3. Bar Chart: Project Time
+        new Chart(document.getElementById('projectTimeChart'), {
+            type: 'bar',
+            data: {
+                labels: projLabels,
+                datasets: [{
+                    label: 'Hours Logged',
+                    data: projData,
+                    backgroundColor: '#4cc9f0',
+                    borderRadius: 6,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+}

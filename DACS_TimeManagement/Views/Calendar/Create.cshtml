@@ -1,0 +1,31 @@
+@model DACS_TimeManagement.Models.CalendarEvent
+@{
+    ViewData["Title"] = "Create Event";
+}
+
+<div class="container py-4">
+    <h3>Create Calendar Event</h3>
+    <form asp-action="Create" method="post">
+        <div class="mb-3">
+            <label class="form-label">Subject</label>
+            <input asp-for="Subject" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Start</label>
+            <input asp-for="StartTime" type="datetime-local" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">End</label>
+            <input asp-for="EndTime" type="datetime-local" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Theme Color</label>
+            <input asp-for="ThemeColor" type="color" class="form-control form-control-color" />
+        </div>
+        <div class="form-check mb-3">
+            <input asp-for="IsFullDay" class="form-check-input" />
+            <label class="form-check-label">Full day</label>
+        </div>
+        <button class="btn btn-primary" type="submit">Create</button>
+    </form>
+</div>

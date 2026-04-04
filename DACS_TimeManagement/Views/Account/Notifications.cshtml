@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container py-4">
+    <h2><i class="fas fa-bell text-primary"></i> Notifications</h2>
+
+    <div class="list-group mt-3">
+        @foreach (var n in ViewBag.Notifications ?? new List<DACS_TimeManagement.Models.Notification>())
+        {
+            <div class="list-group-item d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">@n.Title</h6>
+                    <p class="small text-muted mb-0">@n.Message</p>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">@n.CreatedAt.ToString("g")</small>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-primary">Mark read</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

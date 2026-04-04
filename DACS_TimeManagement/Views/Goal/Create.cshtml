@@ -1,0 +1,61 @@
+@model DACS_TimeManagement.Models.PersonalGoal
+@{
+    ViewData["Title"] = "Set Personal Goal";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mt-4">
+            <div class="card-header bg-white border-bottom p-4">
+                <h4 class="mb-0 text-primary fw-bold"><i class="fas fa-bullseye me-2"></i>Set New Personal Goal</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Create">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="mb-4">
+                        <label asp-for="GoalName" class="form-label fw-bold text-muted">Goal Title <span class="text-danger">*</span></label>
+                        <input asp-for="GoalName" class="form-control form-control-lg" placeholder="e.g., Read 12 Books" required />
+                        <span asp-validation-for="GoalName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label asp-for="TargetValue" class="form-label fw-bold text-muted">Quantitative Target <span class="text-danger">*</span></label>
+                            <input asp-for="TargetValue" class="form-control" type="number" min="1" value="10" required />
+                            <small class="text-muted d-block mt-1">E.g., 12 (Books), 10000 (Steps)</small>
+                            <span asp-validation-for="TargetValue" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CurrentValue" class="form-label fw-bold text-muted">Starting Value</label>
+                            <input asp-for="CurrentValue" class="form-control" type="number" min="0" value="0" />
+                            <small class="text-muted d-block mt-1">Where are you starting from?</small>
+                            <span asp-validation-for="CurrentValue" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-muted">Target Date <span class="text-danger">*</span></label>
+                            <input asp-for="TargetDate" type="date" class="form-control" required />
+                            <span asp-validation-for="TargetDate" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-light border px-4 py-2 fw-bold text-muted">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow-sm">
+                            <i class="fas fa-check me-2"></i>Save Goal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

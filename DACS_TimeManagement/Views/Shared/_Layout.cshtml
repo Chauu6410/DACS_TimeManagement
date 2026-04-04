@@ -1,0 +1,433 @@
+@using System.Security.Claims
+@inject DACS_TimeManagement.Models.ApplicationDbContext _context
+@{
+    var themeColor = "light";
+    var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+
+    if (User.Identity.IsAuthenticated)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var profile = _context.UserProfiles.FirstOrDefault(p => p.UserId == userId);
+        if (profile != null) themeColor = profile.Theme;
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TimeMaster</title>
+    
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <style>
+        :root {
+            --primary: #6366f1; /* Indigo 500 */
+            --primary-dark: #4338ca; /* Indigo 700 */
+            --secondary: #06b6d4; /* Cyan 500 */
+            --bg-light: #f8fafc; /* Cool very light gray background */
+            --sidebar-bg: #ffffff;
+            --sidebar-width: 260px;
+            --topbar-height: 70px;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: rgba(0,0,0,0.05);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --shadow-sm: 0 2px 5px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 10px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 20px -3px rgba(99, 102, 241, 0.1); /* Indigo colored shadow */
+            --shadow-2xl: 0 25px 50px -12px rgba(0,0,0,0.15);
+        }
+
+        /* Dark Theme overrides with stunning glow */
+        .theme-dark {
+            --primary: #818cf8; /* Lighter Indigo for dark mode */
+            --primary-dark: #4f46e5;
+            --bg-light: #0f172a; /* Slate 900 */
+            --sidebar-bg: #1e293b; /* Slate 800 */
+            --text-dark: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255,255,255,0.08);
+            --shadow-lg: 0 10px 20px -3px rgba(0,0,0,0.4);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* App Layout Container */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            height: var(--topbar-height);
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-brand {
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-decoration: none;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-brand i {
+            color: var(--primary);
+            font-size: 1.6rem;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem 1rem;
+        }
+        
+        /* Custom Scrollbar */
+        .sidebar-content::-webkit-scrollbar { width: 5px; }
+        .sidebar-content::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+
+        .nav-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .nav-item { margin-bottom: 0.2rem; }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-dark);
+            font-weight: 500;
+            border-radius: 10px;
+            transition: var(--transition);
+            text-decoration: none;
+            gap: 12px;
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            width: 20px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(67, 97, 238, 0.08);
+            color: var(--primary);
+        }
+
+        .nav-link:hover i, .nav-link.active i {
+            color: var(--primary);
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Main Content Styling */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prevent body scroll, allow internal scroll */
+        }
+
+        /* Topbar */
+        .topbar {
+            height: var(--topbar-height);
+            background-color: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+        }
+
+        .page-title {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-bell {
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .notification-bell:hover {
+            background-color: rgba(0,0,0,0.05);
+            color: var(--primary);
+        }
+
+        .notification-badge {
+            font-size: 0.6rem;
+            padding: 0.25em 0.5em;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            scroll-behavior: smooth;
+        }
+
+        /* Standardized Card Style for the App */
+        .card {
+            background-color: var(--sidebar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+        }
+        .card-header {
+            background-color: transparent;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Layout Responsive Fixes */
+        @@media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+                height: 100%;
+                box-shadow: var(--shadow-2xl);
+            }
+            .sidebar.show { left: 0; }
+            .topbar { padding: 0 1rem; }
+            .main-content { padding: 1rem; }
+            .mobile-toggle { display: block !important; }
+        }
+        
+        .mobile-toggle { display: none; background: none; border: none; font-size: 1.5rem; color: var(--text-dark); cursor: pointer; padding: 0.5rem; }
+    </style>
+</head>
+<body class="theme-@themeColor">
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a class="sidebar-brand" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-clock"></i> TimeMaster
+                </a>
+                <button class="mobile-toggle ms-auto" onclick="toggleSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="sidebar-content">
+                <ul class="nav flex-column mb-auto">
+                    <!-- Overview -->
+                    <li class="nav-category">Overview</li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Report" ? "active" : "")" asp-controller="Report" asp-action="Index">
+                            <i class="fas fa-chart-pie"></i> Reporting & Stats
+                        </a>
+                    </li>
+                    
+                    <!-- My Workspace -->
+                    <li class="nav-category mt-3">My Workspace</li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "WorkTask" ? "active" : "")" asp-controller="WorkTask" asp-action="Index">
+                            <i class="fas fa-tasks"></i> My Tasks
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Calendar" ? "active" : "")" asp-controller="Calendar" asp-action="Index">
+                            <i class="far fa-calendar-alt"></i> Schedule
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Goal" ? "active" : "")" asp-controller="Goal" asp-action="Index">
+                            <i class="fas fa-bullseye"></i> Personal Goals
+                        </a>
+                    </li>
+                    
+                    <!-- Organization -->
+                    <li class="nav-category mt-3">Organization</li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Project" ? "active" : "")" asp-controller="Project" asp-action="Index">
+                            <i class="fas fa-project-diagram"></i> Projects
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(currentController == "Share" ? "active" : "")" asp-controller="Share" asp-action="Index">
+                            <i class="fas fa-share-alt"></i> Team Shared
+                        </a>
+                    </li>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <!-- Admin Panel -->
+                        <li class="nav-category mt-3 text-primary"><i class="fas fa-shield-alt"></i> Admin Panel</li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Admin" ? "active" : "")" asp-controller="Admin" asp-action="Index">
+                                <i class="fas fa-users-cog"></i> Quản lý hệ thống
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+            
+            <div class="sidebar-footer">
+                <a class="nav-link @(currentController == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="Index">
+                    <i class="fas fa-cog"></i> Settings & Profile
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <!-- Topbar Header -->
+            <header class="topbar">
+                <div class="d-flex align-items-center">
+                    <button class="mobile-toggle me-3" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="page-title d-none d-sm-block">@ViewData["Title"]</h1>
+                </div>
+                
+                <div class="topbar-actions">
+                    <!-- Notifications Dropdown -->
+                    <div class="dropdown">
+                        <a class="notification-bell text-decoration-none" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge" id="notifBadge" style="display: none;">
+                                0
+                            </span>
+                        </a>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="dropdownMenuLink" style="width: 320px; border-radius: 12px;">
+                            <li><h6 class="dropdown-header fw-bold text-dark fs-6 py-3 border-bottom">Notifications</h6></li>
+                            <div id="notifList" style="max-height: 300px; overflow-y: auto;">
+                                <li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2 text-success"></i><br/>You're all caught up!</li>
+                            </div>
+                            <li><hr class="dropdown-divider m-0"></li>
+                            <li><a class="dropdown-item text-center py-2 fw-bold text-primary small" href="/Notification/Index">View All Activity</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Identity User Partial -->
+                    <div class="ms-2">
+                        <partial name="_LoginPartial" />
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="main-content">
+                <div class="container-fluid p-0">
+                    @RenderBody()
+                </div>
+                
+                <footer class="mt-5 pt-3 border-top text-center text-muted small">
+                    &copy; 2026 TimeMaster &middot; <a href="#">Privacy</a> &middot; <a href="#">Terms</a>
+                </footer>
+            </main>
+        </div>
+        
+        <!-- Sidebar Backdrop for Mobile -->
+        <div class="modal-backdrop fade show d-none" id="sidebarBackdrop" onclick="toggleSidebar()" style="z-index: 999;"></div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    
+    <script>
+        // Initialize Animations
+        AOS.init({ once: true, offset: 50, duration: 600 });
+
+        // Mobile Sidebar Toggle
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if(backdrop.classList.contains('d-none')) {
+                backdrop.classList.remove('d-none');
+            } else {
+                backdrop.classList.add('d-none');
+            }
+        }
+        
+        // Polling Notification Count via JS (Requirement 4)
+        $(document).ready(function() {
+            function fetchNotifications() {
+                $.get('/Notification/GetUnreadCount', function(data) {
+                    const badge = $('#notifBadge');
+                    if (data && data > 0) {
+                        badge.text(data).show();
+                    } else {
+                        badge.hide();
+                    }
+                }).fail(function() {
+                    console.log("Could not fetch notifications. User may not be logged in.");
+                });
+            }
+            
+            // Fetch immediately, then poll every 60 seconds
+            fetchNotifications();
+            setInterval(fetchNotifications, 60000);
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

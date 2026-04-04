@@ -1,0 +1,127 @@
+@model IEnumerable<DACS_TimeManagement.Models.WorkTask>
+
+@{
+    ViewData["Title"] = "My Tasks";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-tasks text-primary me-2"></i>My Tasks</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> New Task
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Task Title</th>
+                                <th>Project</th>
+                                <th>Due Date</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Progress</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">@item.Title</div>
+                                        @if (!string.IsNullOrEmpty(item.Description))
+                                        {
+                                            <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">
+                                                @item.Description
+                                            </small>
+                                        }
+                                    </td>
+                                    <td>
+                                        @(item.Project != null ? item.Project.Name : "No Project")
+                                    </td>
+                                    <td>
+                                        <span class="@(item.EndDate < DateTime.Now && item.Status != DACS_TimeManagement.Models.TaskStatus.Completed ? "text-danger fw-bold" : "")">
+                                            @item.EndDate.ToString("MMM dd, yyyy HH:mm")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (item.Priority == DACS_TimeManagement.Models.Priority.High || item.Priority == DACS_TimeManagement.Models.Priority.Urgent)
+                                        {
+                                            <span class="badge bg-danger">@item.Priority</span>
+                                        }
+                                        else if (item.Priority == DACS_TimeManagement.Models.Priority.Medium)
+                                        {
+                                            <span class="badge bg-warning text-dark">@item.Priority</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">@item.Priority</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.Status == DACS_TimeManagement.Models.TaskStatus.Completed)
+                                        {
+                                            <span class="badge bg-success">@item.Status</span>
+                                        }
+                                        else if (item.Status == DACS_TimeManagement.Models.TaskStatus.InProgress)
+                                        {
+                                            <span class="badge bg-primary">@item.Status</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@item.Status</span>
+                                        }
+                                    </td>
+                                    <td style="width: 15%">
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1" style="height: 10px;">
+                                                <div class="progress-bar @(item.Progress == 100 ? "bg-success" : "")" 
+                                                     role="progressbar" 
+                                                     style="width: @item.Progress%;" 
+                                                     aria-valuenow="@item.Progress" 
+                                                     aria-valuemin="0" 
+                                                     aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <span class="ms-2 small">@item.Progress%</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No tasks found</h5>
+                    <p class="text-muted mb-4">Ready to boost your productivity?</p>
+                    <a asp-action="Create" class="btn btn-primary">
+                        Create Your First Task
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

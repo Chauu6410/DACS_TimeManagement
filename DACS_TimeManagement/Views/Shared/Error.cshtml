@@ -1,0 +1,406 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="error-container">
+    <div class="error-content text-center" data-aos="fade-up">
+        <!-- Error Icon -->
+        <div class="error-icon mb-4">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+
+        <!-- Error Code -->
+        <div class="error-code mb-3">
+            <span class="code-number">4<span class="pulse">0</span>4</span>
+        </div>
+
+        <!-- Error Title -->
+        <h1 class="error-title mb-3">@ViewData["Title"]</h1>
+        <h2 class="error-message mb-4">An error occurred while processing your request.</h2>
+
+        <!-- Request ID (if available) -->
+        @if (Model.ShowRequestId)
+        {
+            <div class="request-id mb-4">
+                <i class="fas fa-id-card me-2"></i>
+                <strong>Request ID:</strong>
+                <code class="ms-2">@Model.RequestId</code>
+            </div>
+        }
+
+        <!-- Error Details Card -->
+        <div class="error-details-card mb-4">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>
+                Error Information
+            </div>
+            <div class="card-body text-start">
+                <div class="alert alert-warning mb-3">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Development Mode:</strong> Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+                </div>
+                
+                <div class="alert alert-danger">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    <strong>Security Notice:</strong> The Development environment shouldn't be enabled for deployed applications.
+                    <hr />
+                    <small>
+                        It can result in displaying sensitive information from exceptions to end users.
+                        For local debugging, enable the <strong>Development</strong> environment by setting the 
+                        <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
+                        and restarting the app.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="error-actions">
+            <a href="javascript:history.back()" class="btn btn-secondary me-3">
+                <i class="fas fa-arrow-left me-2"></i> Go Back
+            </a>
+            <a href="/" class="btn btn-primary">
+                <i class="fas fa-home me-2"></i> Back to Home
+            </a>
+        </div>
+
+        <!-- Help Section -->
+        <div class="help-section mt-5 pt-3">
+            <p class="text-muted">
+                <i class="fas fa-life-ring me-2"></i>
+                Need help? <a href="/Home/Support" class="text-primary">Contact Support</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .error-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .error-content {
+        max-width: 800px;
+        width: 100%;
+    }
+
+    /* Error Icon */
+    .error-icon {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    .error-icon i {
+        font-size: 6rem;
+        background: linear-gradient(135deg, var(--danger-color), #ff6b6b);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: pulse 2s infinite;
+    }
+
+    /* Error Code */
+    .error-code {
+        position: relative;
+        display: inline-block;
+    }
+
+    .code-number {
+        font-size: 8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--dark-color), #6c757d);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: 10px;
+    }
+
+    .pulse {
+        display: inline-block;
+        animation: textPulse 1.5s ease-in-out infinite;
+    }
+
+    /* Error Title & Message */
+    .error-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--danger-color);
+    }
+
+    .error-message {
+        font-size: 1.2rem;
+        color: #6c757d;
+        font-weight: 400;
+    }
+
+    /* Request ID */
+    .request-id {
+        background: #f8f9fa;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        display: inline-block;
+        font-size: 0.9rem;
+    }
+
+    .request-id code {
+        background: #e9ecef;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        color: var(--danger-color);
+    }
+
+    /* Error Details Card */
+    .error-details-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        text-align: left;
+    }
+
+    .error-details-card .card-header {
+        background: linear-gradient(135deg, #ff6b6b, var(--danger-color));
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .error-details-card .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Alert Styles */
+    .alert {
+        border: none;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, #fff3cd, #ffe69b);
+        color: #856404;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        color: #721c24;
+    }
+
+    /* Action Buttons */
+    .error-actions {
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.75rem 2rem;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border: none;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        transform: translateY(-2px);
+        background: #5a6268;
+    }
+
+    /* Help Section */
+    .help-section {
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .help-section a {
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .help-section a:hover {
+        text-decoration: underline;
+    }
+
+    /* Animations */
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+        10%, 30%, 50%, 70%, 90% {
+            transform: translateX(-5px);
+        }
+        20%, 40%, 60%, 80% {
+            transform: translateX(5px);
+        }
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.05);
+            opacity: 0.8;
+        }
+    }
+
+    @@keyframes textPulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.7;
+            transform: scale(1.1);
+        }
+    }
+
+    /* Dark Mode Support */
+    @@media (prefers-color-scheme: dark) {
+        .error-details-card {
+            background: #2a2a3a;
+        }
+
+        .request-id {
+            background: #2a2a3a;
+            color: #e0e0e0;
+        }
+
+        .request-id code {
+            background: #1e1e2e;
+            color: #ff6b6b;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #665c3a, #856404);
+            color: #ffd966;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #6b3a3a, #721c24);
+            color: #ffa5a5;
+        }
+
+        .help-section {
+            border-top-color: #404040;
+        }
+
+        .error-message {
+            color: #adb5bd;
+        }
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .error-container {
+            padding: 1rem;
+        }
+
+        .code-number {
+            font-size: 4rem;
+            letter-spacing: 5px;
+        }
+
+        .error-icon i {
+            font-size: 4rem;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+        }
+
+        .error-message {
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        .error-details-card .card-body {
+            padding: 1rem;
+        }
+
+        .request-id {
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+        }
+    }
+
+    /* Print Styles */
+    @@media print {
+        .error-actions,
+        .help-section {
+            display: none;
+        }
+        
+        .error-details-card {
+            box-shadow: none;
+            border: 1px solid #ddd;
+        }
+    }
+</style>
+
+<script>
+    // Add AOS animation if available
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+    }
+
+    // Log error to console for debugging
+    console.group('Error Details');
+    console.log('Request ID:', '@Model.RequestId');
+    console.log('Show Request ID:', @Model.ShowRequestId.ToString().ToLower());
+    console.groupEnd();
+
+    // Optional: Send error report to server
+    function reportError() {
+        const errorData = {
+            requestId: '@Model.RequestId',
+            timestamp: new Date().toISOString(),
+            url: window.location.href,
+            userAgent: navigator.userAgent
+        };
+
+        fetch('/api/error/report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(errorData)
+        }).catch(err => console.log('Error reporting failed:', err));
+    }
+
+    // Uncomment to enable automatic error reporting
+    // reportError();
+
+    // Add keyboard shortcut (Ctrl + H) to go home
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'h') {
+            e.preventDefault();
+            window.location.href = '/';
+        }
+    });
+</script>

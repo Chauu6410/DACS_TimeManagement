@@ -1,0 +1,150 @@
+@model DACS_TimeManagement.Models.UserProfile
+
+@{
+    ViewData["Title"] = "User Profile & Settings";
+}
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Profile Header -->
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm border-0 bg-primary text-white">
+                <div class="card-body p-4 d-flex align-items-center">
+                    <div class="avatar-circle bg-white text-primary me-4 d-flex justify-content-center align-items-center" style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem; font-weight: bold;">
+                        @(string.IsNullOrEmpty(Model.FullName) ? User.Identity.Name.Substring(0, 1).ToUpper() : Model.FullName.Substring(0, 1).ToUpper())
+                    </div>
+                    <div>
+                        <h2 class="mb-1">@(string.IsNullOrEmpty(Model.FullName) ? "Setup your profile" : Model.FullName)</h2>
+                        <p class="mb-0 text-white-50"><i class="fas fa-envelope me-2"></i>@User.Identity.Name</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom pb-3 pt-4 px-4">
+                    <h5 class="mb-0"><i class="fas fa-user-edit text-primary me-2"></i>Personal Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Update" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="UserId" />
+                        <input type="hidden" asp-for="Email" />
+                        <input type="hidden" asp-for="JoinDate" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label fw-bold text-muted">Full Name</label>
+                                <input asp-for="FullName" class="form-control" placeholder="Enter your full name" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-bold text-muted">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="Optional" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Department" class="form-label fw-bold text-muted">Department</label>
+                                <input asp-for="Department" class="form-control" placeholder="e.g. Engineering" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Position" class="form-label fw-bold text-muted">Position/Role</label>
+                                <input asp-for="Position" class="form-control" placeholder="e.g. Senior Developer" />
+                            </div>
+                        </div>
+
+                        <hr class="mb-4" />
+
+                        <h5 class="mb-3 text-dark"><i class="fas fa-cog text-primary me-2"></i>Preferences & Settings</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="Theme" class="form-label fw-bold text-muted">UI Theme</label>
+                                <select asp-for="Theme" class="form-select">
+                                    <option value="light">Light (Default)</option>
+                                    <option value="dark">Dark Mode</option>
+                                    <option value="primary">Ocean Blue</option>
+                                    <option value="success">Forest Green</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DefaultView" class="form-label fw-bold text-muted">Default Startup View</label>
+                                <select asp-for="DefaultView" class="form-select">
+                                    <option value="Dashboard">Dashboard</option>
+                                    <option value="Tasks">Tasks List</option>
+                                    <option value="Calendar">Calendar</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted mb-3">Notifications</label>
+                                <div class="form-check form-switch mb-2">
+                                    <input class="form-check-input" type="checkbox" asp-for="EmailNotifications">
+                                    <label class="form-check-label" asp-for="EmailNotifications">Email Alerts</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" asp-for="PushNotifications">
+                                    <label class="form-check-label" asp-for="PushNotifications">Browser Push Notifications</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Working Hours</label>
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="me-2" style="width: 40px;">Start:</span>
+                                    <input asp-for="WorkStartTime" type="time" class="form-control w-50" />
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2" style="width: 40px;">End:</span>
+                                    <input asp-for="WorkEndTime" type="time" class="form-control w-50" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+                                <i class="fas fa-save me-2"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 bg-light">
+                <div class="card-body p-4 text-center">
+                    <i class="fas fa-shield-alt text-muted fa-3x mb-3"></i>
+                    <h5 class="mb-3">Account Security</h5>
+                    <p class="text-muted small mb-4">Your password and 2FA settings are managed through your Identity account.</p>
+                    <a href="/Identity/Account/Manage" class="btn btn-outline-secondary w-100">
+                        Manage Security Settings
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3 text-muted">Account Stats</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Member Since:</span>
+                        <span class="fw-semibold">@Model.JoinDate.ToString("MMM yyyy")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

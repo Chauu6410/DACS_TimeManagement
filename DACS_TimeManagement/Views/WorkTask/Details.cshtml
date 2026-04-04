@@ -1,0 +1,148 @@
+@model DACS_TimeManagement.Models.WorkTask
+
+@{
+    ViewData["Title"] = "Task Details";
+    var totalTimeLogged = Model.TimeLogs?.Sum(t => t.DurationHours) ?? 0;
+}
+
+<div class="row mt-4">
+    <!-- Main Task Info -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white border-bottom pb-3 pt-4 px-4 d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 text-primary fw-bold">
+                    <i class="fas fa-clipboard-list me-2"></i>@Model.Title
+                </h4>
+                <span class="badge bg-@(Model.Status == DACS_TimeManagement.Models.TaskStatus.Completed ? "success" : Model.Status == DACS_TimeManagement.Models.TaskStatus.InProgress ? "primary" : "secondary") fs-6 py-2 px-3">
+                    @Model.Status
+                </span>
+            </div>
+            
+            <div class="card-body p-4">
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="bg-light p-3 rounded-3 text-center h-100 border">
+                            <span class="d-block text-muted small fw-bold text-uppercase mb-1">Start Date</span>
+                            <span class="fs-5 fw-semibold"><i class="far fa-calendar-plus text-primary me-2"></i>@Model.StartDate.ToString("MMM dd, yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="bg-light p-3 rounded-3 text-center h-100 border @(Model.EndDate < DateTime.Now && Model.Status != DACS_TimeManagement.Models.TaskStatus.Completed ? "border-danger alert-danger" : "")">
+                            <span class="d-block text-muted small fw-bold text-uppercase mb-1">Due Date</span>
+                            <span class="fs-5 fw-semibold"><i class="far fa-calendar-check text-warning me-2"></i>@Model.EndDate.ToString("MMM dd, yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6 class="text-muted fw-bold text-uppercase mb-2">Description</h6>
+                    <p class="fs-5" style="white-space: pre-wrap;">@(string.IsNullOrEmpty(Model.Description) ? "No description provided." : Model.Description)</p>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <h6 class="text-muted fw-bold text-uppercase mb-2">Project</h6>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-project-diagram text-secondary me-2"></i>
+                            <span class="fw-semibold">@(Model.Project?.Name ?? "No Project Assigned")</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3 mb-md-0">
+                        <h6 class="text-muted fw-bold text-uppercase mb-2">Priority</h6>
+                        <span class="badge @(Model.Priority == DACS_TimeManagement.Models.Priority.Urgent || Model.Priority == DACS_TimeManagement.Models.Priority.High ? "bg-danger" : Model.Priority == DACS_TimeManagement.Models.Priority.Medium ? "bg-warning text-dark" : "bg-info") fs-6">
+                            @Model.Priority
+                        </span>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-muted fw-bold text-uppercase mb-2">Completion Progress</h6>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 12px; border-radius: 6px;">
+                                <div class="progress-bar @(Model.Progress == 100 ? "bg-success" : "bg-primary") progress-bar-striped @(Model.Progress > 0 && Model.Progress < 100 ? "progress-bar-animated" : "")" 
+                                     role="progressbar" style="width: @Model.Progress%;" aria-valuenow="@Model.Progress" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <span class="fw-bold">@Model.Progress%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Tasks
+                    </a>
+                    <div class="btn-group shadow-sm">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary px-4 fw-bold">
+                            <i class="fas fa-edit me-2"></i>Edit Task
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger px-4 fw-bold">
+                            <i class="fas fa-trash me-2"></i>Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Logging Sidebar -->
+    <div class="col-lg-4">
+        <!-- Log Entry Form -->
+        <div class="card shadow-sm border-0 mb-4 bg-primary text-white">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="fas fa-stopwatch me-2"></i>Log Work Time</h5>
+                <form asp-controller="TimeLog" asp-action="LogTime" method="post">
+                    <input type="hidden" name="workTaskId" value="@Model.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Time Spent (Hours)</label>
+                        <div class="input-group">
+                            <input type="number" name="durationHours" class="form-control" step="0.25" min="0.25" max="24" required placeholder="1.5">
+                            <span class="input-group-text">hrs</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Work Notes (Optional)</label>
+                        <input type="text" name="note" class="form-control" placeholder="What did you work on?">
+                    </div>
+                    <button type="submit" class="btn btn-light w-100 fw-bold text-primary">
+                        Save Time Log
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- History Card -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-dark"><i class="fas fa-history me-2 text-muted"></i>Time History</span>
+                <span class="badge bg-light text-dark border">@totalTimeLogged hrs total</span>
+            </div>
+            <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                @if (Model.TimeLogs == null || !Model.TimeLogs.Any())
+                {
+                    <div class="text-center p-4 text-muted">
+                        <i class="far fa-clock fa-2x mb-2 opacity-50"></i>
+                        <p class="small mb-0">No time logged yet.</p>
+                    </div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach(var log in Model.TimeLogs.OrderByDescending(t => t.LogDate))
+                        {
+                            <li class="list-group-item p-3">
+                                <div class="d-flex justify-content-between">
+                                    <span class="fw-bold text-dark">@log.DurationHours hrs</span>
+                                    <small class="text-muted">@log.LogDate.ToString("MMM dd HH:mm")</small>
+                                </div>
+                                @if (!string.IsNullOrEmpty(log.Note))
+                                {
+                                    <p class="small text-muted mb-0 mt-1 fst-italic">"@log.Note"</p>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,67 @@
+@model IEnumerable<DACS_TimeManagement.Models.Project>
+@{
+    ViewData["Title"] = "Projects Dashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 fw-bold text-dark"><i class="fas fa-briefcase text-primary me-2"></i>My Projects</h2>
+    <a asp-action="Create" class="btn btn-primary shadow-sm px-4 fw-bold">
+        <i class="fas fa-plus me-2"></i>New Project
+    </a>
+</div>
+
+<div class="row g-4">
+    @if (!Model.Any())
+    {
+        <div class="col-12">
+            <div class="card p-5 text-center border-0 shadow-sm">
+                <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                <h4 class="text-muted">No projects yet!</h4>
+                <p class="mb-4">Organize your tasks efficiently by grouping them into projects.</p>
+                <a asp-action="Create" class="btn btn-outline-primary mx-auto" style="width: 200px;">Create First Project</a>
+            </div>
+        </div>
+    }
+
+    @foreach (var project in Model)
+    {
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm border-0 border-top border-4 border-primary position-relative overflow-hidden">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title fw-bold m-0 text-truncate" title="@project.Name">@project.Name</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-light btn-sm rounded-circle border-0" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v text-muted"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow">
+                                <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@project.Id"><i class="fas fa-edit text-primary me-2"></i>Edit</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@project.Id"><i class="fas fa-trash-alt me-2"></i>Delete</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <p class="card-text text-muted small mb-4" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 40px;">
+                        @(string.IsNullOrEmpty(project.Description) ? "No description provided." : project.Description)
+                    </p>
+                    
+                    <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 mb-3">
+                        <div class="text-center w-50 border-end">
+                            <span class="d-block text-muted small fw-bold text-uppercase">Total Tasks</span>
+                            <span class="fs-4 fw-bold text-dark">@(project.Tasks?.Count() ?? 0)</span>
+                        </div>
+                        <div class="text-center w-50">
+                            <span class="d-block text-muted small fw-bold text-uppercase">Completed</span>
+                            <span class="fs-4 fw-bold text-success">@(project.Tasks?.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed) ?? 0)</span>
+                        </div>
+                    </div>
+                    
+                    <a asp-action="Details" asp-route-id="@project.Id" class="btn btn-outline-primary w-100 fw-bold">
+                        View Project Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,253 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section mb-4">
+        <h1 class="display-4">
+            <i class="fas fa-calendar-check text-primary"></i>
+            Welcome back, @User.Identity.Name!
+        </h1>
+        <p class="lead text-muted">Here's your time management overview for today</p>
+        <div class="current-time">
+            <i class="fas fa-clock"></i>
+            <span id="currentDateTime"></span>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-number">@ViewBag.TotalTasks</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #4cc9f0;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">@ViewBag.CompletedTasks</div>
+                <div class="stat-label">Completed Tasks</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #f8961e;">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-number">@ViewBag.InProgressTasks</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #f72585;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number">@ViewBag.HoursWorked</div>
+                <div class="stat-label">Hours Worked</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Today's Schedule -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-calendar-day"></i> Today's Schedule
+                    <a asp-controller="Schedule" asp-action="Create" class="btn btn-sm btn-light float-end">
+                        <i class="fas fa-plus"></i> Add Event
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.TodayEvents != null && ViewBag.TodayEvents.Count > 0)
+                    {
+                        <div class="timeline">
+                            @foreach (var evt in ViewBag.TodayEvents)
+                            {
+                                <div class="timeline-item">
+                                    <div class="timeline-time">@evt.StartTime.ToString("HH:mm")</div>
+                                    <div class="timeline-content">
+                                        <h6>@evt.Title</h6>
+                                        <p class="text-muted small">@evt.Description</p>
+                                        <span class="badge bg-@(evt.Status == "Completed" ? "success" : "primary")">
+                                            @evt.Status
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                            <p>No events scheduled for today</p>
+                            <a asp-controller="Schedule" asp-action="Create" class="btn btn-primary btn-sm">
+                                Create New Event
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Tasks -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-list-check"></i> Recent Tasks
+                    <a asp-controller="Tasks" asp-action="Create" class="btn btn-sm btn-light float-end">
+                        <i class="fas fa-plus"></i> Add Task
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    @if (ViewBag.RecentTasks != null && ViewBag.RecentTasks.Count > 0)
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var task in ViewBag.RecentTasks)
+                            {
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <input type="checkbox" class="task-checkbox me-2" data-id="@task.Id" @(task.IsCompleted ? "checked disabled" : "")>
+                                            <span class="@(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                                                @task.Title
+                                            </span>
+                                            @if (task.Priority == "High")
+                                            {
+                                                <span class="badge bg-danger ms-2">High Priority</span>
+                                            }
+                                            else if (task.Priority == "Medium")
+                                            {
+                                                <span class="badge bg-warning ms-2">Medium Priority</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-info ms-2">Low Priority</span>
+                                            }
+                                        </div>
+                                        <div class="btn-group">
+                                            <a asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-controller="Tasks" asp-action="Delete" asp-route-id="@task.Id"
+                                                   class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">
+                                        Due: @task.DueDate.ToString("MMM dd, yyyy")
+                                    </small>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                            <p>No tasks yet</p>
+                            <a asp-controller="Tasks" asp-action="Create" class="btn btn-primary btn-sm">
+                                Create Your First Task
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productivity Chart -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line"></i> Weekly Productivity
+                </div>
+                <div class="card-body">
+                    <canvas id="productivityChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Update current time
+        function updateDateTime() {
+        const now = new Date();
+        const formatted = now.toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+        });
+        document.getElementById('currentDateTime').innerText = formatted;
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // Task checkbox handler
+        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+        if (this.checked) {
+        const taskId = this.dataset.id;
+        // Add AJAX call to update task status
+        fetch(`/Tasks/Complete/${taskId}`, { method: 'POST' })
+        .then(response => {
+        if (response.ok) {
+        location.reload();
+        }
+        });
+        }
+        });
+        });
+
+        // Productivity Chart
+        const ctx = document.getElementById('productivityChart').getContext('2d');
+        new Chart(ctx, {
+        type: 'line',
+        data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+        label: 'Hours Worked',
+        data: @Html.Raw(Json.Serialize(ViewBag.WeeklyHours)),
+        borderColor: '#4361ee',
+        backgroundColor: 'rgba(67, 97, 238, 0.1)',
+        tension: 0.4,
+        fill: true
+        }, {
+        label: 'Tasks Completed',
+        data: @Html.Raw(Json.Serialize(ViewBag.WeeklyTasks)),
+        borderColor: '#4cc9f0',
+        backgroundColor: 'rgba(76, 201, 240, 0.1)',
+        tension: 0.4,
+        fill: true
+        }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+        legend: {
+        position: 'top',
+        }
+        }
+        }
+        });
+    </script>
+}
