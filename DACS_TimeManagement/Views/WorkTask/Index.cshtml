@@ -2,220 +2,390 @@
     ViewData["Title"] = "Kanban Board";
 }
 
-<!-- Bootstrap 5 CSS (CDN) -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="" crossorigin="anonymous">
+<!-- Google Fonts + Bootstrap 5 + Font Awesome -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(145deg, #f1f5f9 0%, #e6edf4 100%);
+        min-height: 100vh;
+    }
+
+    .kanban-header {
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(8px);
+        border-radius: 32px;
+        padding: 0.5rem 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    .board-card {
+        background: rgba(255,255,255,0.75);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.5);
+        border-radius: 28px;
+        box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+    }
+
+    /* Column styling */
+    .column {
+        background: rgba(248, 250, 252, 0.9);
+        border-radius: 24px;
+        border: 1px solid rgba(203, 213, 225, 0.4);
+        backdrop-filter: blur(2px);
+        transition: all 0.2s;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .column:hover {
+        box-shadow: 0 12px 20px -12px rgba(0, 0, 0, 0.15);
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .column-header {
+        background: rgba(255,255,255,0.6);
+        border-radius: 20px;
+        padding: 10px 14px;
+        margin-bottom: 12px;
+        backdrop-filter: blur(4px);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .column-handle {
+        cursor: grab;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+        font-size: 1rem;
+    }
+    .column-handle:hover { opacity: 1; }
+    .column-handle:active { cursor: grabbing; }
+
+    .task-list {
+        min-height: 280px;
+        padding: 4px 0;
+        transition: background 0.1s;
+    }
+
+    /* Task card hiện đại */
+    .task-card {
+        background: white;
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        margin-bottom: 12px;
+        cursor: grab;
+        transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        border-left: 4px solid #6366f1;
+        overflow: hidden;
+    }
+
+    .task-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 20px -12px rgba(99, 102, 241, 0.3);
+        background: #ffffff;
+        border-left-width: 6px;
+    }
+
+    .task-card:active { cursor: grabbing; }
+
+    .task-card .card-body {
+        padding: 12px 14px;
+    }
+
+    .task-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #0f172a;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .task-title i {
+        font-size: 0.75rem;
+        color: #6366f1;
+    }
+
+    .task-desc {
+        font-size: 0.75rem;
+        color: #475569;
+        line-height: 1.3;
+    }
+
+    /* Badge count */
+    .count-badge {
+        background: #e2e8f0;
+        color: #1e293b;
+        font-size: 0.7rem;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 40px;
+        backdrop-filter: blur(2px);
+    }
+
+    /* Buttons nâng cấp */
+    .btn-glass {
+        background: rgba(255,255,255,0.7);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 40px;
+        padding: 6px 18px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn-glass:hover {
+        background: white;
+        border-color: #6366f1;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 12px -6px rgba(99,102,241,0.3);
+    }
+    .btn-primary-soft {
+        background: #6366f1;
+        border: none;
+        border-radius: 40px;
+        padding: 6px 20px;
+        font-weight: 500;
+        box-shadow: 0 4px 8px -4px #6366f1;
+    }
+    .btn-primary-soft:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px -8px #4f46e5;
+    }
+
+    /* scrollbar đẹp */
+    .overflow-auto::-webkit-scrollbar {
+        height: 6px;
+        width: 6px;
+    }
+    .overflow-auto::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.05);
+        border-radius: 10px;
+    }
+    .overflow-auto::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    /* drag ghost */
+    .sortable-ghost {
+        opacity: 0.4;
+        background: #e2e8f0;
+        border: 1px dashed #6366f1;
+    }
+    .sortable-chosen {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+</style>
+
+<div class="container-fluid px-4 py-3">
+    <!-- Header kết hợp tiêu đề + actions -->
+    <div class="kanban-header d-flex flex-wrap justify-content-between align-items-center">
         <div>
-            <h3 class="mb-0"><i class="fas fa-columns text-primary me-2"></i> Bảng công việc (Kanban)</h3>
-            <small class="text-muted">Kéo-thả giữa các cột và sắp xếp thứ tự</small>
+            <h4 class="mb-0 fw-bold" style="color: #0f172a;">
+                <i class="fas fa-columns me-2 text-primary"></i> Kanban Board
+            </h4>
+            <small class="text-muted">Kéo thả công việc giữa các cột hoặc sắp xếp lại cột</small>
         </div>
-        <div>
-            <button class="btn btn-outline-secondary btn-sm me-2" id="btnReset">Reset sample</button>
-            <button class="btn btn-primary btn-sm" id="btnAdd">Thêm task (demo)</button>
+        <div class="mt-2 mt-sm-0">
+            <button class="btn btn-glass me-2" id="btnReset">
+                <i class="fas fa-undo-alt me-1"></i> Reset
+            </button>
+            <button class="btn btn-primary-soft" id="btnAdd">
+                <i class="fas fa-plus me-1"></i> Thêm task demo
+            </button>
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <!-- Board wrapper -->
-            <div id="boardWrapper" class="overflow-auto">
-                <!-- Columns container (sortable by columns) -->
-                <div id="board" class="d-flex align-items-start" style="gap:1rem; min-height:320px;">
+    <!-- Board wrapper với card nền đẹp -->
+    <div class="card board-card">
+        <div class="card-body p-3 p-md-4">
+            <div id="boardWrapper" class="overflow-auto" style="padding-bottom: 8px;">
+                <div id="board" class="d-flex align-items-start" style="gap: 1.25rem; min-height: 380px;">
+                    
                     <!-- Column: Cần làm -->
-                    <div class="column bg-light rounded p-2" style="min-width: 300px; max-width:360px;">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-semibold">
-                                <span class="column-handle me-2" style="cursor:grab">☰</span> Cần làm
+                    <div class="column p-3" style="min-width: 300px; width: 320px;">
+                        <div class="column-header d-flex justify-content-between align-items-center">
+                            <div class="fw-semibold d-flex align-items-center gap-2">
+                                <span class="column-handle"><i class="fas fa-grip-vertical"></i></span>
+                                <span><i class="far fa-circle text-warning me-1"></i> Cần làm</span>
                             </div>
-                            <small class="text-muted count">3</small>
+                            <span class="count-badge count">3</span>
                         </div>
-
                         <div class="task-list" data-list-id="todo">
-                            <div class="card mb-2 task-card" data-task-id="t1">
-                                <div class="card-body p-2">
-                                    <div class="fw-bold">Lập yêu cầu báo cáo</div>
-                                    <div class="small text-muted">Mô tả ngắn</div>
+                            <div class="card task-card" data-task-id="t1">
+                                <div class="card-body">
+                                    <div class="task-title"><i class="fas fa-tag"></i> Lập yêu cầu báo cáo</div>
+                                    <div class="task-desc">Thu thập nhu cầu từ các bên liên quan</div>
                                 </div>
                             </div>
-
-                            <div class="card mb-2 task-card" data-task-id="t2">
-                                <div class="card-body p-2">
-                                    <div class="fw-bold">Thiết kế giao diện</div>
-                                    <div class="small text-muted">Wireframe</div>
+                            <div class="card task-card" data-task-id="t2">
+                                <div class="card-body">
+                                    <div class="task-title"><i class="fas fa-pen-ruler"></i> Thiết kế giao diện</div>
+                                    <div class="task-desc">Wireframe và prototype Figma</div>
                                 </div>
                             </div>
-
-                            <div class="card mb-2 task-card" data-task-id="t3">
-                                <div class="card-body p-2">
-                                    <div class="fw-bold">Chuẩn bị dữ liệu</div>
-                                    <div class="small text-muted">Import CSV</div>
+                            <div class="card task-card" data-task-id="t3">
+                                <div class="card-body">
+                                    <div class="task-title"><i class="fas fa-database"></i> Chuẩn bị dữ liệu</div>
+                                    <div class="task-desc">Import CSV, mapping fields</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Column: Đang làm -->
-                    <div class="column bg-light rounded p-2" style="min-width: 300px; max-width:360px;">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-semibold">
-                                <span class="column-handle me-2" style="cursor:grab">☰</span> Đang làm
+                    <div class="column p-3" style="min-width: 300px; width: 320px;">
+                        <div class="column-header d-flex justify-content-between align-items-center">
+                            <div class="fw-semibold d-flex align-items-center gap-2">
+                                <span class="column-handle"><i class="fas fa-grip-vertical"></i></span>
+                                <span><i class="fas fa-spinner fa-pulse text-info me-1"></i> Đang làm</span>
                             </div>
-                            <small class="text-muted count">1</small>
+                            <span class="count-badge count">1</span>
                         </div>
-
                         <div class="task-list" data-list-id="doing">
-                            <div class="card mb-2 task-card" data-task-id="t4">
-                                <div class="card-body p-2">
-                                    <div class="fw-bold">Xây API</div>
-                                    <div class="small text-muted">Endpoints cơ bản</div>
+                            <div class="card task-card" data-task-id="t4">
+                                <div class="card-body">
+                                    <div class="task-title"><i class="fas fa-code"></i> Xây API</div>
+                                    <div class="task-desc">Endpoints cơ bản + authentication</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Column: Hoàn thành -->
-                    <div class="column bg-light rounded p-2" style="min-width: 300px; max-width:360px;">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <div class="fw-semibold">
-                                <span class="column-handle me-2" style="cursor:grab">☰</span> Hoàn thành
+                    <div class="column p-3" style="min-width: 300px; width: 320px;">
+                        <div class="column-header d-flex justify-content-between align-items-center">
+                            <div class="fw-semibold d-flex align-items-center gap-2">
+                                <span class="column-handle"><i class="fas fa-grip-vertical"></i></span>
+                                <span><i class="fas fa-check-circle text-success me-1"></i> Hoàn thành</span>
                             </div>
-                            <small class="text-muted count">2</small>
+                            <span class="count-badge count">2</span>
                         </div>
-
                         <div class="task-list" data-list-id="done">
-                            <div class="card mb-2 task-card" data-task-id="t5">
-                                <div class="card-body p-2">
-                                    <div class="fw-bold">Tạo repository</div>
-                                    <div class="small text-muted">Init Git</div>
+                            <div class="card task-card" data-task-id="t5">
+                                <div class="card-body">
+                                    <div class="task-title"><i class="fab fa-git-alt"></i> Tạo repository</div>
+                                    <div class="task-desc">Init Git, branch strategy</div>
                                 </div>
                             </div>
-
-                            <div class="card mb-2 task-card" data-task-id="t6">
-                                <div class="card-body p-2">
-                                    <div class="fw-bold">Cấu hình CI</div>
-                                    <div class="small text-muted">Pipeline</div>
+                            <div class="card task-card" data-task-id="t6">
+                                <div class="card-body">
+                                    <div class="task-title"><i class="fas fa-cogs"></i> Cấu hình CI</div>
+                                    <div class="task-desc">Github Actions pipeline</div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                </div> <!-- /board -->
-            </div> <!-- /boardWrapper -->
+                </div> <!-- #board -->
+            </div> <!-- #boardWrapper -->
         </div>
     </div>
 </div>
 
-<!-- Inline CSS for board (you can move to a stylesheet) -->
-<style>
-    .column { flex: 0 0 auto; width: 100%; box-shadow: 0 0 0 rgba(0,0,0,0); }
-    .task-list { min-height: 100px; padding-bottom: 8px; }
-    .task-card { cursor: grab; }
-    .task-card:active { cursor: grabbing; }
-    .column .card { transition: box-shadow .15s ease; }
-    .column .card.dragging { box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-    /* Visual for placeholder during drag (Sortable will use this class) */
-    .sortable-ghost { opacity: 0.6; }
-    .sortable-chosen { background: #fffbe6; }
-
-    /* Small responsive tweak */
-    @@media (max-width: 768px) {
-        #board { gap: .75rem; }
-        .column { min-width: 260px; }
-    }
-</style>
-
-<!-- Font Awesome for icons (optional) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="" crossorigin="anonymous" />
-
-<!-- SortableJS CDN -->
+<!-- SortableJS -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-<!-- Inline JS to enable drag/drop for columns and tasks -->
 <script>
-    (function () {
-        // Initialize column dragging (reorder columns)
-        var boardEl = document.getElementById('board');
-        var columnSortable = new Sortable(boardEl, {
-            animation: 150,
+    (function() {
+        // 1. Cho phép kéo thả cột (theo chiều ngang)
+        const boardEl = document.getElementById('board');
+        const columnSortable = new Sortable(boardEl, {
+            animation: 200,
             handle: '.column-handle',
             draggable: '.column',
-            onEnd: function (evt) {
-                console.log('Column moved:', { from: evt.oldIndex, to: evt.newIndex });
-                // Optionally update server about column order here
+            ghostClass: 'sortable-ghost',
+            onEnd: function(evt) {
+                console.log(`Column moved from ${evt.oldIndex} to ${evt.newIndex}`);
                 updateCounts();
             }
         });
 
-        // Initialize task lists (allow moving between lists)
+        // 2. Khởi tạo Sortable cho các task-list (cho phép kéo thả task giữa các cột)
         function initTaskLists() {
-            var lists = document.querySelectorAll('.task-list');
-            lists.forEach(function (el) {
-                // If already initialized, Skip (Sortable stores a property)
-                if (el._sortable) return;
-
-                var s = new Sortable(el, {
-                    group: 'kanban-tasks',
-                    animation: 150,
-                    draggable: '.task-card',
-                    onStart: function (evt) {
-                        evt.item.classList.add('dragging');
+            const lists = document.querySelectorAll('.task-list');
+            lists.forEach(list => {
+                if (list._sortable) return;
+                const sortable = new Sortable(list, {
+                    group: {
+                        name: 'kanban',
+                        pull: true,
+                        revertClone: false
                     },
-                    onEnd: function (evt) {
+                    animation: 200,
+                    draggable: '.task-card',
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    onEnd: function(evt) {
                         evt.item.classList.remove('dragging');
-                        var fromList = evt.from.getAttribute('data-list-id');
-                        var toList = evt.to.getAttribute('data-list-id');
-                        var taskId = evt.item.getAttribute('data-task-id');
-                        var newIndex = evt.newIndex;
-                        console.log('Task moved:', { taskId: taskId, from: fromList, to: toList, newIndex: newIndex });
-                        // TODO: call server to update this single task:
-                        // fetch('/WorkTask/UpdateTaskPosition', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ taskId: parseInt(taskId), newListId: toList, newPosition: newIndex })});
+                        const fromList = evt.from.getAttribute('data-list-id');
+                        const toList = evt.to.getAttribute('data-list-id');
+                        const taskId = evt.item.getAttribute('data-task-id');
+                        console.log(`Task ${taskId} moved: ${fromList} → ${toList}`);
+                        // Ở đây bạn có thể gọi API cập nhật vị trí mới
                         updateCounts();
                     },
-                    onAdd: function () { updateCounts(); },
-                    onRemove: function () { updateCounts(); }
+                    onStart: function(evt) {
+                        evt.item.classList.add('dragging');
+                    }
                 });
-
-                // mark as inited to avoid duplicate initialization
-                el._sortable = s;
+                list._sortable = sortable;
             });
         }
 
         initTaskLists();
 
-        // Helper: update counters shown in column headers
+        // Cập nhật số lượng task hiển thị trên mỗi cột
         function updateCounts() {
-            document.querySelectorAll('.column').forEach(function (col) {
-                var countEl = col.querySelector('.count');
-                var list = col.querySelector('.task-list');
-                if (countEl && list) {
-                    countEl.textContent = list.querySelectorAll('.task-card').length;
+            document.querySelectorAll('.column').forEach(col => {
+                const countSpan = col.querySelector('.count');
+                const taskList = col.querySelector('.task-list');
+                if (countSpan && taskList) {
+                    const totalTasks = taskList.querySelectorAll('.task-card').length;
+                    countSpan.innerText = totalTasks;
                 }
             });
         }
 
-        // Demo helpers
-        document.getElementById('btnAdd').addEventListener('click', function () {
-            // add a new task to the first column (todo)
-            var firstList = document.querySelector('.task-list[data-list-id="todo"]');
-            if (!firstList) return;
-            var id = 't' + Math.floor(Math.random() * 10000);
-            var card = document.createElement('div');
-            card.className = 'card mb-2 task-card';
-            card.setAttribute('data-task-id', id);
-            card.innerHTML = '<div class=\"card-body p-2\"><div class=\"fw-bold\">Task mới ('+id+')</div><div class=\"small text-muted\">Demo</div></div>';
-            firstList.appendChild(card);
-            // re-init lists in case new nodes added
-            initTaskLists();
-            updateCounts();
-        });
+        // Xử lý nút Thêm task demo
+        const btnAdd = document.getElementById('btnAdd');
+        if (btnAdd) {
+            btnAdd.addEventListener('click', () => {
+                const firstList = document.querySelector('.task-list[data-list-id="todo"]');
+                if (!firstList) return;
+                const newId = 't' + Date.now() + Math.floor(Math.random() * 1000);
+                const newCard = document.createElement('div');
+                newCard.className = 'card task-card';
+                newCard.setAttribute('data-task-id', newId);
+                newCard.innerHTML = `
+                    <div class="card-body">
+                        <div class="task-title"><i class="fas fa-plus-circle"></i> Task mới (${newId.slice(-4)})</div>
+                        <div class="task-desc">Demo - kéo thả để sắp xếp</div>
+                    </div>
+                `;
+                firstList.appendChild(newCard);
+                initTaskLists();  // đảm bảo task mới có thể kéo thả
+                updateCounts();
+            });
+        }
 
-        document.getElementById('btnReset').addEventListener('click', function () {
-            location.reload();
-        });
+        // Reset về trạng thái ban đầu (reload trang)
+        const btnReset = document.getElementById('btnReset');
+        if (btnReset) {
+            btnReset.addEventListener('click', () => location.reload());
+        }
 
-        // initial counts
+        // Khởi tạo số lượng ban đầu
         updateCounts();
     })();
 </script>
