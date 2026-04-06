@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
 
 namespace DACS_TimeManagement.Controllers
 {
@@ -11,8 +12,24 @@ namespace DACS_TimeManagement.Controllers
     public class ProjectController : Controller
     {
         private readonly IProjectRepository _projectRepo;
+        private readonly DACS_TimeManagement.Services.ICryptoService _crypto;
+        private readonly Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> _userManager;
+        private readonly ApplicationDbContext _context;
+        private readonly Microsoft.AspNetCore.SignalR.IHubContext<DACS_TimeManagement.Hubs.NotificationHub> _hubContext;
 
-        public ProjectController(IProjectRepository projectRepo) => _projectRepo = projectRepo;
+        public ProjectController(
+            IProjectRepository projectRepo, 
+            DACS_TimeManagement.Services.ICryptoService crypto,
+            Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> userManager,
+            ApplicationDbContext context,
+            Microsoft.AspNetCore.SignalR.IHubContext<DACS_TimeManagement.Hubs.NotificationHub> hubContext)
+        {
+            _projectRepo = projectRepo;
+            _crypto = crypto;
+            _userManager = userManager;
+            _context = context;
+            _hubContext = hubContext;
+        }
 
         public async Task<IActionResult> Index()
         {
@@ -38,6 +55,15 @@ namespace DACS_TimeManagement.Controllers
             {
                 project.UserId = userId;
                 project.CreatedDate = DateTime.Now;
+
+                // Tự động tạo 3 cột cơ bản cho Kanban Board
+                project.BoardLists = new List<BoardList>
+                {
+                    new BoardList { Name = "To Do", Position = 0 },
+                    new BoardList { Name = "Doing", Position = 1 },
+                    new BoardList { Name = "Done", Position = 2 }
+                };
+
                 await _projectRepo.AddAsync(project);
                 await _projectRepo.SaveAsync();
                 return RedirectToAction(nameof(Index));
@@ -48,10 +74,70 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
-            var projects = await _projectRepo.FindAsync(p => p.Id == id && p.UserId == userId, p => p.Tasks);
+            
+            // Lấy Project kèm theo Tasks và BoardLists
+            var projects = await _projectRepo.FindAsync(
+                p => p.Id == id && p.UserId == userId, 
+                p => p.Tasks, 
+                p => p.BoardLists);
+            
             var project = projects.FirstOrDefault();
             
+            // Nếu không tìm thấy bằng UserId với quyền Owner, thử tìm với quyền Member
+            if (project == null)
+            {
+                var targetProject = await _context.Projects
+                    .Include(p => p.Tasks)
+                    .Include(p => p.BoardLists)
+                    .FirstOrDefaultAsync(p => p.Id == id);
+                if (targetProject != null)
+                {
+                    var isMember = await _context.ProjectMembers.AnyAsync(pm => pm.ProjectId == id && pm.UserId == userId);
+                    if (isMember) project = targetProject;
+                }
+            }
+
             if (project == null) return NotFound();
+
+            // Load danh sách Members để mang ra View
+            ViewBag.Members = await _context.ProjectMembers
+                 .Where(pm => pm.ProjectId == id)
+                 .ToListAsync();
+
+            // Nếu dự án cũ chưa có cột nào, tự động tạo 3 cột cơ bản
+            if (project.BoardLists == null || !project.BoardLists.Any())
+            {
+                var newBoards = new List<BoardList>
+                {
+                    new BoardList { Name = "To Do", Position = 0, ProjectId = project.Id },
+                    new BoardList { Name = "Doing", Position = 1, ProjectId = project.Id },
+                    new BoardList { Name = "Done", Position = 2, ProjectId = project.Id }
+                };
+                
+                project.BoardLists = newBoards;
+                _projectRepo.Update(project);
+                await _projectRepo.SaveAsync();
+            }
+
+            // Giải mã data cho hiển thị Kanban
+            if (project.Tasks != null)
+            {
+                foreach(var task in project.Tasks)
+                {
+                    if (task.IsPrivate && !string.IsNullOrEmpty(task.Description))
+                    {
+                        if (userId == task.UserId || userId == task.AssigneeId)
+                        {
+                            task.Description = _crypto.Decrypt(task.Description);
+                        }
+                        else
+                        {
+                            task.Description = "Mô tả công việc này đã được bảo mật (Private).";
+                        }
+                    }
+                }
+            }
+
             return View(project);
         }
 
@@ -102,6 +188,62 @@ namespace DACS_TimeManagement.Controllers
                 await _projectRepo.SaveAsync();
             }
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddMember(int projectId, string email)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            // 1. Kiểm tra Project có thuộc quyền sở hữu của người dùng hiện tại không
+            var project = await _projectRepo.GetByIdAsync(projectId, currentUserId ?? "");
+            if (project == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy dự án hoặc bạn không có quyền thêm thành viên.";
+                return RedirectToAction(nameof(Details), new { id = projectId });
+            }
+
+            // 2. Kiểm tra Email có tồn tại trên hệ thống không
+            var targetUser = await _userManager.FindByEmailAsync(email);
+            if (targetUser == null)
+            {
+                TempData["ErrorMessage"] = $"Không tìm thấy người dùng với email: {email}";
+                return RedirectToAction(nameof(Details), new { id = projectId });
+            }
+
+            if (targetUser.Id == currentUserId)
+            {
+                TempData["ErrorMessage"] = "Bạn không thể mời chính mình.";
+                return RedirectToAction(nameof(Details), new { id = projectId });
+            }
+
+            // 3. Kiểm tra xem người này đã là member chưa
+            var isAlreadyMember = await _context.ProjectMembers.AnyAsync(pm => pm.ProjectId == projectId && pm.UserId == targetUser.Id);
+            if (isAlreadyMember)
+            {
+                TempData["ErrorMessage"] = "Người dùng này đã nằm trong dự án.";
+                return RedirectToAction(nameof(Details), new { id = projectId });
+            }
+
+            // 4. Thêm Member
+            var newMember = new ProjectMember
+            {
+                ProjectId = projectId,
+                UserId = targetUser.Id,
+                Role = "Member",
+                JoinedDate = DateTime.Now
+            };
+
+            _context.ProjectMembers.Add(newMember);
+            await _context.SaveChangesAsync();
+
+            // 5. Bắn thông báo Realtime SignalR cho người vừa được Invite
+            await _hubContext.Clients.User(targetUser.Id)
+                .SendAsync("ReceiveNotification", $"Bạn vừa được thêm vào dự án: {project.Name}!", "System");
+
+            TempData["SuccessMessage"] = $"Đã mời {email} tham gia dự án thành công!";
+            return RedirectToAction(nameof(Details), new { id = projectId });
         }
     }
 }

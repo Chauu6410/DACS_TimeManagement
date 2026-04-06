@@ -1,10 +1,14 @@
 using DACS_TimeManagement.Models;
 using DACS_TimeManagement.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using DACS_TimeManagement.Hubs;
+using DACS_TimeManagement.Services;
 
 namespace DACS_TimeManagement.Controllers
 {
@@ -13,11 +17,15 @@ namespace DACS_TimeManagement.Controllers
     {
         private readonly IWorkTaskRepository _taskRepo;
         private readonly IProjectRepository _projectRepo;
+        private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly ICryptoService _crypto;
 
-        public WorkTaskController(IWorkTaskRepository taskRepo, IProjectRepository projectRepo)
+        public WorkTaskController(IWorkTaskRepository taskRepo, IProjectRepository projectRepo, IHubContext<NotificationHub> hubContext, ICryptoService crypto)
         {
             _taskRepo = taskRepo;
             _projectRepo = projectRepo;
+            _hubContext = hubContext;
+            _crypto = crypto;
         }
 
         public async Task<IActionResult> Index()
@@ -41,6 +49,7 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Create(WorkTask task)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
 
             // Xóa validate UserId do trường này không nằm trên Form (sẽ gán thủ công ở dưới)
             ModelState.Remove("UserId");
@@ -55,8 +64,28 @@ namespace DACS_TimeManagement.Controllers
             if (ModelState.IsValid)
             {
                 task.UserId = userId;
+                
+                // Mã hoá Description nếu đánh dấu là Private
+                if (task.IsPrivate && !string.IsNullOrEmpty(task.Description))
+                {
+                    task.Description = _crypto.Encrypt(task.Description);
+                }
+
+                // Set default Assignee to creator if none provided initially for demonstration (or keep null)
+                if (string.IsNullOrEmpty(task.AssigneeId)) {
+                    task.AssigneeId = userId;
+                }
+
                 await _taskRepo.AddAsync(task);
                 await _taskRepo.SaveAsync();
+
+                // --> TRIGGER SIGNAL-R REAL-TIME NOTIFICATION CHO ASSIGNEE <--
+                if (!string.IsNullOrEmpty(task.AssigneeId) && task.AssigneeId != userId)
+                {
+                    await _hubContext.Clients.User(task.AssigneeId)
+                        .SendAsync("ReceiveNotification", "Bạn vừa được giao một việc mới!", task.Title);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
             var projects = await _projectRepo.GetAllAsync(userId);
@@ -168,11 +197,25 @@ namespace DACS_TimeManagement.Controllers
                 t => t.Project,
                 t => t.TimeLogs);
             var task = tasks.FirstOrDefault();
-
+            
             if (task == null)
             {
                 return NotFound();
             }
+
+            // Giải mã nếu private (và nếu người dùng là Owner hoặc Assignee)
+            if (task.IsPrivate && !string.IsNullOrEmpty(task.Description))
+            {
+                if (userId == task.UserId || userId == task.AssigneeId)
+                {
+                    task.Description = _crypto.Decrypt(task.Description);
+                }
+                else
+                {
+                    task.Description = "Mô tả công việc này đã được bảo mật (Private).";
+                }
+            }
+
             return View(task);
         }
 
@@ -185,6 +228,20 @@ namespace DACS_TimeManagement.Controllers
             if (task == null)
             {
                 return NotFound();
+            }
+
+            // Phải giải mã nó ra thì lên form người dùng mới đọc đc và sửa lại đc
+            if (task.IsPrivate && !string.IsNullOrEmpty(task.Description))
+            {
+                // Chỉ người tạo hoặc assignee mới đc sửa đúng data
+                if (userId == task.UserId || userId == task.AssigneeId)
+                {
+                    task.Description = _crypto.Decrypt(task.Description);
+                }
+                else
+                {
+                    task.Description = ""; // Ko cho mk edit content của ng khác
+                }
             }
 
             var projects = await _projectRepo.GetAllAsync(userId);
@@ -216,10 +273,23 @@ namespace DACS_TimeManagement.Controllers
             {
                 try
                 {
+                    // Mã hóa lại trước khi cập nhật
+                    if (taskForm.IsPrivate && !string.IsNullOrEmpty(taskForm.Description))
+                    {
+                        taskForm.Description = _crypto.Encrypt(taskForm.Description);
+                    }
+
                     var success = await _taskRepo.UpdateTaskDetailsAsync(id, userId, taskForm);
                     if (!success)
                     {
                         return NotFound();
+                    }
+
+                    // BẮN THÔNG BÁO SIGNALR NẾU ASSIGNEE KHÁC NGƯỜI SỬA
+                    if (!string.IsNullOrEmpty(taskForm.AssigneeId) && taskForm.AssigneeId != userId)
+                    {
+                        await _hubContext.Clients.User(taskForm.AssigneeId)
+                            .SendAsync("ReceiveNotification", "Một thẻ công việc của bạn vừa được cập nhật!", taskForm.Title);
                     }
 
                     TempData["SuccessMessage"] = "Cập nhật nhiệm vụ thành công!";

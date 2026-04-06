@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace DACS_TimeManagement.Models
 {
@@ -15,6 +15,9 @@ namespace DACS_TimeManagement.Models
 
         // Board lists (columns) for this project (e.g., To Do, Doing, Done)
         public ICollection<BoardList> BoardLists { get; set; } = new List<BoardList>();
+
+        // Danh sách thành viên trong dự án
+        public ICollection<ProjectMember> Members { get; set; } = new List<ProjectMember>();
     }
 }
 

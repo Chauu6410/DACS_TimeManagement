@@ -748,6 +748,72 @@
             dragHandle.addEventListener('mousedown', onMouseDown);
             updateUI();
         })();
+    <!-- Thêm Notification Toast UI cho SignalR -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+        <div id="realtimeToast" class="toast bg-white shadow border-0 rounded-4" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header border-0 bg-primary text-white rounded-top-4">
+                <i class="fas fa-bell me-2"></i>
+                <strong class="me-auto">New Assignment</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body p-3">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary-subtle text-primary rounded-circle p-2 me-3 fs-4">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div>
+                        <p class="mb-0 text-dark fw-bold" id="toastMessage">You have been assigned a new task!</p>
+                        <small class="text-muted" id="toastDetail">Check your workspace.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tích hợp SignalR Client JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Khởi tạo kết nối tới Hub
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/notificationHub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            // Nhận tin nhắn thông báo dạng "ReceiveNotification" từ Server
+            connection.on("ReceiveNotification", function (message, taskTitle) {
+                console.log("Realtime notification received!", message, taskTitle);
+                
+                // Cập nhật nội dung toast
+                document.getElementById("toastMessage").innerText = message;
+                if(taskTitle) document.getElementById("toastDetail").innerText = `Task: ${taskTitle}`;
+                
+                // Tăng số thông báo chưa đọc trên quả chuông
+                const badge = document.getElementById("notifBadge");
+                if (badge) {
+                     let count = parseInt(badge.innerText) || 0;
+                     badge.innerText = count + 1;
+                     badge.style.display = "inline";
+                }
+
+                // Hiển thị Toast (dùng Bootstrap)
+                const toastEl = document.getElementById("realtimeToast");
+                const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                toast.show();
+                
+                // Kích âm thanh/rung nếu có
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            });
+
+            // Bắt đầu kết nối
+            connection.start()
+                .then(function () {
+                    console.log("Connected to Realtime Notification Hub.");
+                })
+                .catch(function (err) {
+                    return console.error("SignalR Connection Error: ", err.toString());
+                });
+        });
     </script>
 </body>
 </html>

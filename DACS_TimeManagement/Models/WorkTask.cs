@@ -38,7 +38,12 @@ namespace DACS_TimeManagement.Models
         public int? BoardListId { get; set; }
         public BoardList? BoardList { get; set; }
 
-        public string? UserId { get; set; }
+        public string? UserId { get; set; } // Người tạo task
+
+        // Người được giao việc (Assignee)
+        public string? AssigneeId { get; set; }
+
+        public bool IsPrivate { get; set; } = false; // Đánh dấu thẻ là riêng tư
 
         public ICollection<TimeLog> TimeLogs { get; set; } = new List<TimeLog>();
     }

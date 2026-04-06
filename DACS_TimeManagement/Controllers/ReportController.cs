@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
+using ClosedXML.Excel;
+using System.IO;
 
 namespace DACS_TimeManagement.Controllers
 {
@@ -90,6 +92,65 @@ namespace DACS_TimeManagement.Controllers
 
             var projectList = projects.ToList();
             return View(projectList);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportToExcel()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            // Lấy toàn bộ Tasks của users
+            var tasks = await _taskRepo.GetAllAsync(userId);
+            
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("User Tasks Report");
+
+                // Tạo Header
+                var currentRow = 1;
+                worksheet.Cell(currentRow, 1).Value = "Task ID";
+                worksheet.Cell(currentRow, 2).Value = "Title";
+                worksheet.Cell(currentRow, 3).Value = "Status";
+                worksheet.Cell(currentRow, 4).Value = "Priority";
+                worksheet.Cell(currentRow, 5).Value = "Start Date";
+                worksheet.Cell(currentRow, 6).Value = "End Date";
+                worksheet.Cell(currentRow, 7).Value = "Assignee Info";
+
+                // Format Header
+                var headerRange = worksheet.Range("A1:G1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.AirForceBlue;
+                headerRange.Style.Font.FontColor = XLColor.White;
+
+                // Thêm dữ liệu
+                foreach (var task in tasks.OrderByDescending(t => t.Id))
+                {
+                    currentRow++;
+                    worksheet.Cell(currentRow, 1).Value = task.Id;
+                    worksheet.Cell(currentRow, 2).Value = task.Title;
+                    worksheet.Cell(currentRow, 3).Value = task.Status.ToString();
+                    worksheet.Cell(currentRow, 4).Value = task.Priority.ToString();
+                    
+                    // StartDate/EndDate là public DateTime không nullable nên gọi ToString() trực tiếp
+                    worksheet.Cell(currentRow, 5).Value = task.StartDate.ToString("yyyy-MM-dd HH:mm");
+                    worksheet.Cell(currentRow, 6).Value = task.EndDate.ToString("yyyy-MM-dd HH:mm");
+                    
+                    // Hiện người được phân công (nếu có id)
+                    worksheet.Cell(currentRow, 7).Value = string.IsNullOrEmpty(task.AssigneeId) ? "Unassigned" : "Assigned";
+                }
+
+                // Tự canh chỉnh độ rộng cột
+                worksheet.Columns().AdjustToContents();
+
+                // Trả về file Excel dạng stream
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"TimeMaster_Report_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+                }
+            }
         }
     }
 }

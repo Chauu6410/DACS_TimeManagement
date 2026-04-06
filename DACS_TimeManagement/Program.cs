@@ -2,12 +2,15 @@ using DACS_TimeManagement.Models;
 using DACS_TimeManagement.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using DACS_TimeManagement.Data;
+using DACS_TimeManagement.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR(); // Đăng ký SignalR
 
 // Add the database context to the services container
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -30,6 +33,7 @@ builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<ICalendarRepository, CalendarRepository>();
 builder.Services.AddScoped<IGoalRepository, GoalRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddSingleton<ICryptoService, CryptoService>();
 
 var app = builder.Build();
 
@@ -52,6 +56,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapHub<DACS_TimeManagement.Hubs.NotificationHub>("/notificationHub");
 
 app.MapRazorPages();
 

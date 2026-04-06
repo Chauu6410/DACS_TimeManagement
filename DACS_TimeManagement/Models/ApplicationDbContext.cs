@@ -22,6 +22,7 @@ namespace DACS_TimeManagement.Models
         public DbSet<SharedEvent> SharedEvents { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<BoardList> BoardLists { get; set; }
+        public DbSet<ProjectMember> ProjectMembers { get; set; }
 
         // Cấu hình quan hệ và ràng buộc dữ liệu
         protected override void OnModelCreating(ModelBuilder builder)
@@ -62,6 +63,13 @@ namespace DACS_TimeManagement.Models
                 .WithMany(b => b.WorkTasks)
                 .HasForeignKey(t => t.BoardListId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // 6. Cấu hình Quan hệ Project - ProjectMember (1 - n)
+            builder.Entity<ProjectMember>()
+                .HasOne(pm => pm.Project)
+                .WithMany(p => p.Members)
+                .HasForeignKey(pm => pm.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade); // Xóa dự án thì xóa thành viên
 
             // Cấu hình thêm cho Priority và Status (Lưu dưới dạng String trong DB cho dễ đọc)
             builder.Entity<WorkTask>()

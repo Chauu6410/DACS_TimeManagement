@@ -5,9 +5,15 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h3 fw-bold text-dark"><i class="fas fa-chart-pie text-primary me-2"></i>Time Usage Analytics</h2>
-    <button class="btn btn-outline-primary shadow-sm px-4 fw-bold" onclick="window.print()">
-        <i class="fas fa-file-export me-2"></i>Export Report
-    </button>
+    <div class="dropdown">
+        <button class="btn btn-outline-primary shadow-sm px-4 fw-bold dropdown-toggle" type="button" id="exportMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-file-export me-2"></i>Export Report
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="exportMenuButton">
+            <li><a class="dropdown-item" href="#" onclick="window.print()"><i class="fas fa-print text-muted me-2"></i>Print / PDF</a></li>
+            <li><a class="dropdown-item text-success fw-bold" asp-controller="Report" asp-action="ExportToExcel"><i class="fas fa-file-excel me-2"></i>Download Excel</a></li>
+        </ul>
+    </div>
 </div>
 
 <!-- Overview Stats Cards -->
