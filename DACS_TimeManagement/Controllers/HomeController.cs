@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace DACS_TimeManagement.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

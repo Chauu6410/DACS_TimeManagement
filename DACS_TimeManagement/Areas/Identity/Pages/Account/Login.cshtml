@@ -3,461 +3,231 @@
 
 @{
     ViewData["Title"] = "Log in";
-    Layout = null;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TimeMaster - Premium Login</title>
-    
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    
-    <style>
-        :root {
-            --primary: #4361ee;
-            --primary-hover: #3a0ca3;
-            --accent: #f72585;
-            --accent-light: #4cc9f0;
-            --bg-dark: #0b0f19;
-            --text-dark: #1e293b;
-            --text-muted: #64748b;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #ffffff;
-            height: 100vh;
-            overflow: hidden;
-            color: var(--text-dark);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        h1, h2, h3, h4, .brand-logo {
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .split-layout {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-        }
-
-        /* ---------------- LEFT PANEL (BRANDING) ---------------- */
-        .brand-panel {
-            flex: 1;
-            background-color: var(--bg-dark);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Abstract glowing orbs */
-        .orb-1, .orb-2, .orb-3 {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.5;
-            z-index: 1;
-        }
-        .orb-1 {
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
-            top: -100px; left: -100px;
-            animation: float 12s infinite ease-in-out alternate;
-        }
-        .orb-2 {
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
-            bottom: -150px; right: 0;
-            animation: float 15s infinite ease-in-out alternate-reverse;
-        }
-        .orb-3 {
-            width: 450px; height: 450px;
-            background: radial-gradient(circle, var(--accent-light) 0%, transparent 70%);
-            top: 40%; left: 30%;
-            animation: float 18s infinite ease-in-out alternate;
-            opacity: 0.3;
-        }
-
-        @@keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(-30px, 40px) scale(1.1); }
-        }
-
-        .brand-content {
-            z-index: 10;
-            max-width: 550px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 32px;
-            padding: 3.5rem;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
-            color: white;
-            animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        .brand-logo {
-            font-size: 2rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 2.5rem;
-            letter-spacing: -0.5px;
-        }
-
-        .brand-logo i {
-            color: var(--accent-light);
-            font-size: 2.2rem;
-            background: -webkit-linear-gradient(45deg, var(--accent-light), var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .brand-title {
-            font-size: 3.25rem;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 1.25rem;
-            letter-spacing: -1px;
-            background: linear-gradient(to right, #ffffff, #e2e8f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .brand-subtitle {
-            font-size: 1.15rem;
-            color: #cbd5e1;
-            line-height: 1.6;
-            margin-bottom: 0;
-            font-weight: 400;
-        }
-
-        /* ---------------- RIGHT PANEL (FORM) ---------------- */
-        .form-panel {
-            width: 550px;
-            background-color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 4rem;
-            z-index: 10;
-            position: relative;
-        }
-
-        .form-wrapper {
-            max-width: 420px;
-            width: 100%;
-            margin: 0 auto;
-            animation: fadeIn 0.8s ease-out 0.2s forwards;
-            opacity: 0;
-        }
-
-        @@keyframes fadeUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @@keyframes fadeIn {
-            to { opacity: 1; }
-        }
-
-        .form-header {
-            margin-bottom: 2.5rem;
-        }
-
-        .form-header h2 {
-            font-size: 2.25rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
-            letter-spacing: -0.5px;
-        }
-
-        .form-header p {
-            color: var(--text-muted);
-            font-size: 1.05rem;
-        }
-
-        /* Inputs */
-        .form-floating {
-            margin-bottom: 1.25rem;
-        }
-        
-        .form-control {
-            background-color: #f8fafc;
-            border: 2px solid transparent;
-            border-radius: 16px;
-            padding: 1.1rem;
-            height: auto;
-            font-size: 1rem;
-            color: var(--text-dark);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .form-control:focus {
-            background-color: #ffffff;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
-        }
-
-        .form-control::placeholder { color: transparent; }
-
-        .form-floating > label {
-            padding: 1.1rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .form-floating > .form-control:focus ~ label,
-        .form-floating > .form-control:not(:placeholder-shown) ~ label {
-            color: var(--primary);
-            transform: scale(0.85) translateY(-0.75rem) translateX(0.15rem);
-        }
-
-        /* Checkbox & Links */
-        .form-options {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            font-size: 0.95rem;
-            font-weight: 500;
-        }
-
-        .form-check-input {
-            width: 1.25em;
-            height: 1.25em;
-            cursor: pointer;
-            accent-color: var(--primary);
-            border-color: #cbd5e1;
-            margin-top: 0.15em;
-        }
-
-        .form-options a {
-            color: var(--primary);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .form-options a:hover {
-            color: var(--primary-hover);
-            text-decoration: underline;
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-            border: none;
-            border-radius: 16px;
-            padding: 1.1rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            width: 100%;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 20px rgba(67, 97, 238, 0.25);
-            margin-bottom: 2rem;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 25px rgba(67, 97, 238, 0.35);
-        }
-        
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        /* External Logins */
-        .divider {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            color: #94a3b8;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .divider:not(:empty)::before { margin-right: .75em; }
-        .divider:not(:empty)::after { margin-left: .75em; }
-
-        .btn-external {
-            background-color: #ffffff;
-            border: 2px solid #e2e8f0;
-            color: var(--text-dark);
-            border-radius: 16px;
-            padding: 0.9rem;
-            font-weight: 600;
-            font-size: 1rem;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: all 0.3s ease;
-            margin-bottom: 1rem;
-        }
-
-        .btn-external:hover {
-            background-color: #f8fafc;
-            border-color: #cbd5e1;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-
-        .register-prompt {
-            text-align: center;
-            margin-top: 1rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .register-prompt a {
-            color: var(--primary);
-            font-weight: 700;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .register-prompt a:hover {
-            color: var(--primary-hover);
-        }
-        
-        /* Validation */
-        .validation-summary-errors {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            color: #dc2626;
-            font-weight: 500;
-        }
-        .validation-summary-errors ul { margin: 0; padding-left: 1.5rem; }
-
-        .text-danger {
-            color: #dc2626 !important;
-            font-weight: 500;
-        }
-
-        /* Responsive */
-        @@media (max-width: 992px) {
-            .brand-panel { display: none; }
-            .form-panel { width: 100vw; padding: 2rem; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="split-layout">
-        <!-- Premium Brand Panel (Left) -->
-        <div class="brand-panel">
-            <div class="orb-1"></div>
-            <div class="orb-2"></div>
-            <div class="orb-3"></div>
-            
-            <div class="brand-content">
-                <div class="brand-logo">
-                    <i class="fas fa-clock"></i> TimeMaster
-                </div>
-                <h1 class="brand-title">Master your time.<br/>Achieve greatness.</h1>
-                <p class="brand-subtitle">
-                    Experience the ultimate professional dashboard. Plan your schedule, collaborate securely, and unlock your team's true potential.
-                </p>
-            </div>
-            
-            <div style="position: absolute; bottom: 2rem; left: 4rem; opacity: 0.5; color: white; font-size: 0.9rem; font-weight: 500;">
-                &copy; @DateTime.Now.Year TimeMaster Inc.
-            </div>
-        </div>
-
-        <!-- Form Panel (Right) -->
-        <div class="form-panel">
-            <div class="form-wrapper">
-                <div class="form-header">
-                    <h2>Welcome Back</h2>
-                    <p>Enter your credentials to access your workspace.</p>
+<div class="login-container" data-aos="fade-up">
+    <div class="row justify-content-center">
+        <!-- 👇 ĐÃ CHỈNH: col rộng hơn -->
+        <div class="col-12 col-sm-10 col-md-8 col-lg-7 col-xl-6">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
+                <!-- Header Gradient -->
+                <div class="card-header bg-gradient-pastel-primary text-white border-0 py-4 text-center">
+                    <div class="icon-circle bg-white bg-opacity-20 mx-auto mb-3">
+                        <i class="fas fa-sign-in-alt fa-2x"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">Welcome Back</h3>
+                    <p class="opacity-75 small mb-0">Log in to your account</p>
                 </div>
 
-                <form id="account" method="post">
-                    @Html.AntiForgeryToken()
-                    <div asp-validation-summary="ModelOnly" class="validation-summary-errors" role="alert"></div>
-                    
-                    <div class="form-floating mb-3">
-                        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                        <label asp-for="Input.Email" class="form-label">Email Address</label>
-                        <span asp-validation-for="Input.Email" class="text-danger small mt-1 d-block"></span>
-                    </div>
+                <!-- Form Body -->
+                <div class="card-body p-4 p-lg-5">
+                    <form id="account" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-pastel-danger rounded-3 border-0" role="alert"></div>
 
-                    <div class="form-floating mb-4">
-                        <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                        <label asp-for="Input.Password" class="form-label">Password</label>
-                        <span asp-validation-for="Input.Password" class="text-danger small mt-1 d-block"></span>
-                    </div>
+                        <div class="mb-4">
+                            <label asp-for="Input.Email" class="form-label fw-semibold">
+                                <i class="fas fa-envelope text-pastel-primary me-1"></i> Email Address
+                            </label>
+                            <input asp-for="Input.Email" class="form-control form-control-lg rounded-3" 
+                                   autocomplete="username" aria-required="true" 
+                                   placeholder="name@example.com" />
+                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                        </div>
 
-                    <div class="form-options">
-                        <div class="form-check">
-                            <input class="form-check-input" asp-for="Input.RememberMe" />
-                            <label class="form-check-label text-muted" style="cursor: pointer;" asp-for="Input.RememberMe">
-                                @Html.DisplayNameFor(m => m.Input.RememberMe)
+                        <div class="mb-4">
+                            <label asp-for="Input.Password" class="form-label fw-semibold">
+                                <i class="fas fa-lock text-pastel-primary me-1"></i> Password
+                            </label>
+                            <input asp-for="Input.Password" type="password" class="form-control form-control-lg rounded-3" 
+                                   autocomplete="current-password" aria-required="true" 
+                                   placeholder="Enter your password" />
+                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" asp-for="Input.RememberMe" id="rememberSwitch">
+                            <label class="form-check-label" for="rememberSwitch">
+                                <i class="fas fa-check-circle me-1"></i> Remember me
                             </label>
                         </div>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot password?</a>
-                    </div>
 
-                    <button id="login-submit" type="submit" class="btn btn-primary">
-                        Sign In to Workspace
-                    </button>
-                    
-                    <div class="register-prompt">
-                        Don't have an account? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Create one now</a>
-                    </div>
-                </form>
+                        <button id="login-submit" type="submit" class="btn btn-pastel-primary w-100 rounded-pill py-2 fw-semibold shadow-sm">
+                            <i class="fas fa-arrow-right-to-bracket me-2"></i>Log in
+                        </button>
 
-                <div class="mt-4 pt-2">
-                    @{
-                        if ((Model.ExternalLogins?.Count ?? 0) > 0)
-                        {
-                            <div class="divider">Or continue with</div>
-                            <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn-external" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
-                                        <i class="fab fa-@provider.Name.ToLower() fs-5 text-primary"></i> Continue with @provider.DisplayName
-                                    </button>
-                                }
-                            </form>
-                        }
-                    }
+                        <div class="text-center mt-4">
+                            <a id="forgot-password" asp-page="./ForgotPassword" class="text-pastel-primary small">
+                                Forgot your password?
+                            </a>
+                            <span class="text-pastel-muted mx-2">•</span>
+                            <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-pastel-primary small">
+                                Create new account
+                            </a>
+                            <div class="mt-2">
+                                <a id="resend-confirmation" asp-page="./ResendEmailConfirmation" class="text-pastel-muted small">
+                                    Resend email confirmation
+                                </a>
+                            </div>
+                        </div>
+                    </form>
                 </div>
+
+                <!-- External Logins -->
+                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                {
+                    <div class="card-footer bg-transparent border-top p-4">
+                        <div class="text-center mb-3">
+                            <span class="text-pastel-muted small">Or continue with</span>
+                        </div>
+                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="d-flex gap-2 justify-content-center flex-wrap">
+                            @foreach (var provider in Model.ExternalLogins!)
+                            {
+                                <button type="submit" class="btn btn-outline-pastel rounded-pill px-3" name="provider" value="@provider.Name" 
+                                        title="Log in using your @provider.DisplayName account">
+                                    <i class="fab fa-@provider.Name.ToLower() me-1"></i> @provider.DisplayName
+                                </button>
+                            }
+                        </form>
+                    </div>
+                }
             </div>
         </div>
     </div>
+</div>
 
-    @section Scripts {
-        <partial name="_ValidationScriptsPartial" />
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+    /* Login page - kích thước chuẩn */
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+        padding: 1rem;
     }
-</body>
-</html>
+
+    body.theme-dark .login-container {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    }
+
+    .bg-gradient-pastel-primary {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+    }
+
+    .icon-circle {
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+    }
+
+    .form-control {
+        border: 1px solid #cbd5e1;
+        background-color: #ffffff;
+        color: #1e293b;
+        transition: all 0.2s ease;
+        padding: 0.7rem 1rem;
+    }
+    .form-control:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+        outline: none;
+    }
+    .form-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #475569;
+        font-weight: 600;
+    }
+    .form-check-input:checked {
+        background-color: #4f46e5;
+        border-color: #4f46e5;
+    }
+
+    .btn-pastel-primary {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    .btn-pastel-primary:hover {
+        background: #4338ca;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+    }
+    .btn-outline-pastel {
+        border: 1px solid #4f46e5;
+        color: #4f46e5;
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .btn-outline-pastel:hover {
+        background: #4f46e5;
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .alert-pastel-danger {
+        background: #fee2e2;
+        border-left: 4px solid #ef4444;
+        color: #991b1b;
+    }
+    body.theme-dark .alert-pastel-danger {
+        background: #7f1d1d;
+        color: #fecaca;
+        border-left-color: #f87171;
+    }
+
+    .text-pastel-primary {
+        color: #4f46e5;
+    }
+    .text-pastel-muted {
+        color: #64748b;
+    }
+    a.text-pastel-primary:hover {
+        color: #4338ca;
+    }
+
+    body.theme-dark .form-control {
+        background-color: #1e293b;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+    body.theme-dark .form-label {
+        color: #94a3b8;
+    }
+    body.theme-dark .text-pastel-muted {
+        color: #94a3b8;
+    }
+    body.theme-dark .btn-outline-pastel {
+        border-color: #818cf8;
+        color: #a5b4fc;
+    }
+    body.theme-dark .btn-outline-pastel:hover {
+        background: #818cf8;
+        color: #1e293b;
+    }
+
+    @@media (max-width: 768px) {
+        .card-body {
+            padding: 1.5rem !important;
+        }
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+        }
+        .btn {
+            font-size: 0.9rem;
+        }
+    }
+</style>

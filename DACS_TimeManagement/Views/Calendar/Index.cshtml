@@ -4,20 +4,26 @@
 }
 
 <div class="calendar-container" data-aos="fade-up">
-    <!-- Header Pastel -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center gap-3">
-            <div class="icon-circle bg-pastel-primary-soft">
-                <i class="fas fa-calendar-alt text-pastel-primary fs-4"></i>
-            </div>
-            <div>
-                <h1 class="display-6 fw-bold text-gradient-pastel mb-0">Schedule Calendar</h1>
-                <p class="text-pastel-muted small mb-0">Manage your events and appointments</p>
+    <!-- Header -->
+    <div class="welcome-card card border-0 shadow-xl rounded-4 overflow-hidden mb-4">
+        <div class="bg-gradient-primary text-white p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-white bg-opacity-25 text-white">
+                        <i class="fas fa-calendar-alt fs-3"></i>
+                    </div>
+                    <div>
+                        <h1 class="display-6 fw-bold mb-0">Schedule Calendar</h1>
+                        <p class="opacity-90 mb-0">Manage your events and appointments</p>
+                    </div>
+                </div>
+                <div class="mt-3 mt-sm-0">
+                    <button class="btn bg-white text-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift" data-bs-toggle="modal" data-bs-target="#addEventModal">
+                        <i class="fas fa-plus me-2"></i>Add Event
+                    </button>
+                </div>
             </div>
         </div>
-        <button class="btn btn-pastel-primary rounded-pill px-4 shadow-sm mt-2 mt-sm-0" data-bs-toggle="modal" data-bs-target="#addEventModal">
-            <i class="fas fa-plus me-2"></i>Add Event
-        </button>
     </div>
 
     <!-- Calendar Card -->
@@ -161,11 +167,8 @@
         padding: 0 1rem;
     }
 
-    .text-gradient-pastel {
-        background: linear-gradient(135deg, var(--pastel-primary-dark, #818cf8), #c4b5fd);
-        background-clip: text;
-        -webkit-background-clip: text;
-        color: transparent;
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--pastel-primary-dark, #6366f1), #4f46e5);
     }
 
     .icon-circle {
