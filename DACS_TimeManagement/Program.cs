@@ -2,23 +2,51 @@ using DACS_TimeManagement.Models;
 using DACS_TimeManagement.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 using DACS_TimeManagement.Data;
 using DACS_TimeManagement.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+//builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        // Chặn vòng lặp vô tận khi gửi dữ liệu qua Fetch/API
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = false; // Tắt thụt lề để giảm dung lượng file JSON
+    });
+
+
 builder.Services.AddSignalR(); // Đăng ký SignalR
 
 // Add the database context to the services container
+// Configure DbContext with resilient SQL Server options (retry + command timeout)
+var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine(">>> CONNECTION: " + defaultConn);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(defaultConn, sqlOptions =>
+    {
+        // Retry on transient failures
+        sqlOptions.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null);
+        // Increase command timeout for long-running operations during startup/seeding
+        sqlOptions.CommandTimeout(60);
+    }));
 
-//Add Identity services to the container
+// Add Identity services to the container with explicit options
 builder.Services
-    .AddIdentity<IdentityUser, IdentityRole>()
+    .AddIdentity<IdentityUser, IdentityRole>(options =>
+    {
+        // Relax some defaults for development/testing convenience
+        options.Password.RequireDigit = true;
+        options.Password.RequiredLength = 6;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
+
+        // Do not require confirmed account for sign in in dev seed scenarios
+        options.SignIn.RequireConfirmedAccount = false;
+    })
     .AddDefaultTokenProviders()
     .AddDefaultUI()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -67,14 +95,16 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try
     {
-        await DbSeeder.SeedRolesAndAdminAsync(services);
+        // GỌI HÀM Ở ĐÂY
+        // Truyền 'services' (chính là IServiceProvider) vào hàm
+        await DACS_TimeManagement.Data.DbSeeder.SeedData(services);
+
+        Console.WriteLine(">>> Seed Data thành công!");
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Lỗi xảy ra trong quá trình seed database.");
+        Console.WriteLine($">>> Lỗi Seed Data: {ex.Message}");
     }
 }
 
 app.Run();
-//1323

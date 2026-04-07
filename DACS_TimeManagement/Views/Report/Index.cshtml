@@ -3,95 +3,109 @@
     ViewData["Title"] = "Analytics & Reports";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 fw-bold text-dark"><i class="fas fa-chart-pie text-primary me-2"></i>Time Usage Analytics</h2>
-    <div class="dropdown">
-        <button class="btn btn-outline-primary shadow-sm px-4 fw-bold dropdown-toggle" type="button" id="exportMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-file-export me-2"></i>Export Report
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="exportMenuButton">
-            <li><a class="dropdown-item" href="#" onclick="window.print()"><i class="fas fa-print text-muted me-2"></i>Print / PDF</a></li>
-            <li><a class="dropdown-item text-success fw-bold" asp-controller="Report" asp-action="ExportToExcel"><i class="fas fa-file-excel me-2"></i>Download Excel</a></li>
-        </ul>
+<div class="report-container" data-aos="fade-up">
+    <!-- Header Pastel -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="icon-circle bg-pastel-primary-soft">
+                <i class="fas fa-chart-pie text-pastel-primary fs-4"></i>
+            </div>
+            <div>
+                <h1 class="display-6 fw-bold text-gradient-pastel mb-0">Analytics & Reports</h1>
+                <p class="text-pastel-muted small mb-0">Track your productivity and time usage</p>
+            </div>
+        </div>
+        <div class="dropdown mt-2 mt-sm-0">
+            <button class="btn btn-outline-pastel rounded-pill px-4 shadow-sm dropdown-toggle" type="button" id="exportMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-download me-2"></i>Export Report
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 mt-2 pastel-dropdown" aria-labelledby="exportMenuButton">
+                <li><a class="dropdown-item" href="#" onclick="window.print()"><i class="fas fa-print me-2 text-pastel-muted"></i>Print / PDF</a></li>
+                <li><a class="dropdown-item text-pastel-success" asp-controller="Report" asp-action="ExportToExcel"><i class="fas fa-file-excel me-2"></i>Download Excel</a></li>
+            </ul>
+        </div>
     </div>
-</div>
 
-<!-- Overview Stats Cards -->
-<div class="row g-4 mb-5">
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100 bg-primary text-white position-relative overflow-hidden">
-            <div class="card-body p-4 position-relative z-1">
-                <p class="text-uppercase small fw-bold mb-1 opacity-75">Time Logged (30d)</p>
-                <h3 class="fw-bold mb-0">@ViewBag.TotalTimeLogged hrs</h3>
+    <!-- Stats Cards (Pastel Gradients) -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="stats-card bg-gradient-pastel-primary text-white rounded-4 p-4 position-relative overflow-hidden hover-lift">
+                <div class="position-relative z-1">
+                    <p class="text-uppercase small fw-semibold mb-1 opacity-75">Time Logged (30d)</p>
+                    <h2 class="fw-bold mb-0 display-6">@ViewBag.TotalTimeLogged <span class="fs-6 fw-normal">hrs</span></h2>
+                </div>
+                <i class="fas fa-stopwatch stats-icon"></i>
             </div>
-            <i class="fas fa-stopwatch fa-4x position-absolute opacity-25" style="right: -10px; bottom: -10px;"></i>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card bg-gradient-pastel-success text-white rounded-4 p-4 position-relative overflow-hidden hover-lift">
+                <div class="position-relative z-1">
+                    <p class="text-uppercase small fw-semibold mb-1 opacity-75">Tasks Completed</p>
+                    <h2 class="fw-bold mb-0 display-6">@ViewBag.TotalTasksCompleted</h2>
+                </div>
+                <i class="fas fa-check-double stats-icon"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card bg-gradient-pastel-info text-white rounded-4 p-4 position-relative overflow-hidden hover-lift">
+                <div class="position-relative z-1">
+                    <p class="text-uppercase small fw-semibold mb-1 opacity-75">Completion Rate</p>
+                    <h2 class="fw-bold mb-0 display-6">@ViewBag.TaskCompletionRate<span class="fs-6 fw-normal">%</span></h2>
+                </div>
+                <i class="fas fa-bullseye stats-icon"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card bg-gradient-pastel-secondary text-white rounded-4 p-4 position-relative overflow-hidden hover-lift">
+                <div class="position-relative z-1">
+                    <p class="text-uppercase small fw-semibold mb-1 opacity-75">Active Projects</p>
+                    <h2 class="fw-bold mb-0 display-6">@ViewBag.TotalProjects</h2>
+                </div>
+                <i class="fas fa-project-diagram stats-icon"></i>
+            </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100 bg-success text-white position-relative overflow-hidden">
-            <div class="card-body p-4 position-relative z-1">
-                <p class="text-uppercase small fw-bold mb-1 opacity-75">Tasks Completed</p>
-                <h3 class="fw-bold mb-0">@ViewBag.TotalTasksCompleted</h3>
-            </div>
-            <i class="fas fa-check-double fa-4x position-absolute opacity-25" style="right: -10px; bottom: -10px;"></i>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100 bg-info text-white position-relative overflow-hidden">
-            <div class="card-body p-4 position-relative z-1">
-                <p class="text-uppercase small fw-bold mb-1 opacity-75">Completion Rate</p>
-                <h3 class="fw-bold mb-0">@ViewBag.TaskCompletionRate%</h3>
-            </div>
-            <i class="fas fa-bullseye fa-4x position-absolute opacity-25" style="right: -10px; bottom: -10px;"></i>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm h-100 bg-secondary text-white position-relative overflow-hidden">
-            <div class="card-body p-4 position-relative z-1">
-                <p class="text-uppercase small fw-bold mb-1 opacity-75">Active Projects</p>
-                <h3 class="fw-bold mb-0">@ViewBag.TotalProjects</h3>
-            </div>
-            <i class="fas fa-project-diagram fa-4x position-absolute opacity-25" style="right: -10px; bottom: -10px;"></i>
-        </div>
-    </div>
-</div>
 
-<!-- Data Visualizations -->
-<div class="row g-4 mb-4">
-    <!-- Line Chart: Daily Time Logging -->
-    <div class="col-lg-8">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white border-bottom p-4">
-                <h6 class="mb-0 fw-bold text-dark text-uppercase">Hours Logged (Last 7 Days)</h6>
+    <!-- Charts Row 1 -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h6 class="fw-bold text-uppercase small mb-0 text-pastel-muted">
+                        <i class="fas fa-chart-line text-pastel-primary me-2"></i>Hours Logged (Last 7 Days)
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="dailyHoursChart" height="100"></canvas>
+                </div>
             </div>
-            <div class="card-body p-4">
-                <canvas id="dailyHoursChart" height="100"></canvas>
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h6 class="fw-bold text-uppercase small mb-0 text-pastel-muted">
+                        <i class="fas fa-chart-pie text-pastel-primary me-2"></i>Task Distribution
+                    </h6>
+                </div>
+                <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                    <canvas id="taskStatusChart" style="max-height: 260px; width: 100%;"></canvas>
+                </div>
             </div>
         </div>
     </div>
-    
-    <!-- Pie Chart: Task Status -->
-    <div class="col-lg-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white border-bottom p-4">
-                <h6 class="mb-0 fw-bold text-dark text-uppercase">Task Distribution</h6>
-            </div>
-            <div class="card-body p-4 d-flex align-items-center justify-content-center">
-                <canvas id="taskStatusChart" style="max-height: 250px;"></canvas>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row g-4">
-    <!-- Bar Chart: Time by Project -->
-    <div class="col-lg-12">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white border-bottom p-4">
-                <h6 class="mb-0 fw-bold text-dark text-uppercase">Time Invested per Project (30d)</h6>
-            </div>
-            <div class="card-body p-4">
-                <canvas id="projectTimeChart" height="80"></canvas>
+    <!-- Charts Row 2 -->
+    <div class="row g-4">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h6 class="fw-bold text-uppercase small mb-0 text-pastel-muted">
+                        <i class="fas fa-chart-bar text-pastel-primary me-2"></i>Time Invested per Project (30d)
+                    </h6>
+                </div>
+                <div class="card-body p-4">
+                    <canvas id="projectTimeChart" height="80"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -100,21 +114,23 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Data injected from ReportController backend
+        // Data from backend
         const statusData = @Html.Raw(ViewBag.StatusJson);
         const statusLabels = @Html.Raw(ViewBag.StatusLabelsJson);
-        
         const projData = @Html.Raw(ViewBag.ProjectTimeDataJson);
         const projLabels = @Html.Raw(ViewBag.ProjectTimeLabelsJson);
-        
         const dailyData = @Html.Raw(ViewBag.DailyTimeDataJson);
         const dailyLabels = @Html.Raw(ViewBag.DailyTimeLabelsJson);
 
-        // Chart Global Setting
+        // Chart theme colors (adapt to dark mode)
+        const isDark = document.body.classList.contains('theme-dark');
+        const textColor = isDark ? '#cbd5e1' : '#64748b';
+        const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
         Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.color = '#6c757d';
-        
-        // 1. Line Chart: Daily Hours
+        Chart.defaults.color = textColor;
+
+        // 1. Line Chart: Daily Hours (Pastel primary)
         new Chart(document.getElementById('dailyHoursChart'), {
             type: 'line',
             data: {
@@ -122,13 +138,13 @@
                 datasets: [{
                     label: 'Hours Logged',
                     data: dailyData,
-                    borderColor: '#4361ee',
-                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                    borderColor: '#818cf8',
+                    backgroundColor: 'rgba(129, 140, 248, 0.1)',
                     borderWidth: 3,
                     tension: 0.4,
                     fill: true,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#4361ee',
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#818cf8',
                     pointBorderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 6
@@ -136,37 +152,39 @@
             },
             options: {
                 responsive: true,
-                plugins: { legend: { display: false } },
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false }, tooltip: { mode: 'index' } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y: { beginAtZero: true, grid: { color: gridColor } },
                     x: { grid: { display: false } }
                 }
             }
         });
 
-        // 2. Pie Chart: Task Status
+        // 2. Doughnut Chart: Task Status (Pastel colors)
         new Chart(document.getElementById('taskStatusChart'), {
             type: 'doughnut',
             data: {
                 labels: statusLabels,
                 datasets: [{
                     data: statusData,
-                    backgroundColor: ['#06ffa5', '#4361ee', '#f8961e', '#ef476f'],
+                    backgroundColor: ['#a7f3d0', '#a5b4fc', '#fde68a', '#fecaca'],
                     borderWidth: 0,
-                    hoverOffset: 4
+                    hoverOffset: 6
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
+                maintainAspectRatio: true,
+                cutout: '65%',
                 plugins: {
-                    legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
+                    legend: { position: 'bottom', labels: { padding: 15, usePointStyle: true, boxWidth: 10, color: textColor } },
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw} tasks` } }
                 }
             }
         });
 
-        // 3. Bar Chart: Project Time
+        // 3. Bar Chart: Project Time (Pastel cyan)
         new Chart(document.getElementById('projectTimeChart'), {
             type: 'bar',
             data: {
@@ -174,19 +192,221 @@
                 datasets: [{
                     label: 'Hours Logged',
                     data: projData,
-                    backgroundColor: '#4cc9f0',
-                    borderRadius: 6,
-                    barPercentage: 0.6
+                    backgroundColor: '#67e8f9',
+                    borderRadius: 8,
+                    barPercentage: 0.7,
+                    categoryPercentage: 0.8
                 }]
             },
             options: {
                 responsive: true,
-                plugins: { legend: { display: false } },
+                maintainAspectRatio: true,
+                plugins: { 
+                    legend: { display: false }, 
+                    tooltip: { callbacks: { label: (ctx) => `${ctx.raw} hours` } } 
+                },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                    x: { grid: { display: false } }
+                    y: { beginAtZero: true, grid: { color: gridColor }, title: { display: true, text: 'Hours', color: textColor } },
+                    x: { grid: { display: false }, ticks: { autoSkip: true, maxRotation: 45, minRotation: 30, color: textColor } }
                 }
             }
         });
+
+        // Optional: reload on dark mode toggle to refresh chart colors
+        const observer = new MutationObserver(() => location.reload());
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
     </script>
 }
+
+<style>
+    /* Report page pastel styles - đồng bộ với toàn bộ hệ thống */
+    .report-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .text-gradient-pastel {
+        background: linear-gradient(135deg, var(--pastel-primary-dark, #818cf8), #c4b5fd);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+    }
+    .bg-pastel-primary-soft {
+        background: rgba(129, 140, 248, 0.12);
+    }
+    .text-pastel-primary {
+        color: var(--pastel-primary-dark, #818cf8);
+    }
+    .text-pastel-muted {
+        color: var(--pastel-muted, #64748b);
+    }
+    .text-pastel-success {
+        color: #10b981;
+    }
+
+    /* Stats Cards pastel gradient */
+    .stats-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        cursor: default;
+    }
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.2);
+    }
+    .stats-icon {
+        position: absolute;
+        right: -5px;
+        bottom: -5px;
+        font-size: 5rem;
+        opacity: 0.2;
+        transition: transform 0.3s ease;
+    }
+    .stats-card:hover .stats-icon {
+        transform: scale(1.05);
+        opacity: 0.25;
+    }
+
+    /* Pastel Gradients */
+    .bg-gradient-pastel-primary {
+        background: linear-gradient(135deg, #a5b4fc, #818cf8);
+    }
+    .bg-gradient-pastel-success {
+        background: linear-gradient(135deg, #a7f3d0, #6ee7b7);
+        color: #064e3b;
+    }
+    .bg-gradient-pastel-info {
+        background: linear-gradient(135deg, #67e8f9, #22d3ee);
+        color: #164e63;
+    }
+    .bg-gradient-pastel-secondary {
+        background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+        color: #1e293b;
+    }
+    /* Đảm bảo chữ trên gradient pastel tối màu để dễ đọc */
+    .bg-gradient-pastel-success .stats-icon,
+    .bg-gradient-pastel-info .stats-icon,
+    .bg-gradient-pastel-secondary .stats-icon {
+        opacity: 0.3;
+    }
+
+    /* Buttons pastel */
+    .btn-outline-pastel {
+        border: 1px solid var(--pastel-primary-dark, #818cf8);
+        color: var(--pastel-primary-dark, #818cf8);
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .btn-outline-pastel:hover {
+        background: var(--pastel-primary-dark, #818cf8);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+    }
+
+    /* Dropdown pastel */
+    .pastel-dropdown {
+        background: var(--pastel-card-bg, #ffffff);
+        border: 1px solid var(--pastel-border, #e2e8f0);
+    }
+    .pastel-dropdown .dropdown-item {
+        color: var(--pastel-dark, #1e293b);
+        transition: background 0.2s;
+    }
+    .pastel-dropdown .dropdown-item:hover {
+        background: rgba(129, 140, 248, 0.1);
+        color: var(--pastel-primary-dark, #818cf8);
+    }
+
+    /* Card custom */
+    .card {
+        background: var(--pastel-card-bg, #ffffff);
+        border: 1px solid var(--pastel-border, #e5e7eb);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* Dark mode variables */
+    body.theme-dark {
+        --pastel-primary-dark: #818cf8;
+        --pastel-border: #334155;
+        --pastel-card-bg: #1e293b;
+        --pastel-dark: #f1f5f9;
+        --pastel-muted: #94a3b8;
+    }
+    body.theme-dark .bg-pastel-primary-soft {
+        background: rgba(129, 140, 248, 0.2);
+    }
+    body.theme-dark .pastel-dropdown {
+        background: #1e293b;
+        border-color: #334155;
+    }
+    body.theme-dark .pastel-dropdown .dropdown-item {
+        color: #e2e8f0;
+    }
+    body.theme-dark .pastel-dropdown .dropdown-item:hover {
+        background: rgba(129, 140, 248, 0.2);
+    }
+    body.theme-dark .card {
+        background: #1e293b;
+        border-color: #334155;
+    }
+    body.theme-dark .bg-gradient-pastel-success,
+    body.theme-dark .bg-gradient-pastel-info,
+    body.theme-dark .bg-gradient-pastel-secondary {
+        /* Giữ gradient nhưng tối màu hơn một chút trong dark mode */
+        filter: brightness(0.9);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .report-container {
+            padding: 0 0.5rem;
+        }
+        .stats-card {
+            padding: 1rem !important;
+        }
+        .stats-card h2 {
+            font-size: 1.6rem;
+        }
+        .stats-icon {
+            font-size: 3.5rem;
+        }
+        .icon-circle {
+            width: 40px;
+            height: 40px;
+        }
+    }
+
+    /* Print styles */
+    @@media print {
+        .btn, .dropdown, .stats-icon, .icon-circle {
+            display: none !important;
+        }
+        .stats-card {
+            break-inside: avoid;
+            box-shadow: none !important;
+            border: 1px solid #ddd;
+        }
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd;
+        }
+        body {
+            background: white;
+            padding: 0;
+        }
+    }
+</style>

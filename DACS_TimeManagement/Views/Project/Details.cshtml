@@ -1,255 +1,477 @@
 @model DACS_TimeManagement.Models.Project
 @{
-    ViewData["Title"] = "Project Details";
+    ViewData["Title"] = Model?.Name ?? "Project Details";
     var completedTasks = Model.Tasks?.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed) ?? 0;
     var totalTasks = Model.Tasks?.Count() ?? 0;
     var progressPct = totalTasks == 0 ? 0 : (int)((double)completedTasks / totalTasks * 100);
 }
 
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show mt-3 border-0 shadow-sm" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show mt-3 border-0 shadow-sm" role="alert">
-        <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-
-<div class="row mt-4">
-    <!-- Project Header Info -->
-    <div class="col-lg-4 mb-4">
-        <div class="card shadow-sm border-0 h-100 position-relative overflow-hidden">
-            <div class="bg-primary pt-5 pb-3 px-4 text-white">
-                <h3 class="fw-bold mb-1">@Model.Name</h3>
-                <small class="opacity-75"><i class="fas fa-calendar-alt me-1"></i> Created @Model.CreatedDate.ToString("MMM dd, yyyy")</small>
-            </div>
-            <div class="card-body p-4 text-center mt-3">
-                
-                <!-- Circular Progress Ring Concept -->
-                <div class="position-relative d-inline-block mb-4">
-                    <svg width="120" height="120">
-                        <circle cx="60" cy="60" r="50" fill="none" stroke="#e9ecef" stroke-width="8"></circle>
-                        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--primary)" stroke-width="8" 
-                                stroke-dasharray="314" stroke-dashoffset="@(314 - (314 * progressPct / 100))" 
-                                style="transition: stroke-dashoffset 1s ease-in-out;" transform="rotate(-90 60 60)"></circle>
-                    </svg>
-                    <div class="position-absolute top-50 start-50 translate-middle text-center">
-                        <span class="fs-3 fw-bold text-dark d-block" style="line-height: 1;">@progressPct%</span>
-                    </div>
-                </div>
-
-                <div class="row text-center mb-4">
-                    <div class="col-6 border-end">
-                        <h3 class="mb-0 text-dark fw-bold">@totalTasks</h3>
-                        <small class="text-muted text-uppercase fw-bold">Total Tasks</small>
-                    </div>
-                    <div class="col-6">
-                        <h3 class="mb-0 text-success fw-bold">@completedTasks</h3>
-                        <small class="text-muted text-uppercase fw-bold">Completed</small>
-                    </div>
-                </div>
-
-                <div class="d-grid gap-2 mb-3">
-                    <button type="button" class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
-                        <i class="fas fa-user-plus me-2"></i>Invite Member
-                    </button>
-                </div>
-
-                <div class="d-flex align-items-center justify-content-center gap-1 mb-4 flex-wrap">
-                    @if (ViewBag.Members != null)
-                    {
-                        var members = ViewBag.Members as List<DACS_TimeManagement.Models.ProjectMember>;
-                        if (members != null && members.Any())
-                        {
-                            foreach (var member in members)
-                            {
-                                <span class="badge bg-secondary-subtle text-dark border p-2" title="@member.Role"><i class="fas fa-user-circle me-1"></i>Member</span>
-                            }
-                        }
-                    }
-                </div>
-
-                <div class="d-grid gap-2">
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light border fw-bold"><i class="fas fa-edit text-primary me-2"></i>Edit Project</a>
-                    <a asp-controller="WorkTask" asp-action="Create" asp-route-projectId="@Model.Id" class="btn btn-primary fw-bold"><i class="fas fa-plus me-2"></i>Add Task to Project</a>
-                </div>
-            </div>
+<div class="project-details-container" data-aos="fade-up">
+    <!-- Alert Messages -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-pastel-danger alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    </div>
-
-    <!-- Kanban Board cho Project -->
-    <div class="col-lg-8">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-columns text-primary me-2"></i>Kanban Board</h5>
-            <a asp-controller="WorkTask" asp-action="Create" class="btn btn-sm btn-primary fw-bold"><i class="fas fa-plus me-1"></i>New Task</a>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-pastel-success alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    }
 
-        <div class="kanban-container d-flex overflow-auto pb-3" style="min-height: 500px; gap: 15px;">
-            @if (Model.BoardLists != null)
-            {
-                foreach (var board in Model.BoardLists.OrderBy(b => b.Position))
-                {
-                    <div class="kanban-column bg-light rounded-3 p-3 d-flex flex-column" style="min-width: 300px; width: 300px; max-height: 100%;">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold mb-0">@board.Name</h6>
-                            <span class="badge bg-secondary rounded-pill">@(Model.Tasks?.Count(t => t.BoardListId == board.Id) ?? 0)</span>
+    <div class="row g-4">
+        <!-- Left Column: Project Info Card (Pastel) -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden hover-lift">
+                <!-- Gradient Header Pastel -->
+                <div class="bg-gradient-pastel-primary text-white p-4 text-center">
+                    <div class="icon-circle bg-white bg-opacity-20 mx-auto mb-3">
+                        <i class="fas fa-project-diagram fs-3"></i>
+                    </div>
+                    <h3 class="fw-bold mb-1">@Model.Name</h3>
+                    <p class="small opacity-75 mb-0">
+                        <i class="far fa-calendar-alt me-1"></i>Created @Model.CreatedDate.ToString("MMM dd, yyyy")
+                    </p>
+                </div>
+
+                <div class="card-body p-4 text-center">
+                    <!-- Progress Ring Pastel -->
+                    <div class="position-relative d-inline-block mb-4">
+                        <svg width="130" height="130">
+                            <circle cx="65" cy="65" r="55" fill="none" stroke="var(--pastel-border)" stroke-width="8"></circle>
+                            <circle cx="65" cy="65" r="55" fill="none" stroke="var(--pastel-primary-dark)" stroke-width="8" 
+                                    stroke-dasharray="345.575" stroke-dashoffset="@(345.575 - (345.575 * progressPct / 100))" 
+                                    style="transition: stroke-dashoffset 1s ease; transform: rotate(-90deg); transform-origin: 50% 50%;"></circle>
+                        </svg>
+                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                            <span class="fs-2 fw-bold text-pastel-primary">@progressPct%</span>
                         </div>
+                    </div>
 
-                        <div class="kanban-tasks flex-grow-1 overflow-auto" id="kanban-list-@board.Id" data-list-id="@board.Id">
-                            @if (Model.Tasks != null)
-                            {
-                                foreach (var task in Model.Tasks.Where(t => t.BoardListId == board.Id).OrderBy(t => t.Position))
+                    <!-- Stats -->
+                    <div class="row text-center mb-4">
+                        <div class="col-6 border-end border-pastel">
+                            <h3 class="mb-0 fw-bold text-pastel-dark">@totalTasks</h3>
+                            <small class="text-pastel-muted text-uppercase">Total Tasks</small>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="mb-0 fw-bold text-pastel-success">@completedTasks</h3>
+                            <small class="text-pastel-muted text-uppercase">Completed</small>
+                        </div>
+                    </div>
+
+                    <!-- Team Members -->
+                    @if (ViewBag.Members != null && ((List<DACS_TimeManagement.Models.ProjectMember>)ViewBag.Members).Any())
+                    {
+                        <div class="mb-4">
+                            <span class="text-pastel-muted small text-uppercase fw-semibold">Team</span>
+                            <div class="d-flex flex-wrap justify-content-center gap-1 mt-2">
+                                @foreach (var member in (List<DACS_TimeManagement.Models.ProjectMember>)ViewBag.Members)
                                 {
-                                    <div class="kanban-task card shadow-sm mb-2 border-0" data-task-id="@task.Id" style="cursor: grab;">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <h6 class="card-title fw-bold text-dark mb-0 fs-6">
-                                                    <a asp-controller="WorkTask" asp-action="Details" asp-route-id="@task.Id" class="text-decoration-none text-dark">@task.Title</a>
-                                                </h6>
-                                                <!-- Dropdown options -->
-                                                <div class="dropdown">
-                                                    <button class="btn btn-link text-muted p-0 text-decoration-none dropdown-toggle-no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="fas fa-ellipsis-v"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 text-sm">
-                                                        <li><a class="dropdown-item" asp-controller="WorkTask" asp-action="Edit" asp-route-id="@task.Id"><i class="fas fa-edit text-muted me-2"></i>Edit</a></li>
-                                                        <li><a class="dropdown-item text-danger" asp-controller="WorkTask" asp-action="Delete" asp-route-id="@task.Id"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            
-                                            @if (!string.IsNullOrEmpty(task.Description))
-                                            {
-                                                <p class="text-muted small mb-2 text-truncate">@task.Description</p>
-                                            }
+                                    <span class="badge bg-pastel-secondary-soft text-pastel-dark rounded-pill px-3 py-1">
+                                        <i class="fas fa-user-circle me-1"></i>@member.Role
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
 
-                                            <div class="d-flex justify-content-between align-items-center mt-3">
-                                                <span class="badge @(task.Priority == DACS_TimeManagement.Models.Priority.High || task.Priority == DACS_TimeManagement.Models.Priority.Urgent ? "bg-danger-subtle text-danger" : "bg-light-subtle text-muted text-dark") border">
-                                                    @task.Priority
-                                                </span>
-                                                <small class="text-muted fw-medium" title="Due Date">
-                                                    <i class="far fa-clock me-1"></i>@task.EndDate.ToString("MMM dd")
-                                                </small>
-                                            </div>
-                                            
-                                            <!-- Hiển thị Assignee (nếu có user được gán trong tương lai) -->
-                                            @if (!string.IsNullOrEmpty(task.AssigneeId))
-                                            {
-                                                <div class="mt-2 text-end">
-                                                    <div class="avatar-circle bg-primary text-white d-inline-flex justify-content-center align-items-center rounded-circle" style="width: 24px; height: 24px; font-size: 10px;" title="Assigned to @task.AssigneeId">
-                                                        <i class="fas fa-user"></i>
+                    <!-- Action Buttons Pastel -->
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-pastel rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
+                            <i class="fas fa-user-plus me-2"></i>Invite Member
+                        </button>
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light-pastel border rounded-pill fw-semibold">
+                            <i class="fas fa-edit text-pastel-primary me-2"></i>Edit Project
+                        </a>
+                        <a asp-controller="WorkTask" asp-action="Create" asp-route-projectId="@Model.Id" class="btn btn-pastel-primary rounded-pill fw-semibold shadow-sm">
+                            <i class="fas fa-plus me-2"></i>Add Task
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Kanban Board (Pastel) -->
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="fas fa-columns text-pastel-primary me-2"></i>Kanban Board</h5>
+                <a asp-controller="WorkTask" asp-action="Create" asp-route-projectId="@Model.Id" class="btn btn-pastel-primary rounded-pill btn-sm">
+                    <i class="fas fa-plus me-1"></i>New Task
+                </a>
+            </div>
+
+            <div class="kanban-scroll-wrapper overflow-auto pb-2" style="min-height: 550px;">
+                <div class="d-flex align-items-start" style="gap: 1.25rem;">
+                    @if (Model.BoardLists != null && Model.BoardLists.Any())
+                    {
+                        foreach (var board in Model.BoardLists.OrderBy(b => b.Position))
+                        {
+                            <div class="kanban-column pastel-column rounded-4 p-3 shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-pastel">
+                                    <h6 class="fw-bold mb-0 text-pastel-dark">@board.Name</h6>
+                                    <span class="badge bg-pastel-primary-soft text-pastel-primary rounded-pill px-3 py-1 task-count">@(Model.Tasks?.Count(t => t.BoardListId == board.Id) ?? 0)</span>
+                                </div>
+
+                                <div class="task-list" data-list-id="@board.Id" style="min-height: 200px;">
+                                    @if (Model.Tasks != null)
+                                    {
+                                        foreach (var task in Model.Tasks.Where(t => t.BoardListId == board.Id).OrderBy(t => t.Position))
+                                        {
+                                            <div class="card pastel-task-card mb-3 border-0 shadow-sm rounded-3" data-task-id="@task.Id">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="fw-bold mb-0">
+                                                            <a asp-controller="WorkTask" asp-action="Details" asp-route-id="@task.Id" class="text-decoration-none text-pastel-dark">@task.Title</a>
+                                                        </h6>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-sm text-pastel-muted p-0" data-bs-toggle="dropdown">
+                                                                <i class="fas fa-ellipsis-v"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                                                <li><a class="dropdown-item" asp-controller="WorkTask" asp-action="Edit" asp-route-id="@task.Id"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                                                <li><a class="dropdown-item text-danger" asp-controller="WorkTask" asp-action="Delete" asp-route-id="@task.Id"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(task.Description))
+                                                    {
+                                                        <p class="small text-pastel-muted mb-2 text-truncate">@task.Description</p>
+                                                    }
+                                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                                        @{
+                                                            string priorityClass = task.Priority switch
+                                                            {
+                                                                DACS_TimeManagement.Models.Priority.Urgent => "pastel-danger",
+                                                                DACS_TimeManagement.Models.Priority.High => "pastel-danger",
+                                                                DACS_TimeManagement.Models.Priority.Medium => "pastel-warning",
+                                                                _ => "pastel-info"
+                                                            };
+                                                        }
+                                                        <span class="badge @priorityClass rounded-pill">@task.Priority</span>
+                                                        <small class="text-pastel-muted"><i class="far fa-calendar-alt me-1"></i>@task.EndDate.ToString("MMM dd")</small>
                                                     </div>
                                                 </div>
-                                            }
-                                        </div>
-                                    </div>
-                                }
-                            }
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="empty-state text-center w-100 py-5">
+                            <i class="fas fa-clipboard-list fa-4x text-pastel-muted opacity-50 mb-3"></i>
+                            <h6 class="fw-semibold text-pastel-dark">No board columns</h6>
+                            <p class="small text-pastel-muted">Add columns in project settings to start organizing tasks.</p>
                         </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Invite Member (Pastel) -->
+<div class="modal fade" id="inviteMemberModal" tabindex="-1" aria-labelledby="inviteMemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-xl rounded-4">
+            <div class="modal-header bg-gradient-pastel-primary text-white border-0 rounded-top-4">
+                <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-2"></i>Invite Teammate</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="AddMember" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="projectId" value="@Model.Id" />
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold text-pastel-dark">User Email</label>
+                        <input type="email" class="form-control form-control-lg rounded-3 pastel-input" id="email" name="email" placeholder="colleague@example.com" required>
+                        <div class="form-text text-pastel-muted">User must have an existing account.</div>
                     </div>
-                }
-            }
+                </div>
+                <div class="modal-footer border-0 pb-4 pe-4">
+                    <button type="button" class="btn btn-light-pastel rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm">Send Invite</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <!-- SortableJS cho Kanban Drag & Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const currentProjectId = @Model.Id;
-            const kanbanLists = document.querySelectorAll('.kanban-tasks');
-
-            kanbanLists.forEach(list => {
+            const taskLists = document.querySelectorAll('.task-list');
+            taskLists.forEach(list => {
                 new Sortable(list, {
-                    group: 'kanban', // set both lists to same group
-                    animation: 150,
-                    ghostClass: 'bg-light',
-                    dragClass: 'shadow-lg',
-                    chosenClass: 'border-primary',
+                    group: 'kanban',
+                    animation: 200,
+                    ghostClass: 'sortable-ghost',
+                    chosenClass: 'sortable-chosen',
+                    dragClass: 'dragging',
                     onEnd: function (evt) {
-                        const itemEl = evt.item;  // dragged element
-                        const taskId = itemEl.getAttribute('data-task-id');
-                        const newListEl = evt.to;    // target list
-                        const newListId = newListEl.getAttribute('data-list-id');
-                        const newPosition = evt.newIndex; // new index within the list
+                        const taskId = evt.item.getAttribute('data-task-id');
+                        const newListId = evt.to.getAttribute('data-list-id');
+                        const newPosition = evt.newIndex;
+                        if (!taskId || !newListId) return;
 
-                        // Gọi API để cập nhật vào Database
-                        updateTaskPosition(taskId, newListId, newPosition);
+                        const params = new URLSearchParams();
+                        params.append('taskId', taskId);
+                        params.append('newListId', newListId);
+                        params.append('newPosition', newPosition);
+
+                        fetch('/WorkTask/UpdateTaskPosition', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                            },
+                            body: params
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (!data.success) {
+                                console.error('Update failed:', data.message);
+                                alert('Failed to update task position. Please refresh.');
+                            } else {
+                                updateTaskCounts();
+                            }
+                        })
+                        .catch(err => console.error('Network error:', err));
                     }
                 });
             });
 
-            function updateTaskPosition(taskId, newListId, newPosition) {
-                // Chúng ta cung cấp AntiForgeryToken nếu có
-                fetch('/WorkTask/UpdateTaskPosition', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: new URLSearchParams({
-                        taskId: taskId,
-                        newListId: newListId,
-                        newPosition: newPosition
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.success) {
-                        console.error('Lỗi khi lưu vị trí Task: ', data.message);
-                        alert('Không thể lưu vị trí kéo thả. Vui lòng thử lại!');
-                        // Trị trường hợp lỗi có thể refresh lại trang
-                    } else {
-                        // Tính toán lại badge số lượng thẻ cho từng cột
-                        recalculateCounts();
-                    }
-                })
-                .catch(error => {
-                    console.error('Network Error: ', error);
-                });
-            }
-
-            function recalculateCounts() {
-                var columns = document.querySelectorAll('.kanban-column');
-                columns.forEach(col => {
-                    var count = col.querySelectorAll('.kanban-task').length;
-                    var badge = col.querySelector('.badge');
-                    if(badge) badge.innerText = count;
+            function updateTaskCounts() {
+                document.querySelectorAll('.kanban-column').forEach(col => {
+                    const countSpan = col.querySelector('.task-count');
+                    const tasks = col.querySelectorAll('.task-card').length;
+                    if (countSpan) countSpan.innerText = tasks;
                 });
             }
         });
     </script>
 }
 
-<!-- Modal Invite Member -->
-<div class="modal fade" id="inviteMemberModal" tabindex="-1" aria-labelledby="inviteMemberModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white border-0">
-                <h5 class="modal-title fw-bold" id="inviteMemberModalLabel"><i class="fas fa-user-plus me-2"></i>Invite Teammate</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form asp-action="AddMember" method="post">
-                <div class="modal-body p-4">
-                    <input type="hidden" name="projectId" value="@Model.Id" />
-                    <div class="mb-3">
-                        <label for="email" class="form-label fw-bold text-muted">User Email Address</label>
-                        <input type="email" class="form-control form-control-lg bg-light" id="email" name="email" placeholder="example@email.com" required>
-                    </div>
-                    <p class="text-muted small mb-0"><i class="fas fa-info-circle me-1"></i>Users must quickly register an account before you can invite them.</p>
-                </div>
-                <div class="modal-footer border-0 pb-4 pe-4">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary px-4 fw-bold">Send Invite</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<style>
+    /* ---------- PASTEL COLOR SYSTEM (giống Kanban) ---------- */
+    :root {
+        --pastel-primary: #a5b4fc;
+        --pastel-primary-dark: #818cf8;
+        --pastel-primary-soft: #e0e7ff;
+        --pastel-secondary: #c4b5fd;
+        --pastel-secondary-soft: #ede9fe;
+        --pastel-success: #a7f3d0;
+        --pastel-danger: #fecaca;
+        --pastel-warning: #fde68a;
+        --pastel-info: #bfdbfe;
+        --pastel-dark: #334155;
+        --pastel-muted: #64748b;
+        --pastel-border: #e2e8f0;
+        --pastel-card-bg: #ffffff;
+        --pastel-column-bg: #f8fafc;
+    }
+
+    body.theme-dark {
+        --pastel-primary: #818cf8;
+        --pastel-primary-dark: #6366f1;
+        --pastel-primary-soft: #1e293b;
+        --pastel-secondary-soft: #2d2a4a;
+        --pastel-success: #065f46;
+        --pastel-danger: #7f1d1d;
+        --pastel-warning: #854d0e;
+        --pastel-info: #1e3a8a;
+        --pastel-dark: #e2e8f0;
+        --pastel-muted: #94a3b8;
+        --pastel-border: #334155;
+        --pastel-card-bg: #1e293b;
+        --pastel-column-bg: #0f172a;
+    }
+
+    .project-details-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .bg-gradient-pastel-primary {
+        background: linear-gradient(135deg, var(--pastel-primary), var(--pastel-primary-dark));
+    }
+
+    .icon-circle {
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 60px;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(4px);
+    }
+
+    .hover-lift {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 30px -12px rgba(0,0,0,0.15) !important;
+    }
+
+    /* Text & Border Pastel */
+    .text-pastel-primary { color: var(--pastel-primary-dark); }
+    .text-pastel-dark { color: var(--pastel-dark); }
+    .text-pastel-muted { color: var(--pastel-muted); }
+    .text-pastel-success { color: #059669; }
+    .border-pastel { border-color: var(--pastel-border) !important; }
+
+    /* Buttons Pastel */
+    .btn-pastel-primary {
+        background: var(--pastel-primary);
+        color: #1e293b;
+        border: none;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    .btn-pastel-primary:hover {
+        background: var(--pastel-primary-dark);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+    }
+    .btn-outline-pastel {
+        border: 1px solid var(--pastel-primary-dark);
+        color: var(--pastel-primary-dark);
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .btn-outline-pastel:hover {
+        background: var(--pastel-primary-dark);
+        color: white;
+    }
+    .btn-light-pastel {
+        background: var(--pastel-card-bg);
+        border: 1px solid var(--pastel-border);
+        color: var(--pastel-dark);
+        transition: all 0.2s;
+    }
+    .btn-light-pastel:hover {
+        background: var(--pastel-primary-soft);
+        border-color: var(--pastel-primary);
+    }
+
+    /* Badges Pastel */
+    .bg-pastel-primary-soft {
+        background: var(--pastel-primary-soft);
+        color: var(--pastel-primary-dark);
+    }
+    .bg-pastel-secondary-soft {
+        background: var(--pastel-secondary-soft);
+        color: var(--pastel-dark);
+    }
+    .pastel-danger {
+        background: var(--pastel-danger);
+        color: #991b1b;
+    }
+    .pastel-warning {
+        background: var(--pastel-warning);
+        color: #854d0e;
+    }
+    .pastel-info {
+        background: var(--pastel-info);
+        color: #1e3a8a;
+    }
+    body.theme-dark .pastel-danger { color: #fecaca; }
+    body.theme-dark .pastel-warning { color: #fde68a; }
+    body.theme-dark .pastel-info { color: #bfdbfe; }
+
+    /* Alerts Pastel */
+    .alert-pastel-danger {
+        background: var(--pastel-danger);
+        color: #991b1b;
+        border-left: 4px solid #ef4444;
+    }
+    .alert-pastel-success {
+        background: var(--pastel-success);
+        color: #065f46;
+        border-left: 4px solid #22c55e;
+    }
+    body.theme-dark .alert-pastel-danger { color: #fecaca; }
+    body.theme-dark .alert-pastel-success { color: #bbf7d0; }
+
+    /* Kanban Column & Task Card Pastel */
+    .pastel-column {
+        background: var(--pastel-column-bg);
+        border: 1px solid var(--pastel-border);
+        transition: all 0.2s ease;
+    }
+    .pastel-column:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+    .pastel-task-card {
+        background: var(--pastel-card-bg);
+        border-left: 3px solid var(--pastel-primary-dark);
+        cursor: grab;
+        transition: all 0.2s ease;
+    }
+    .pastel-task-card:active {
+        cursor: grabbing;
+    }
+    .pastel-task-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    /* Form Input Pastel */
+    .pastel-input {
+        background-color: var(--pastel-card-bg);
+        border: 1px solid var(--pastel-border);
+        color: var(--pastel-dark);
+    }
+    .pastel-input:focus {
+        border-color: var(--pastel-primary-dark);
+        box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.3);
+        outline: none;
+    }
+
+    /* SortableJS ghost */
+    .sortable-ghost {
+        opacity: 0.4;
+        background: var(--pastel-primary);
+        border: 1px dashed white;
+    }
+
+    /* Scrollbar */
+    .kanban-scroll-wrapper::-webkit-scrollbar {
+        height: 8px;
+    }
+    .kanban-scroll-wrapper::-webkit-scrollbar-track {
+        background: var(--pastel-border);
+        border-radius: 10px;
+    }
+    .kanban-scroll-wrapper::-webkit-scrollbar-thumb {
+        background: var(--pastel-primary-dark);
+        border-radius: 10px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .project-details-container {
+            padding: 0 0.5rem;
+        }
+        .kanban-column {
+            min-width: 260px !important;
+            width: 260px !important;
+        }
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+        }
+    }
+</style>

@@ -1,40 +1,54 @@
 @model DACS_TimeManagement.Models.UserProfile
 
 @{
-    ViewData["Title"] = "User Profile & Settings";
+    ViewData["Title"] = "My Profile";
 }
 
-<div class="container-fluid mt-4">
-    <div class="row">
-        <!-- Profile Header -->
-        <div class="col-12 mb-4">
-            <div class="card shadow-sm border-0 bg-primary text-white">
-                <div class="card-body p-4 d-flex align-items-center">
-                    <div class="avatar-circle bg-white text-primary me-4 d-flex justify-content-center align-items-center" style="width: 80px; height: 80px; border-radius: 50%; font-size: 2rem; font-weight: bold;">
-                        @(string.IsNullOrEmpty(Model.FullName) ? User.Identity.Name.Substring(0, 1).ToUpper() : Model.FullName.Substring(0, 1).ToUpper())
-                    </div>
-                    <div>
-                        <h2 class="mb-1">@(string.IsNullOrEmpty(Model.FullName) ? "Setup your profile" : Model.FullName)</h2>
-                        <p class="mb-0 text-white-50"><i class="fas fa-envelope me-2"></i>@User.Identity.Name</p>
-                    </div>
+<div class="profile-container" data-aos="fade-up">
+    <!-- Header Card Gradient -->
+    <div class="card border-0 shadow-xl rounded-4 overflow-hidden mb-4">
+        <div class="bg-gradient-primary text-white p-4 p-md-5">
+            <div class="d-flex flex-wrap align-items-center gap-4">
+                <div class="avatar-circle bg-white bg-opacity-25 text-white d-flex align-items-center justify-content-center" 
+                     style="width: 90px; height: 90px; border-radius: 50%; font-size: 2.5rem; font-weight: bold; backdrop-filter: blur(4px);">
+                    @(string.IsNullOrEmpty(Model.FullName) ? User.Identity.Name?.Substring(0, 1).ToUpper() : Model.FullName.Substring(0, 1).ToUpper())
+                </div>
+                <div>
+                    <h2 class="fw-bold mb-1">@(string.IsNullOrEmpty(Model.FullName) ? "Welcome! Setup your profile" : Model.FullName)</h2>
+                    <p class="mb-0 opacity-75">
+                        <i class="fas fa-envelope me-2"></i>@User.Identity.Name
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.Department) || !string.IsNullOrEmpty(Model.Position))
+                    {
+                        <p class="small mt-2 mb-0">
+                            <i class="fas fa-briefcase me-1"></i> @Model.Department @(!string.IsNullOrEmpty(Model.Department) && !string.IsNullOrEmpty(Model.Position) ? "·" : "") @Model.Position
+                        </p>
+                    }
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Success Message -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <div class="alert alert-pastel-success alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
             <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    <div class="row">
+    <div class="row g-4">
+        <!-- Main Form Column -->
         <div class="col-lg-8">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-bottom pb-3 pt-4 px-4">
-                    <h5 class="mb-0"><i class="fas fa-user-edit text-primary me-2"></i>Personal Information</h5>
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="icon-circle bg-pastel-primary-soft">
+                            <i class="fas fa-user-edit text-pastel-primary"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">Personal Information</h5>
+                    </div>
                 </div>
                 <div class="card-body p-4">
                     <form asp-action="Update" method="post">
@@ -43,45 +57,47 @@
                         <input type="hidden" asp-for="Email" />
                         <input type="hidden" asp-for="JoinDate" />
 
-                        <div class="row mb-3">
+                        <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label asp-for="FullName" class="form-label fw-bold text-muted">Full Name</label>
-                                <input asp-for="FullName" class="form-control" placeholder="Enter your full name" />
+                                <label asp-for="FullName" class="form-label fw-semibold">Full Name</label>
+                                <input asp-for="FullName" class="form-control form-control-lg rounded-3" placeholder="Enter your full name" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="PhoneNumber" class="form-label fw-bold text-muted">Phone Number</label>
-                                <input asp-for="PhoneNumber" class="form-control" placeholder="Optional" />
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label asp-for="Department" class="form-label fw-bold text-muted">Department</label>
-                                <input asp-for="Department" class="form-control" placeholder="e.g. Engineering" />
+                                <label asp-for="PhoneNumber" class="form-label fw-semibold">Phone Number</label>
+                                <input asp-for="PhoneNumber" class="form-control form-control-lg rounded-3" placeholder="Optional" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="Position" class="form-label fw-bold text-muted">Position/Role</label>
-                                <input asp-for="Position" class="form-control" placeholder="e.g. Senior Developer" />
+                                <label asp-for="Department" class="form-label fw-semibold">Department</label>
+                                <input asp-for="Department" class="form-control form-control-lg rounded-3" placeholder="e.g., Engineering" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Position" class="form-label fw-semibold">Position / Role</label>
+                                <input asp-for="Position" class="form-control form-control-lg rounded-3" placeholder="e.g., Senior Developer" />
                             </div>
                         </div>
 
-                        <hr class="mb-4" />
+                        <hr class="my-4 opacity-25" />
 
-                        <h5 class="mb-3 text-dark"><i class="fas fa-cog text-primary me-2"></i>Preferences & Settings</h5>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="icon-circle bg-pastel-primary-soft" style="width: 36px; height: 36px;">
+                                <i class="fas fa-cog text-pastel-primary fs-6"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0">Preferences & Settings</h5>
+                        </div>
 
-                        <div class="row mb-3">
+                        <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label asp-for="Theme" class="form-label fw-bold text-muted">UI Theme</label>
-                                <select asp-for="Theme" class="form-select">
-                                    <option value="light">Light (Default)</option>
-                                    <option value="dark">Dark Mode</option>
-                                    <option value="primary">Ocean Blue</option>
-                                    <option value="success">Forest Green</option>
+                                <label asp-for="Theme" class="form-label fw-semibold">UI Theme</label>
+                                <select asp-for="Theme" class="form-select rounded-3">
+                                    <option value="light">☀️ Light (Default)</option>
+                                    <option value="dark">🌙 Dark Mode</option>
+                                    <option value="primary">💙 Ocean Blue</option>
+                                    <option value="success">💚 Forest Green</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="DefaultView" class="form-label fw-bold text-muted">Default Startup View</label>
-                                <select asp-for="DefaultView" class="form-select">
+                                <label asp-for="DefaultView" class="form-label fw-semibold">Default Startup View</label>
+                                <select asp-for="DefaultView" class="form-select rounded-3">
                                     <option value="Dashboard">Dashboard</option>
                                     <option value="Tasks">Tasks List</option>
                                     <option value="Calendar">Calendar</option>
@@ -89,33 +105,33 @@
                             </div>
                         </div>
 
-                        <div class="row mb-4">
+                        <div class="row g-3 mb-4">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted mb-3">Notifications</label>
+                                <label class="form-label fw-semibold mb-3">Notifications</label>
                                 <div class="form-check form-switch mb-2">
-                                    <input class="form-check-input" type="checkbox" asp-for="EmailNotifications">
-                                    <label class="form-check-label" asp-for="EmailNotifications">Email Alerts</label>
+                                    <input class="form-check-input" type="checkbox" asp-for="EmailNotifications" id="emailNotif">
+                                    <label class="form-check-label" for="emailNotif">📧 Email Alerts</label>
                                 </div>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" asp-for="PushNotifications">
-                                    <label class="form-check-label" asp-for="PushNotifications">Browser Push Notifications</label>
+                                    <input class="form-check-input" type="checkbox" asp-for="PushNotifications" id="pushNotif">
+                                    <label class="form-check-label" for="pushNotif">🔔 Browser Push Notifications</label>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold text-muted">Working Hours</label>
-                                <div class="d-flex align-items-center mb-2">
-                                    <span class="me-2" style="width: 40px;">Start:</span>
-                                    <input asp-for="WorkStartTime" type="time" class="form-control w-50" />
+                                <label class="form-label fw-semibold">Working Hours</label>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="text-muted small" style="width: 45px;">Start:</span>
+                                    <input asp-for="WorkStartTime" type="time" class="form-control rounded-3" />
                                 </div>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2" style="width: 40px;">End:</span>
-                                    <input asp-for="WorkEndTime" type="time" class="form-control w-50" />
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-muted small" style="width: 45px;">End:</span>
+                                    <input asp-for="WorkEndTime" type="time" class="form-control rounded-3" />
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-flex justify-content-end mt-4">
-                            <button type="submit" class="btn btn-primary px-4 py-2 fw-bold shadow-sm">
+                            <button type="submit" class="btn btn-pastel-primary rounded-pill px-5 py-2 fw-semibold shadow-sm">
                                 <i class="fas fa-save me-2"></i> Save Changes
                             </button>
                         </div>
@@ -124,27 +140,160 @@
             </div>
         </div>
 
+        <!-- Sidebar Cards -->
         <div class="col-lg-4">
-            <div class="card shadow-sm border-0 bg-light">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden mb-4">
                 <div class="card-body p-4 text-center">
-                    <i class="fas fa-shield-alt text-muted fa-3x mb-3"></i>
-                    <h5 class="mb-3">Account Security</h5>
-                    <p class="text-muted small mb-4">Your password and 2FA settings are managed through your Identity account.</p>
-                    <a href="/Identity/Account/Manage" class="btn btn-outline-secondary w-100">
-                        Manage Security Settings
+                    <div class="icon-circle bg-pastel-secondary-soft mx-auto mb-3" style="width: 64px; height: 64px;">
+                        <i class="fas fa-shield-alt fs-2 text-pastel-secondary"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Account Security</h5>
+                    <p class="small text-muted mb-3">Manage your password, 2FA, and login settings.</p>
+                    <a href="/Identity/Account/Manage" class="btn btn-outline-pastel rounded-pill w-100">
+                        <i class="fas fa-lock me-2"></i>Security Settings
                     </a>
                 </div>
             </div>
-            
-            <div class="card shadow-sm border-0 mt-4">
+
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold mb-3 text-muted">Account Stats</h6>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Member Since:</span>
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fas fa-chart-simple text-pastel-primary"></i>
+                        <h6 class="fw-bold mb-0">Account Stats</h6>
+                    </div>
+                    <div class="border-bottom pb-2 mb-2 d-flex justify-content-between">
+                        <span class="text-muted">Member since:</span>
                         <span class="fw-semibold">@Model.JoinDate.ToString("MMM yyyy")</span>
+                    </div>
+                    <div class="pt-1 d-flex justify-content-between">
+                        <span class="text-muted">Last login:</span>
+                        <span class="fw-semibold">@DateTime.Now.ToString("MMM dd, yyyy")</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Profile page pastel styles */
+    .profile-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary, #6366f1), var(--primary-dark, #4f46e5));
+    }
+
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+    }
+    .bg-pastel-primary-soft {
+        background: rgba(99, 102, 241, 0.12);
+    }
+    .bg-pastel-secondary-soft {
+        background: rgba(139, 92, 246, 0.12);
+    }
+    .text-pastel-primary {
+        color: var(--primary, #6366f1);
+    }
+    .text-pastel-secondary {
+        color: #8b5cf6;
+    }
+
+    .btn-pastel-primary {
+        background: linear-gradient(135deg, var(--primary, #6366f1), #8b5cf6);
+        color: white;
+        border: none;
+        transition: all 0.2s;
+    }
+    .btn-pastel-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+        background: linear-gradient(135deg, var(--primary-dark, #4f46e5), #7c3aed);
+    }
+    .btn-outline-pastel {
+        border: 1px solid var(--primary, #6366f1);
+        color: var(--primary, #6366f1);
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .btn-outline-pastel:hover {
+        background: var(--primary, #6366f1);
+        color: white;
+    }
+
+    .alert-pastel-success {
+        background: #dcfce7;
+        border-left: 4px solid #22c55e;
+        color: #166534;
+    }
+    body.theme-dark .alert-pastel-success {
+        background: #14532d;
+        color: #bbf7d0;
+        border-left-color: #4ade80;
+    }
+
+    /* Form controls */
+    .form-control, .form-select {
+        border: 1px solid var(--border-color, #e2e8f0);
+        background-color: var(--card-bg, #ffffff);
+        color: var(--text-dark, #0f172a);
+        transition: all 0.2s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary, #6366f1);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        outline: none;
+    }
+    .form-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted, #64748b);
+    }
+    .form-check-input:checked {
+        background-color: var(--primary, #6366f1);
+        border-color: var(--primary, #6366f1);
+    }
+
+    /* Dark mode overrides */
+    body.theme-dark .form-control,
+    body.theme-dark .form-select {
+        background-color: var(--card-bg, #1e293b);
+        border-color: var(--border-color, #334155);
+        color: #f1f5f9;
+    }
+    body.theme-dark .bg-pastel-primary-soft {
+        background: rgba(99, 102, 241, 0.2);
+    }
+    body.theme-dark .bg-pastel-secondary-soft {
+        background: rgba(139, 92, 246, 0.2);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .profile-container {
+            padding: 0 0.5rem;
+        }
+        .avatar-circle {
+            width: 65px !important;
+            height: 65px !important;
+            font-size: 1.8rem !important;
+        }
+        .card-body {
+            padding: 1.25rem;
+        }
+    }
+</style>
+
+<script>
+    if (typeof AOS !== 'undefined') AOS.refresh();
+</script>

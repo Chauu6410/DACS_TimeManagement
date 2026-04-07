@@ -3,148 +3,172 @@
     ViewData["Title"] = "My Profile";
 }
 
-<div class="container py-4">
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card text-center">
-                <div class="card-body">
-                    <div class="profile-avatar mb-3">
-                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+<div class="profile-container" data-aos="fade-up">
+    <div class="row g-4">
+        <!-- Left Column: Avatar Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden hover-lift text-center">
+                <div class="bg-gradient-pastel-primary p-4">
+                    <div class="avatar-circle mx-auto mb-3">
+                        <i class="fas fa-user-circle fa-4x text-white"></i>
                     </div>
-                    <h4>@Model.FullName</h4>
-                    <p class="text-muted">@Model.Email</p>
-                    <p class="text-muted">
-                        <i class="fas fa-calendar-alt"></i> Member since @Model.JoinDate.ToString("MMMM yyyy")
-                    </p>
-                    <button class="btn btn-outline-primary" onclick="changeAvatar()">
-                        <i class="fas fa-camera"></i> Change Avatar
+                    <h4 class="fw-bold text-white mb-1">@Model.FullName</h4>
+                    <p class="text-white-50 small mb-0">@Model.Email</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <p class="text-pastel-muted mb-0">
+                            <i class="fas fa-calendar-alt me-2 text-pastel-primary"></i>
+                            Member since @Model.JoinDate.ToString("MMMM yyyy")
+                        </p>
+                    </div>
+                    <button class="btn btn-outline-pastel rounded-pill w-100" onclick="changeAvatar()">
+                        <i class="fas fa-camera me-2"></i>Change Avatar
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <ul class="nav nav-tabs card-header-tabs">
-                        <li class="nav-item">
-                            <a class="nav-link active" data-bs-toggle="tab" href="#profile">
-                                Profile Information
-                            </a>
+        <!-- Right Column: Tabs Card -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <ul class="nav nav-pills nav-pills-pastel" id="profileTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#profile" type="button" role="tab">
+                                <i class="fas fa-user-circle me-2"></i>Profile
+                            </button>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#preferences">
-                                Preferences
-                            </a>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#preferences" type="button" role="tab">
+                                <i class="fas fa-sliders-h me-2"></i>Preferences
+                            </button>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#security">
-                                Security
-                            </a>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#security" type="button" role="tab">
+                                <i class="fas fa-shield-alt me-2"></i>Security
+                            </button>
                         </li>
                     </ul>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div class="tab-content">
                         <!-- Profile Tab -->
-                        <div class="tab-pane fade show active" id="profile">
+                        <div class="tab-pane fade show active" id="profile" role="tabpanel">
                             <form asp-action="UpdateProfile" method="post">
-                                <div class="mb-3">
-                                    <label class="form-label">Full Name</label>
-                                    <input asp-for="FullName" class="form-control" />
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label asp-for="FullName" class="form-label fw-semibold">Full Name</label>
+                                        <input asp-for="FullName" class="form-control form-control-lg rounded-3" />
+                                    </div>
+                                    <div class="col-12">
+                                        <label asp-for="Email" class="form-label fw-semibold">Email</label>
+                                        <input asp-for="Email" class="form-control rounded-3" readonly />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="PhoneNumber" class="form-label fw-semibold">Phone Number</label>
+                                        <input asp-for="PhoneNumber" class="form-control rounded-3" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="Department" class="form-label fw-semibold">Department</label>
+                                        <input asp-for="Department" class="form-control rounded-3" />
+                                    </div>
+                                    <div class="col-12">
+                                        <label asp-for="Position" class="form-label fw-semibold">Position</label>
+                                        <input asp-for="Position" class="form-control rounded-3" />
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Email</label>
-                                    <input asp-for="Email" class="form-control" readonly />
+                                <div class="mt-4 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm">
+                                        <i class="fas fa-save me-2"></i>Save Changes
+                                    </button>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Phone Number</label>
-                                    <input asp-for="PhoneNumber" class="form-control" />
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Department</label>
-                                    <input asp-for="Department" class="form-control" />
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Position</label>
-                                    <input asp-for="Position" class="form-control" />
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Save Changes
-                                </button>
                             </form>
                         </div>
 
                         <!-- Preferences Tab -->
-                        <div class="tab-pane fade" id="preferences">
+                        <div class="tab-pane fade" id="preferences" role="tabpanel">
                             <form asp-action="UpdatePreferences" method="post">
-                                <div class="mb-3">
-                                    <label class="form-label">Theme</label>
-                                    <select asp-for="Theme" class="form-select">
-                                        <option value="light">Light</option>
-                                        <option value="dark">Dark</option>
-                                        <option value="auto">Auto</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Default View</label>
-                                    <select asp-for="DefaultView" class="form-select">
-                                        <option value="dashboard">Dashboard</option>
-                                        <option value="tasks">Tasks</option>
-                                        <option value="calendar">Calendar</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Notification Settings</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" asp-for="EmailNotifications" />
-                                        <label class="form-check-label">Email Notifications</label>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="Theme" class="form-label fw-semibold">Theme</label>
+                                        <select asp-for="Theme" class="form-select rounded-3">
+                                            <option value="light">☀️ Light</option>
+                                            <option value="dark">🌙 Dark</option>
+                                            <option value="auto">🔄 Auto (System)</option>
+                                        </select>
                                     </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" asp-for="PushNotifications" />
-                                        <label class="form-check-label">Push Notifications</label>
+                                    <div class="col-md-6">
+                                        <label asp-for="DefaultView" class="form-label fw-semibold">Default View</label>
+                                        <select asp-for="DefaultView" class="form-select rounded-3">
+                                            <option value="dashboard">Dashboard</option>
+                                            <option value="tasks">Tasks List</option>
+                                            <option value="calendar">Calendar</option>
+                                        </select>
                                     </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Working Hours</label>
-                                    <div class="row">
-                                        <div class="col">
-                                            <input type="time" asp-for="WorkStartTime" class="form-control" />
-                                        </div>
-                                        <div class="col">
-                                            <input type="time" asp-for="WorkEndTime" class="form-control" />
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Notification Settings</label>
+                                        <div class="d-flex gap-4 mt-2">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" asp-for="EmailNotifications" id="emailNotif">
+                                                <label class="form-check-label" for="emailNotif">📧 Email Notifications</label>
+                                            </div>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" asp-for="PushNotifications" id="pushNotif">
+                                                <label class="form-check-label" for="pushNotif">🔔 Push Notifications</label>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="WorkStartTime" class="form-label fw-semibold">Work Start Time</label>
+                                        <input type="time" asp-for="WorkStartTime" class="form-control rounded-3" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="WorkEndTime" class="form-label fw-semibold">Work End Time</label>
+                                        <input type="time" asp-for="WorkEndTime" class="form-control rounded-3" />
+                                    </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary">Save Preferences</button>
+                                <div class="mt-4 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm">
+                                        <i class="fas fa-save me-2"></i>Save Preferences
+                                    </button>
+                                </div>
                             </form>
                         </div>
 
                         <!-- Security Tab -->
-                        <div class="tab-pane fade" id="security">
+                        <div class="tab-pane fade" id="security" role="tabpanel">
                             <form asp-action="ChangePassword" method="post">
-                                <div class="mb-3">
-                                    <label class="form-label">Current Password</label>
-                                    <input type="password" name="currentPassword" class="form-control" required />
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold">Current Password</label>
+                                        <input type="password" name="currentPassword" class="form-control rounded-3" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">New Password</label>
+                                        <input type="password" name="newPassword" class="form-control rounded-3" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Confirm New Password</label>
+                                        <input type="password" name="confirmPassword" class="form-control rounded-3" required />
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">New Password</label>
-                                    <input type="password" name="newPassword" class="form-control" required />
+                                <div class="mt-4 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm">
+                                        <i class="fas fa-key me-2"></i>Change Password
+                                    </button>
                                 </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Confirm New Password</label>
-                                    <input type="password" name="confirmPassword" class="form-control" required />
-                                </div>
-                                <button type="submit" class="btn btn-primary">Change Password</button>
                             </form>
-
-                            <hr />
-
-                            <h5>Two-Factor Authentication</h5>
-                            <p class="text-muted">Add an extra layer of security to your account</p>
-                            <button class="btn btn-outline-primary" onclick="enable2FA()">
-                                <i class="fas fa-shield-alt"></i> Enable 2FA
-                            </button>
+                            <hr class="my-4">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1">Two-Factor Authentication</h5>
+                                    <p class="text-pastel-muted small mb-0">Add an extra layer of security to your account</p>
+                                </div>
+                                <button class="btn btn-outline-pastel rounded-pill px-4" onclick="enable2FA()">
+                                    <i class="fas fa-shield-alt me-2"></i>Enable 2FA
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -156,13 +180,158 @@
 @section Scripts {
     <script>
         function changeAvatar() {
-            // Implement avatar upload logic
             alert('Avatar upload feature coming soon!');
         }
 
         function enable2FA() {
-            // Implement 2FA setup
             alert('2FA setup feature coming soon!');
         }
     </script>
 }
+
+<style>
+    /* Profile Pastel Styles - đồng bộ với toàn bộ hệ thống */
+    .profile-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .bg-gradient-pastel-primary {
+        background: linear-gradient(135deg, var(--pastel-primary, #a5b4fc), var(--pastel-primary-dark, #818cf8));
+    }
+
+    .avatar-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hover-lift {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 30px -12px rgba(0,0,0,0.15) !important;
+    }
+
+    /* Tabs Pastel */
+    .nav-pills-pastel .nav-link {
+        background: transparent;
+        color: var(--pastel-dark, #1e293b);
+        font-weight: 500;
+        border-radius: 40px;
+        padding: 0.5rem 1.2rem;
+        transition: all 0.2s;
+    }
+    .nav-pills-pastel .nav-link:hover {
+        background: rgba(99, 102, 241, 0.08);
+        color: var(--pastel-primary-dark, #818cf8);
+    }
+    .nav-pills-pastel .nav-link.active {
+        background: var(--pastel-primary, #a5b4fc);
+        color: #1e293b;
+        box-shadow: 0 2px 8px rgba(129, 140, 248, 0.2);
+    }
+
+    /* Form Controls */
+    .form-control, .form-select {
+        border: 1px solid var(--pastel-border, #e2e8f0);
+        background-color: var(--pastel-card-bg, #ffffff);
+        color: var(--pastel-dark, #0f172a);
+        transition: all 0.2s;
+        font-size: 0.95rem;
+        padding: 0.6rem 1rem;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--pastel-primary-dark, #818cf8);
+        box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
+        outline: none;
+    }
+    .form-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--pastel-muted, #64748b);
+    }
+    .form-check-input:checked {
+        background-color: var(--pastel-primary-dark, #818cf8);
+        border-color: var(--pastel-primary-dark, #818cf8);
+    }
+
+    /* Buttons Pastel */
+    .btn-pastel-primary {
+        background: var(--pastel-primary, #a5b4fc);
+        color: #1e293b;
+        border: none;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    .btn-pastel-primary:hover {
+        background: var(--pastel-primary-dark, #818cf8);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+    }
+    .btn-outline-pastel {
+        border: 1px solid var(--pastel-primary-dark, #818cf8);
+        color: var(--pastel-primary-dark, #818cf8);
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .btn-outline-pastel:hover {
+        background: var(--pastel-primary-dark, #818cf8);
+        color: white;
+    }
+
+    /* Dark Mode Variables */
+    body.theme-dark {
+        --pastel-primary: #818cf8;
+        --pastel-primary-dark: #6366f1;
+        --pastel-border: #334155;
+        --pastel-card-bg: #1e293b;
+        --pastel-dark: #f1f5f9;
+        --pastel-muted: #94a3b8;
+    }
+    body.theme-dark .form-control,
+    body.theme-dark .form-select {
+        background-color: #1e293b;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+    body.theme-dark .nav-pills-pastel .nav-link {
+        color: #e2e8f0;
+    }
+    body.theme-dark .nav-pills-pastel .nav-link.active {
+        background: #4f46e5;
+        color: #e0e7ff;
+    }
+    body.theme-dark .btn-outline-pastel {
+        border-color: #818cf8;
+        color: #a5b4fc;
+    }
+    body.theme-dark .btn-outline-pastel:hover {
+        background: #818cf8;
+        color: #1e293b;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .profile-container {
+            padding: 0 0.5rem;
+        }
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+        }
+        .nav-pills-pastel .nav-link {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+    }
+</style>

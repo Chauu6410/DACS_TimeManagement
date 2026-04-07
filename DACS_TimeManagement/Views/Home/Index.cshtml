@@ -2,84 +2,124 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="dashboard-container">
-    <!-- Welcome Section -->
-    <div class="welcome-section mb-4">
-        <h1 class="display-4">
-            <i class="fas fa-calendar-check text-primary"></i>
-            Welcome back, @User.Identity.Name!
-        </h1>
-        <p class="lead text-muted">Here's your time management overview for today</p>
-        <div class="current-time">
-            <i class="fas fa-clock"></i>
-            <span id="currentDateTime"></span>
-        </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-tasks"></i>
+<div class="dashboard-container" data-aos="fade-up">
+    <!-- Welcome Section with Gradient -->
+    <div class="welcome-card card border-0 shadow-xl rounded-4 overflow-hidden mb-4">
+        <div class="bg-gradient-primary text-white p-4 p-md-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-5 fw-bold mb-2">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Welcome back, @User.Identity.Name!
+                    </h1>
+                    <p class="lead mb-0 opacity-90">Here's your time management overview for today</p>
                 </div>
-                <div class="stat-number">@ViewBag.TotalTasks</div>
-                <div class="stat-label">Total Tasks</div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="stat-card">
-                <div class="stat-icon" style="color: #4cc9f0;">
-                    <i class="fas fa-check-circle"></i>
+                <div class="current-time glass-panel mt-3 mt-md-0">
+                    <i class="fas fa-clock me-2"></i>
+                    <span id="currentDateTime" class="fw-semibold"></span>
                 </div>
-                <div class="stat-number">@ViewBag.CompletedTasks</div>
-                <div class="stat-label">Completed Tasks</div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="stat-card">
-                <div class="stat-icon" style="color: #f8961e;">
-                    <i class="fas fa-hourglass-half"></i>
-                </div>
-                <div class="stat-number">@ViewBag.InProgressTasks</div>
-                <div class="stat-label">In Progress</div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-3">
-            <div class="stat-card">
-                <div class="stat-icon" style="color: #f72585;">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-number">@ViewBag.HoursWorked</div>
-                <div class="stat-label">Hours Worked</div>
             </div>
         </div>
     </div>
 
-    <div class="row">
+    <!-- Statistics Cards (Pastel) -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="stats-card-pastel pastel-blue h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-icon mb-2">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                        <div class="stats-number display-6 fw-bold">@ViewBag.TotalWorkTasks</div>
+                        <div class="stats-label text-muted small fw-semibold">Total WorkTasks</div>
+                    </div>
+                    <i class="fas fa-clipboard-list fa-3x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card-pastel pastel-green h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-icon mb-2">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <div class="stats-number display-6 fw-bold">@ViewBag.CompletedTasks</div>
+                        <div class="stats-label text-muted small fw-semibold">Completed Tasks</div>
+                    </div>
+                    <i class="fas fa-check-double fa-3x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card-pastel pastel-yellow h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-icon mb-2">
+                            <i class="fas fa-hourglass-half fa-2x"></i>
+                        </div>
+                        <div class="stats-number display-6 fw-bold">@ViewBag.InProgressTasks</div>
+                        <div class="stats-label text-muted small fw-semibold">In Progress</div>
+                    </div>
+                    <i class="fas fa-spinner fa-3x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card-pastel pastel-purple h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-icon mb-2">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                        <div class="stats-number display-6 fw-bold">@ViewBag.HoursWorked</div>
+                        <div class="stats-label text-muted small fw-semibold">Hours Worked</div>
+                    </div>
+                    <i class="fas fa-stopwatch fa-3x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
         <!-- Today's Schedule -->
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-calendar-day"></i> Today's Schedule
-                    <a asp-controller="Schedule" asp-action="Create" class="btn btn-sm btn-light float-end">
-                        <i class="fas fa-plus"></i> Add Event
-                    </a>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="icon-circle bg-pastel-primary-soft">
+                                <i class="fas fa-calendar-day text-pastel-primary"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0">Today's Schedule</h5>
+                        </div>
+                        <a asp-controller="Calendar" asp-action="Create" class="btn btn-pastel-outline rounded-pill btn-sm">
+                            <i class="fas fa-plus me-1"></i>Add Event
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     @if (ViewBag.TodayEvents != null && ViewBag.TodayEvents.Count > 0)
                     {
-                        <div class="timeline">
+                        <div class="timeline-pastel">
                             @foreach (var evt in ViewBag.TodayEvents)
                             {
-                                <div class="timeline-item">
-                                    <div class="timeline-time">@evt.StartTime.ToString("HH:mm")</div>
-                                    <div class="timeline-content">
-                                        <h6>@evt.Title</h6>
-                                        <p class="text-muted small">@evt.Description</p>
-                                        <span class="badge bg-@(evt.Status == "Completed" ? "success" : "primary")">
-                                            @evt.Status
-                                        </span>
+                                <div class="timeline-item-pastel mb-3 pb-3 border-bottom">
+                                    <div class="d-flex gap-3">
+                                        <div class="timeline-time-pastel fw-bold text-pastel-primary" style="min-width: 70px;">
+                                            @evt.StartTime.ToString("HH:mm")
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="fw-bold mb-1">@evt.Title</h6>
+                                            @if (!string.IsNullOrEmpty(evt.Description))
+                                            {
+                                                <p class="small text-muted mb-2">@evt.Description</p>
+                                            }
+                                            <span class="badge rounded-pill @(evt.Status == "Completed" ? "bg-pastel-success" : "bg-pastel-primary")">
+                                                @evt.Status
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             }
@@ -87,10 +127,11 @@
                     }
                     else
                     {
-                        <div class="text-center py-5">
-                            <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
-                            <p>No events scheduled for today</p>
-                            <a asp-controller="Schedule" asp-action="Create" class="btn btn-primary btn-sm">
+                        <div class="empty-state text-center py-5">
+                            <i class="fas fa-calendar-alt fa-4x text-pastel-muted opacity-50 mb-3"></i>
+                            <h6 class="fw-semibold">No events scheduled for today</h6>
+                            <p class="small text-muted">Start by adding an event to your calendar.</p>
+                            <a asp-controller="Calendar" asp-action="Create" class="btn btn-pastel-primary rounded-pill mt-2">
                                 Create New Event
                             </a>
                         </div>
@@ -100,13 +141,20 @@
         </div>
 
         <!-- Recent Tasks -->
-        <div class="col-lg-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-list-check"></i> Recent Tasks
-                    <a asp-controller="Tasks" asp-action="Create" class="btn btn-sm btn-light float-end">
-                        <i class="fas fa-plus"></i> Add Task
-                    </a>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="icon-circle bg-pastel-primary-soft">
+                                <i class="fas fa-list-check text-pastel-primary"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0">Recent Tasks</h5>
+                        </div>
+                        <a asp-controller="WorkTask" asp-action="Create" class="btn btn-pastel-outline rounded-pill btn-sm">
+                            <i class="fas fa-plus me-1"></i>Add Task
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     @if (ViewBag.RecentTasks != null && ViewBag.RecentTasks.Count > 0)
@@ -114,51 +162,54 @@
                         <div class="list-group list-group-flush">
                             @foreach (var task in ViewBag.RecentTasks)
                             {
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <input type="checkbox" class="task-checkbox me-2" data-id="@task.Id" @(task.IsCompleted ? "checked disabled" : "")>
-                                            <span class="@(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
-                                                @task.Title
-                                            </span>
-                                            @if (task.Priority == "High")
-                                            {
-                                                <span class="badge bg-danger ms-2">High Priority</span>
-                                            }
-                                            else if (task.Priority == "Medium")
-                                            {
-                                                <span class="badge bg-warning ms-2">Medium Priority</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-info ms-2">Low Priority</span>
-                                            }
+                                <div class="list-group-item border-0 px-4 py-3 task-item-pastel">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <input type="checkbox" class="task-checkbox form-check-input" data-id="@task.Id" @(task.IsCompleted ? "checked disabled" : "")>
+                                                <span class="fw-semibold @(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                                                    @task.Title
+                                                </span>
+                                                @if (task.Priority == "High")
+                                                {
+                                                    <span class="badge bg-pastel-danger rounded-pill">High</span>
+                                                }
+                                                else if (task.Priority == "Medium")
+                                                {
+                                                    <span class="badge bg-pastel-warning rounded-pill text-dark">Medium</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-pastel-info rounded-pill">Low</span>
+                                                }
+                                            </div>
+                                            <small class="text-muted">
+                                                <i class="far fa-calendar-alt me-1"></i>Due: @task.DueDate.ToString("MMM dd, yyyy")
+                                            </small>
                                         </div>
                                         <div class="btn-group">
-                                            <a asp-controller="Tasks" asp-action="Edit" asp-route-id="@task.Id"
-                                                   class="btn btn-sm btn-outline-primary">
+                                            <a asp-controller="WorkTask" asp-action="Edit" asp-route-id="@task.Id"
+                                               class="btn btn-sm btn-outline-pastel rounded-circle me-1" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a asp-controller="Tasks" asp-action="Delete" asp-route-id="@task.Id"
-                                                   class="btn btn-sm btn-outline-danger">
-                                                <i class="fas fa-trash"></i>
+                                            <a asp-controller="WorkTask" asp-action="Delete" asp-route-id="@task.Id"
+                                               class="btn btn-sm btn-outline-pastel-danger rounded-circle" title="Delete">
+                                                <i class="fas fa-trash-alt"></i>
                                             </a>
                                         </div>
                                     </div>
-                                    <small class="text-muted">
-                                        Due: @task.DueDate.ToString("MMM dd, yyyy")
-                                    </small>
                                 </div>
                             }
                         </div>
                     }
                     else
                     {
-                        <div class="text-center py-5">
-                            <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
-                            <p>No tasks yet</p>
-                            <a asp-controller="Tasks" asp-action="Create" class="btn btn-primary btn-sm">
-                                Create Your First Task
+                        <div class="empty-state text-center py-5">
+                            <i class="fas fa-tasks fa-4x text-pastel-muted opacity-50 mb-3"></i>
+                            <h6 class="fw-semibold">No tasks yet</h6>
+                            <p class="small text-muted">Create your first task to get started.</p>
+                            <a asp-controller="WorkTask" asp-action="Create" class="btn btn-pastel-primary rounded-pill mt-2">
+                                Create First Task
                             </a>
                         </div>
                     }
@@ -168,13 +219,18 @@
     </div>
 
     <!-- Productivity Chart -->
-    <div class="row">
+    <div class="row mt-4">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-chart-line"></i> Weekly Productivity
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="icon-circle bg-pastel-primary-soft">
+                            <i class="fas fa-chart-line text-pastel-primary"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">Weekly Productivity</h5>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <canvas id="productivityChart" height="100"></canvas>
                 </div>
             </div>
@@ -187,67 +243,303 @@
     <script>
         // Update current time
         function updateDateTime() {
-        const now = new Date();
-        const formatted = now.toLocaleString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-        });
-        document.getElementById('currentDateTime').innerText = formatted;
+            const now = new Date();
+            const formatted = now.toLocaleString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            const timeElement = document.getElementById('currentDateTime');
+            if (timeElement) timeElement.innerText = formatted;
         }
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
-        // Task checkbox handler
+        // Task checkbox handler (complete task)
         document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-        if (this.checked) {
-        const taskId = this.dataset.id;
-        // Add AJAX call to update task status
-        fetch(`/Tasks/Complete/${taskId}`, { method: 'POST' })
-        .then(response => {
-        if (response.ok) {
-        location.reload();
-        }
-        });
-        }
-        });
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    const taskId = this.dataset.id;
+                    fetch(`/Tasks/Complete/${taskId}`, { method: 'POST' })
+                        .then(response => {
+                            if (response.ok) {
+                                location.reload();
+                            }
+                        })
+                        .catch(err => console.error('Error:', err));
+                }
+            });
         });
 
-        // Productivity Chart
+        // Productivity Chart with pastel colors
         const ctx = document.getElementById('productivityChart').getContext('2d');
         new Chart(ctx, {
-        type: 'line',
-        data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [{
-        label: 'Hours Worked',
-        data: @Html.Raw(Json.Serialize(ViewBag.WeeklyHours)),
-        borderColor: '#4361ee',
-        backgroundColor: 'rgba(67, 97, 238, 0.1)',
-        tension: 0.4,
-        fill: true
-        }, {
-        label: 'Tasks Completed',
-        data: @Html.Raw(Json.Serialize(ViewBag.WeeklyTasks)),
-        borderColor: '#4cc9f0',
-        backgroundColor: 'rgba(76, 201, 240, 0.1)',
-        tension: 0.4,
-        fill: true
-        }]
-        },
-        options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-        legend: {
-        position: 'top',
-        }
-        }
-        }
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Hours Worked',
+                        data: @Html.Raw(Json.Serialize(ViewBag.WeeklyHours)),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#6366f1',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Tasks Completed',
+                        data: @Html.Raw(Json.Serialize(ViewBag.WeeklyTasks)),
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#06b6d4',
+                        pointBorderWidth: 2,
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { usePointStyle: true, boxWidth: 10 }
+                    },
+                    tooltip: { mode: 'index' }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
         });
     </script>
 }
+
+<style>
+    /* Dashboard Pastel Styles */
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary, #6366f1), var(--primary-dark, #4f46e5));
+    }
+
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        border-radius: 40px;
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    /* Stats Cards Pastel */
+    .stats-card-pastel {
+        border-radius: 20px;
+        padding: 1.25rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: default;
+    }
+    .stats-card-pastel:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px rgba(0,0,0,0.08);
+    }
+    .pastel-blue {
+        background: #e0f2fe;
+        border-left: 4px solid #38bdf8;
+    }
+    .pastel-green {
+        background: #dcfce7;
+        border-left: 4px solid #4ade80;
+    }
+    .pastel-yellow {
+        background: #fef9c3;
+        border-left: 4px solid #facc15;
+    }
+    .pastel-purple {
+        background: #f3e8ff;
+        border-left: 4px solid #c084fc;
+    }
+    .stats-icon i {
+        color: #334155;
+    }
+    .stats-number {
+        color: #0f172a;
+    }
+    body.theme-dark .pastel-blue {
+        background: #1e293b;
+        border-left-color: #38bdf8;
+    }
+    body.theme-dark .pastel-green {
+        background: #1e293b;
+        border-left-color: #4ade80;
+    }
+    body.theme-dark .pastel-yellow {
+        background: #1e293b;
+        border-left-color: #facc15;
+    }
+    body.theme-dark .pastel-purple {
+        background: #1e293b;
+        border-left-color: #c084fc;
+    }
+    body.theme-dark .stats-icon i,
+    body.theme-dark .stats-number {
+        color: #f1f5f9;
+    }
+
+    /* Icon circle */
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+    }
+    .bg-pastel-primary-soft {
+        background: rgba(99, 102, 241, 0.12);
+    }
+    .text-pastel-primary {
+        color: var(--primary, #6366f1);
+    }
+    .btn-pastel-primary {
+        background: var(--primary, #6366f1);
+        color: white;
+        border: none;
+        transition: all 0.2s;
+    }
+    .btn-pastel-primary:hover {
+        background: var(--primary-dark, #4f46e5);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    }
+    .btn-pastel-outline {
+        background: transparent;
+        border: 1px solid var(--primary, #6366f1);
+        color: var(--primary, #6366f1);
+        transition: all 0.2s;
+    }
+    .btn-pastel-outline:hover {
+        background: var(--primary, #6366f1);
+        color: white;
+    }
+    .btn-outline-pastel {
+        border: 1px solid var(--primary, #6366f1);
+        color: var(--primary, #6366f1);
+        background: transparent;
+    }
+    .btn-outline-pastel:hover {
+        background: var(--primary, #6366f1);
+        color: white;
+    }
+    .btn-outline-pastel-danger {
+        border: 1px solid #f43f5e;
+        color: #f43f5e;
+        background: transparent;
+    }
+    .btn-outline-pastel-danger:hover {
+        background: #f43f5e;
+        color: white;
+    }
+
+    /* Badge pastel */
+    .bg-pastel-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+    .bg-pastel-primary {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+    .bg-pastel-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+    .bg-pastel-warning {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+    .bg-pastel-info {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+    body.theme-dark .bg-pastel-success {
+        background: #14532d;
+        color: #bbf7d0;
+    }
+    body.theme-dark .bg-pastel-primary {
+        background: #1e3a8a;
+        color: #bfdbfe;
+    }
+    body.theme-dark .bg-pastel-danger {
+        background: #7f1d1d;
+        color: #fecaca;
+    }
+    body.theme-dark .bg-pastel-warning {
+        background: #854d0e;
+        color: #fef9c3;
+    }
+    body.theme-dark .bg-pastel-info {
+        background: #1e3a8a;
+        color: #bfdbfe;
+    }
+
+    /* Task item */
+    .task-item-pastel {
+        transition: background 0.2s;
+    }
+    .task-item-pastel:hover {
+        background: rgba(99, 102, 241, 0.04);
+    }
+    .timeline-item-pastel:last-child {
+        border-bottom: none !important;
+    }
+
+    /* Dark mode additional */
+    body.theme-dark .glass-panel {
+        background: rgba(0,0,0,0.3);
+    }
+    body.theme-dark .btn-pastel-outline {
+        border-color: #818cf8;
+        color: #a5b4fc;
+    }
+    body.theme-dark .btn-pastel-outline:hover {
+        background: #818cf8;
+        color: #1e293b;
+    }
+    body.theme-dark .task-item-pastel:hover {
+        background: rgba(129, 140, 248, 0.1);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .dashboard-container {
+            padding: 0 0.5rem;
+        }
+        .glass-panel {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.8rem;
+        }
+        .stats-card-pastel {
+            padding: 1rem;
+        }
+        .stats-number {
+            font-size: 1.6rem;
+        }
+    }
+</style>

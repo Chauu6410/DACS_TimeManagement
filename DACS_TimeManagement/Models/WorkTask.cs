@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace DACS_TimeManagement.Models
 {
@@ -29,6 +30,7 @@ namespace DACS_TimeManagement.Models
         public int Progress { get; set; } // % hoàn thành (0-100)
 
         public int? ProjectId { get; set; }
+        [JsonIgnore]
         public Project? Project { get; set; }
 
         // Position within a board column for ordering
@@ -36,6 +38,7 @@ namespace DACS_TimeManagement.Models
 
         // Optional relation to a BoardList (column) so a task can belong to a column
         public int? BoardListId { get; set; }
+        [JsonIgnore]
         public BoardList? BoardList { get; set; }
 
         public string? UserId { get; set; } // Người tạo task

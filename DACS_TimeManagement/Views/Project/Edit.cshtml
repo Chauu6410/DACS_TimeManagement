@@ -3,41 +3,171 @@
     ViewData["Title"] = "Edit Project";
 }
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm mt-4">
-            <div class="card-header bg-white border-bottom p-4">
-                <h4 class="mb-0 text-primary fw-bold"><i class="fas fa-edit me-2"></i>Edit Project</h4>
-            </div>
-            <div class="card-body p-4">
-                <form asp-action="Edit">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                    <input type="hidden" asp-for="Id" />
-                    <input type="hidden" asp-for="CreatedDate" />
-                    <input type="hidden" asp-for="UserId" />
-                    
-                    <div class="mb-4">
-                        <label asp-for="Name" class="form-label fw-bold text-muted">Project Name <span class="text-danger">*</span></label>
-                        <input asp-for="Name" class="form-control form-control-lg" required />
-                        <span asp-validation-for="Name" class="text-danger small"></span>
+<div class="edit-project-container" data-aos="fade-up">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden transition-all hover-lift">
+                <!-- Header Gradient -->
+                <div class="card-header bg-gradient-primary text-white border-0 py-4 px-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle bg-white bg-opacity-25 text-white">
+                            <i class="fas fa-edit fs-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 fw-bold">Edit Project</h4>
+                            <p class="opacity-75 small mb-0">Update project information</p>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="mb-4">
-                        <label asp-for="Description" class="form-label fw-bold text-muted">Description</label>
-                        <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-                        <span asp-validation-for="Description" class="text-danger small"></span>
-                    </div>
+                <!-- Form Body -->
+                <div class="card-body p-4 p-lg-5">
+                    <form asp-action="Edit" id="editProjectForm">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 border-0" role="alert"></div>
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedDate" />
+                        <input type="hidden" asp-for="UserId" />
 
-                    <hr class="my-4" />
+                        <div class="row g-4">
+                            <!-- Project Name -->
+                            <div class="col-12">
+                                <label asp-for="Name" class="form-label fw-semibold mb-2">
+                                    <i class="fas fa-tag text-primary me-1"></i> Project Name <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Name" class="form-control form-control-lg rounded-3" required />
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
 
-                    <div class="d-flex justify-content-between">
-                        <a asp-action="Index" class="btn btn-light border px-4 py-2 fw-bold text-muted">Cancel</a>
-                        <button type="submit" class="btn btn-primary px-5 py-2 fw-bold shadow-sm">
-                            <i class="fas fa-save me-2"></i>Save Changes
-                        </button>
-                    </div>
-                </form>
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label fw-semibold mb-2">
+                                    <i class="fas fa-align-left text-primary me-1"></i> Description
+                                </label>
+                                <textarea asp-for="Description" class="form-control rounded-3" rows="5"></textarea>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 opacity-25" />
+
+                        <!-- Form Actions -->
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<style>
+    /* Edit Project custom styles */
+    .edit-project-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary, #6366f1), var(--primary-dark, #4f46e5));
+    }
+
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+    }
+
+    .hover-lift {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Form controls */
+    .form-control {
+        border: 1px solid var(--border-color, #e2e8f0);
+        background-color: var(--card-bg, #ffffff);
+        color: var(--text-dark, #0f172a);
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+        padding: 0.7rem 1rem;
+    }
+    .form-control:focus {
+        border-color: var(--primary, #6366f1);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        outline: none;
+    }
+    .form-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted, #64748b);
+    }
+
+    /* Alert */
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.1);
+        border-left: 4px solid #ef4444;
+        color: #b91c1c;
+    }
+
+    /* Dark mode overrides */
+    body.theme-dark .form-control {
+        background-color: var(--card-bg, #1e293b);
+        border-color: var(--border-color, #334155);
+        color: #f1f5f9;
+    }
+    body.theme-dark .alert-danger {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border-left-color: #ef4444;
+    }
+    body.theme-dark .btn-outline-secondary {
+        color: #cbd5e1;
+        border-color: #475569;
+    }
+    body.theme-dark .btn-outline-secondary:hover {
+        background-color: #334155;
+        color: white;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .edit-project-container {
+            padding: 0 0.5rem;
+        }
+        .card-body {
+            padding: 1.5rem !important;
+        }
+        .icon-circle {
+            width: 40px;
+            height: 40px;
+        }
+        .btn {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+        .d-flex.flex-wrap {
+            flex-direction: column-reverse;
+        }
+    }
+</style>

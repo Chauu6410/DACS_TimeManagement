@@ -1,391 +1,415 @@
+@model DACS_TimeManagement.Models.KanbanViewModel
 @{
     ViewData["Title"] = "Kanban Board";
+    var lists = Model?.BoardLists ?? new List<DACS_TimeManagement.Models.BoardList>();
 }
 
-<!-- Google Fonts + Bootstrap 5 + Font Awesome -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-<style>
-    * {
-        font-family: 'Inter', sans-serif;
-    }
-
-    body {
-        background: linear-gradient(145deg, #f1f5f9 0%, #e6edf4 100%);
-        min-height: 100vh;
-    }
-
-    .kanban-header {
-        background: rgba(255,255,255,0.7);
-        backdrop-filter: blur(8px);
-        border-radius: 32px;
-        padding: 0.5rem 1rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-    }
-
-    .board-card {
-        background: rgba(255,255,255,0.75);
-        backdrop-filter: blur(4px);
-        border: 1px solid rgba(255,255,255,0.5);
-        border-radius: 28px;
-        box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease;
-    }
-
-    /* Column styling */
-    .column {
-        background: rgba(248, 250, 252, 0.9);
-        border-radius: 24px;
-        border: 1px solid rgba(203, 213, 225, 0.4);
-        backdrop-filter: blur(2px);
-        transition: all 0.2s;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-    }
-
-    .column:hover {
-        box-shadow: 0 12px 20px -12px rgba(0, 0, 0, 0.15);
-        border-color: rgba(99, 102, 241, 0.3);
-    }
-
-    .column-header {
-        background: rgba(255,255,255,0.6);
-        border-radius: 20px;
-        padding: 10px 14px;
-        margin-bottom: 12px;
-        backdrop-filter: blur(4px);
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .column-handle {
-        cursor: grab;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-        font-size: 1rem;
-    }
-    .column-handle:hover { opacity: 1; }
-    .column-handle:active { cursor: grabbing; }
-
-    .task-list {
-        min-height: 280px;
-        padding: 4px 0;
-        transition: background 0.1s;
-    }
-
-    /* Task card hiện đại */
-    .task-card {
-        background: white;
-        border: none;
-        border-radius: 20px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-        margin-bottom: 12px;
-        cursor: grab;
-        transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        border-left: 4px solid #6366f1;
-        overflow: hidden;
-    }
-
-    .task-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 20px -12px rgba(99, 102, 241, 0.3);
-        background: #ffffff;
-        border-left-width: 6px;
-    }
-
-    .task-card:active { cursor: grabbing; }
-
-    .task-card .card-body {
-        padding: 12px 14px;
-    }
-
-    .task-title {
-        font-weight: 700;
-        font-size: 0.95rem;
-        color: #0f172a;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .task-title i {
-        font-size: 0.75rem;
-        color: #6366f1;
-    }
-
-    .task-desc {
-        font-size: 0.75rem;
-        color: #475569;
-        line-height: 1.3;
-    }
-
-    /* Badge count */
-    .count-badge {
-        background: #e2e8f0;
-        color: #1e293b;
-        font-size: 0.7rem;
-        font-weight: 600;
-        padding: 2px 10px;
-        border-radius: 40px;
-        backdrop-filter: blur(2px);
-    }
-
-    /* Buttons nâng cấp */
-    .btn-glass {
-        background: rgba(255,255,255,0.7);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(99, 102, 241, 0.3);
-        border-radius: 40px;
-        padding: 6px 18px;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-    .btn-glass:hover {
-        background: white;
-        border-color: #6366f1;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 12px -6px rgba(99,102,241,0.3);
-    }
-    .btn-primary-soft {
-        background: #6366f1;
-        border: none;
-        border-radius: 40px;
-        padding: 6px 20px;
-        font-weight: 500;
-        box-shadow: 0 4px 8px -4px #6366f1;
-    }
-    .btn-primary-soft:hover {
-        background: #4f46e5;
-        transform: translateY(-1px);
-        box-shadow: 0 8px 16px -8px #4f46e5;
-    }
-
-    /* scrollbar đẹp */
-    .overflow-auto::-webkit-scrollbar {
-        height: 6px;
-        width: 6px;
-    }
-    .overflow-auto::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.05);
-        border-radius: 10px;
-    }
-    .overflow-auto::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-
-    /* drag ghost */
-    .sortable-ghost {
-        opacity: 0.4;
-        background: #e2e8f0;
-        border: 1px dashed #6366f1;
-    }
-    .sortable-chosen {
-        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    }
-</style>
-
-<div class="container-fluid px-4 py-3">
-    <!-- Header kết hợp tiêu đề + actions -->
-    <div class="kanban-header d-flex flex-wrap justify-content-between align-items-center">
-        <div>
-            <h4 class="mb-0 fw-bold" style="color: #0f172a;">
-                <i class="fas fa-columns me-2 text-primary"></i> Kanban Board
-            </h4>
-            <small class="text-muted">Kéo thả công việc giữa các cột hoặc sắp xếp lại cột</small>
+<div class="kanban-page" data-aos="fade-up">
+    <!-- Header với màu pastel -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="icon-circle bg-pastel-primary-soft">
+                <i class="fas fa-columns fs-4 text-pastel-primary"></i>
+            </div>
+            <h1 class="display-6 fw-bold text-gradient-pastel mb-0">Kanban Board</h1>
         </div>
-        <div class="mt-2 mt-sm-0">
-            <button class="btn btn-glass me-2" id="btnReset">
-                <i class="fas fa-undo-alt me-1"></i> Reset
-            </button>
-            <button class="btn btn-primary-soft" id="btnAdd">
-                <i class="fas fa-plus me-1"></i> Thêm task demo
-            </button>
+        <div class="d-flex gap-2 mt-2 mt-sm-0">
+            <form method="get" asp-action="Index" id="projectSelector" class="me-2">
+                <select name="projectId" class="form-select rounded-pill shadow-sm pastel-select" onchange="this.form.submit()" 
+                        style="min-width: 200px; cursor: pointer;">
+                    @foreach (var p in Model.Projects)
+                    {
+                        <option value="@p.Id" selected="@(p.Id == Model.SelectedProjectId)">
+                            @p.Name
+                        </option>
+                    }
+                </select>
+            </form>
+            <a class="btn btn-pastel-primary rounded-pill px-4 shadow-sm" asp-action="Create">
+                <i class="fas fa-plus me-2"></i>Add Task
+            </a>
         </div>
     </div>
 
-    <!-- Board wrapper với card nền đẹp -->
-    <div class="card board-card">
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-pastel-danger rounded-3 border-0 mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i>@ViewBag.ErrorMessage
+        </div>
+    }
+
+    <!-- Kanban Board Container -->
+    <div class="card border-0 shadow-xl rounded-4 overflow-hidden bg-pastel-card">
         <div class="card-body p-3 p-md-4">
             <div id="boardWrapper" class="overflow-auto" style="padding-bottom: 8px;">
-                <div id="board" class="d-flex align-items-start" style="gap: 1.25rem; min-height: 380px;">
+                <div id="board" class="d-flex align-items-start" style="gap: 1.5rem;">
                     
-                    <!-- Column: Cần làm -->
-                    <div class="column p-3" style="min-width: 300px; width: 320px;">
-                        <div class="column-header d-flex justify-content-between align-items-center">
-                            <div class="fw-semibold d-flex align-items-center gap-2">
-                                <span class="column-handle"><i class="fas fa-grip-vertical"></i></span>
-                                <span><i class="far fa-circle text-warning me-1"></i> Cần làm</span>
-                            </div>
-                            <span class="count-badge count">3</span>
+                    @if (!lists.Any())
+                    {
+                        <div class="empty-state w-100 text-center py-5">
+                            <i class="fas fa-clipboard-list fa-4x text-pastel-muted opacity-50 mb-3"></i>
+                            <h5 class="fw-semibold">No columns in this project</h5>
+                            <p class="text-pastel-muted">Please add columns (To Do, Doing, Done) in project settings.</p>
                         </div>
-                        <div class="task-list" data-list-id="todo">
-                            <div class="card task-card" data-task-id="t1">
-                                <div class="card-body">
-                                    <div class="task-title"><i class="fas fa-tag"></i> Lập yêu cầu báo cáo</div>
-                                    <div class="task-desc">Thu thập nhu cầu từ các bên liên quan</div>
+                    }
+                    else
+                    {
+                        @foreach (var list in lists)
+                        {
+                            <div class="column pastel-column rounded-4 p-3 shadow-sm">
+                                <div class="column-header d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-pastel">
+                                    <div class="fw-semibold d-flex align-items-center gap-2">
+                                        <span class="column-handle cursor-grab"><i class="fas fa-grip-vertical text-pastel-muted"></i></span>
+                                        <span class="fs-5 text-pastel-dark">@list.Name</span>
+                                    </div>
+                                    <span class="badge bg-pastel-secondary text-pastel-dark rounded-pill px-3 py-1 count">@(list.WorkTasks?.Count ?? 0)</span>
                                 </div>
-                            </div>
-                            <div class="card task-card" data-task-id="t2">
-                                <div class="card-body">
-                                    <div class="task-title"><i class="fas fa-pen-ruler"></i> Thiết kế giao diện</div>
-                                    <div class="task-desc">Wireframe và prototype Figma</div>
-                                </div>
-                            </div>
-                            <div class="card task-card" data-task-id="t3">
-                                <div class="card-body">
-                                    <div class="task-title"><i class="fas fa-database"></i> Chuẩn bị dữ liệu</div>
-                                    <div class="task-desc">Import CSV, mapping fields</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Column: Đang làm -->
-                    <div class="column p-3" style="min-width: 300px; width: 320px;">
-                        <div class="column-header d-flex justify-content-between align-items-center">
-                            <div class="fw-semibold d-flex align-items-center gap-2">
-                                <span class="column-handle"><i class="fas fa-grip-vertical"></i></span>
-                                <span><i class="fas fa-spinner fa-pulse text-info me-1"></i> Đang làm</span>
-                            </div>
-                            <span class="count-badge count">1</span>
-                        </div>
-                        <div class="task-list" data-list-id="doing">
-                            <div class="card task-card" data-task-id="t4">
-                                <div class="card-body">
-                                    <div class="task-title"><i class="fas fa-code"></i> Xây API</div>
-                                    <div class="task-desc">Endpoints cơ bản + authentication</div>
+                                <div class="task-list" data-list-id="@list.Id" style="min-height: 200px;">
+                                    @if (list.WorkTasks != null)
+                                    {
+                                        foreach (var t in list.WorkTasks.OrderBy(x => x.Position))
+                                        {
+                                            <div class="card task-card pastel-task-card mb-3 border-0 shadow-sm rounded-3" data-task-id="@t.Id">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="fw-bold mb-0 text-pastel-dark">@t.Title</h6>
+                                                        @{
+                                                            string priorityClass = t.Priority switch
+                                                            {
+                                                                DACS_TimeManagement.Models.Priority.Urgent => "pastel-danger",
+                                                                DACS_TimeManagement.Models.Priority.High => "pastel-danger",
+                                                                DACS_TimeManagement.Models.Priority.Medium => "pastel-warning",
+                                                                _ => "pastel-info"
+                                                            };
+                                                        }
+                                                        <span class="badge @priorityClass rounded-pill px-2 py-1 fs-6">@t.Priority</span>
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(t.Description))
+                                                    {
+                                                        <p class="small text-pastel-muted mb-0">@(t.Description.Length > 80 ? t.Description.Substring(0, 80) + "..." : t.Description)</p>
+                                                    }
+                                                    else
+                                                    {
+                                                        <p class="small text-pastel-muted mb-0"><i class="far fa-file-alt me-1"></i>No description</p>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    }
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Column: Hoàn thành -->
-                    <div class="column p-3" style="min-width: 300px; width: 320px;">
-                        <div class="column-header d-flex justify-content-between align-items-center">
-                            <div class="fw-semibold d-flex align-items-center gap-2">
-                                <span class="column-handle"><i class="fas fa-grip-vertical"></i></span>
-                                <span><i class="fas fa-check-circle text-success me-1"></i> Hoàn thành</span>
-                            </div>
-                            <span class="count-badge count">2</span>
-                        </div>
-                        <div class="task-list" data-list-id="done">
-                            <div class="card task-card" data-task-id="t5">
-                                <div class="card-body">
-                                    <div class="task-title"><i class="fab fa-git-alt"></i> Tạo repository</div>
-                                    <div class="task-desc">Init Git, branch strategy</div>
-                                </div>
-                            </div>
-                            <div class="card task-card" data-task-id="t6">
-                                <div class="card-body">
-                                    <div class="task-title"><i class="fas fa-cogs"></i> Cấu hình CI</div>
-                                    <div class="task-desc">Github Actions pipeline</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div> <!-- #board -->
-            </div> <!-- #boardWrapper -->
+                        }
+                    }
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- SortableJS -->
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+@Html.AntiForgeryToken()
 
-<script>
-    (function() {
-        // 1. Cho phép kéo thả cột (theo chiều ngang)
-        const boardEl = document.getElementById('board');
-        const columnSortable = new Sortable(boardEl, {
-            animation: 200,
-            handle: '.column-handle',
-            draggable: '.column',
-            ghostClass: 'sortable-ghost',
-            onEnd: function(evt) {
-                console.log(`Column moved from ${evt.oldIndex} to ${evt.newIndex}`);
-                updateCounts();
-            }
-        });
-
-        // 2. Khởi tạo Sortable cho các task-list (cho phép kéo thả task giữa các cột)
-        function initTaskLists() {
-            const lists = document.querySelectorAll('.task-list');
-            lists.forEach(list => {
-                if (list._sortable) return;
-                const sortable = new Sortable(list, {
-                    group: {
-                        name: 'kanban',
-                        pull: true,
-                        revertClone: false
-                    },
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const boardEl = document.getElementById('board');
+            
+            // 1. Sortable for columns
+            if (boardEl) {
+                new Sortable(boardEl, {
                     animation: 200,
-                    draggable: '.task-card',
-                    ghostClass: 'sortable-ghost',
-                    chosenClass: 'sortable-chosen',
-                    onEnd: function(evt) {
-                        evt.item.classList.remove('dragging');
-                        const fromList = evt.from.getAttribute('data-list-id');
-                        const toList = evt.to.getAttribute('data-list-id');
-                        const taskId = evt.item.getAttribute('data-task-id');
-                        console.log(`Task ${taskId} moved: ${fromList} → ${toList}`);
-                        // Ở đây bạn có thể gọi API cập nhật vị trí mới
-                        updateCounts();
-                    },
-                    onStart: function(evt) {
-                        evt.item.classList.add('dragging');
-                    }
+                    handle: '.column-handle',
+                    draggable: '.column',
+                    ghostClass: 'sortable-ghost-column',
+                    chosenClass: 'sortable-chosen-column'
                 });
-                list._sortable = sortable;
-            });
+            }
+
+            // 2. Sortable for tasks in each column
+            function initTaskLists() {
+                const lists = document.querySelectorAll('.task-list');
+                lists.forEach(list => {
+                    new Sortable(list, {
+                        group: 'kanban',
+                        animation: 200,
+                        draggable: '.task-card',
+                        ghostClass: 'sortable-ghost',
+                        chosenClass: 'sortable-chosen',
+                        onStart: function(evt) {
+                            evt.item.classList.add('dragging');
+                        },
+                        onEnd: function(evt) {
+                            evt.item.classList.remove('dragging');
+                            
+                            const taskId = evt.item.getAttribute('data-task-id');
+                            const newListId = evt.to.getAttribute('data-list-id');
+                            const newPosition = evt.newIndex;
+                            
+                            if (!taskId || !newListId) return;
+
+                            const params = new URLSearchParams();
+                            params.append('taskId', taskId);
+                            params.append('newListId', newListId);
+                            params.append('newPosition', newPosition);
+
+                            fetch('/WorkTask/UpdateTaskPosition', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                                },
+                                body: params
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (!data.success) {
+                                    alert("Error: " + data.message);
+                                    location.reload();
+                                }
+                                updateCounts();
+                            })
+                            .catch(() => {
+                                alert("Network error. Please refresh.");
+                                location.reload();
+                            });
+                        }
+                    });
+                });
+            }
+
+            function updateCounts() {
+                document.querySelectorAll('.column').forEach(col => {
+                    const countSpan = col.querySelector('.count');
+                    const tasks = col.querySelectorAll('.task-card').length;
+                    if (countSpan) countSpan.innerText = tasks;
+                });
+            }
+
+            initTaskLists();
+        });
+    </script>
+}
+
+<style>
+    /* ---------- PASTEL COLOR SYSTEM ---------- */
+    :root {
+        --pastel-primary: #a5b4fc;
+        --pastel-primary-dark: #818cf8;
+        --pastel-primary-soft: #e0e7ff;
+        --pastel-secondary: #c4b5fd;
+        --pastel-success: #a7f3d0;
+        --pastel-danger: #fecaca;
+        --pastel-warning: #fde68a;
+        --pastel-info: #bfdbfe;
+        --pastel-dark: #334155;
+        --pastel-muted: #64748b;
+        --pastel-border: #e2e8f0;
+        --pastel-card-bg: #ffffff;
+        --pastel-column-bg: #f8fafc;
+    }
+
+    /* Dark mode overrides for pastel (giữ được độ tương phản) */
+    body.theme-dark {
+        --pastel-primary: #818cf8;
+        --pastel-primary-dark: #6366f1;
+        --pastel-primary-soft: #1e293b;
+        --pastel-secondary: #5b21b6;
+        --pastel-success: #065f46;
+        --pastel-danger: #7f1d1d;
+        --pastel-warning: #854d0e;
+        --pastel-info: #1e3a8a;
+        --pastel-dark: #e2e8f0;
+        --pastel-muted: #94a3b8;
+        --pastel-border: #334155;
+        --pastel-card-bg: #1e293b;
+        --pastel-column-bg: #0f172a;
+    }
+
+    .kanban-page {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .text-gradient-pastel {
+        background: linear-gradient(135deg, var(--pastel-primary), #c4b5fd);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+    }
+    .bg-pastel-primary-soft {
+        background: var(--pastel-primary-soft);
+    }
+    .text-pastel-primary {
+        color: var(--pastel-primary-dark);
+    }
+    .text-pastel-dark {
+        color: var(--pastel-dark);
+    }
+    .text-pastel-muted {
+        color: var(--pastel-muted);
+    }
+    .border-pastel {
+        border-color: var(--pastel-border) !important;
+    }
+
+    /* Buttons pastel */
+    .btn-pastel-primary {
+        background: var(--pastel-primary);
+        color: #1e293b;
+        border: none;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    .btn-pastel-primary:hover {
+        background: var(--pastel-primary-dark);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+    }
+
+    /* Select pastel */
+    .pastel-select {
+        background-color: var(--pastel-card-bg);
+        border: 1px solid var(--pastel-border);
+        color: var(--pastel-dark);
+        transition: all 0.2s;
+    }
+    .pastel-select:focus {
+        border-color: var(--pastel-primary);
+        box-shadow: 0 0 0 3px rgba(165, 180, 252, 0.3);
+        outline: none;
+    }
+
+    /* Alert pastel */
+    .alert-pastel-danger {
+        background: var(--pastel-danger);
+        color: #991b1b;
+        border-left: 4px solid #ef4444;
+    }
+    body.theme-dark .alert-pastel-danger {
+        color: #fecaca;
+    }
+
+    /* Column pastel */
+    .pastel-column {
+        background: var(--pastel-column-bg);
+        border: 1px solid var(--pastel-border);
+        transition: all 0.2s ease;
+    }
+    .pastel-column:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Badge pastel */
+    .bg-pastel-secondary {
+        background: var(--pastel-secondary);
+        color: #1e293b;
+    }
+    .pastel-danger {
+        background: var(--pastel-danger);
+        color: #991b1b;
+    }
+    .pastel-warning {
+        background: var(--pastel-warning);
+        color: #854d0e;
+    }
+    .pastel-info {
+        background: var(--pastel-info);
+        color: #1e3a8a;
+    }
+    body.theme-dark .pastel-danger { color: #fecaca; }
+    body.theme-dark .pastel-warning { color: #fde68a; }
+    body.theme-dark .pastel-info { color: #bfdbfe; }
+
+    /* Task card pastel */
+    .pastel-task-card {
+        background: var(--pastel-card-bg);
+        border-left: 3px solid var(--pastel-primary);
+        cursor: grab;
+        transition: all 0.2s ease;
+    }
+    .pastel-task-card:active {
+        cursor: grabbing;
+    }
+    .pastel-task-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .dragging {
+        opacity: 0.5;
+        transform: scale(0.98);
+    }
+
+    /* SortableJS ghost */
+    .sortable-ghost {
+        opacity: 0.4;
+        background: var(--pastel-primary);
+        border: 1px dashed white;
+    }
+    .sortable-ghost-column {
+        opacity: 0.4;
+        background: var(--pastel-secondary);
+    }
+
+    /* Scrollbar */
+    #boardWrapper::-webkit-scrollbar {
+        height: 8px;
+    }
+    #boardWrapper::-webkit-scrollbar-track {
+        background: var(--pastel-border);
+        border-radius: 10px;
+    }
+    #boardWrapper::-webkit-scrollbar-thumb {
+        background: var(--pastel-primary);
+        border-radius: 10px;
+    }
+
+    /* Dark mode additional */
+    body.theme-dark .pastel-select {
+        background-color: var(--pastel-card-bg);
+        border-color: var(--pastel-border);
+        color: var(--pastel-dark);
+    }
+    body.theme-dark .btn-pastel-primary {
+        background: #4f46e5;
+        color: #e0e7ff;
+    }
+    body.theme-dark .btn-pastel-primary:hover {
+        background: #6366f1;
+    }
+    body.theme-dark .bg-pastel-secondary {
+        background: #5b21b6;
+        color: #c4b5fd;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .kanban-page {
+            padding: 0 0.5rem;
         }
-
-        initTaskLists();
-
-        // Cập nhật số lượng task hiển thị trên mỗi cột
-        function updateCounts() {
-            document.querySelectorAll('.column').forEach(col => {
-                const countSpan = col.querySelector('.count');
-                const taskList = col.querySelector('.task-list');
-                if (countSpan && taskList) {
-                    const totalTasks = taskList.querySelectorAll('.task-card').length;
-                    countSpan.innerText = totalTasks;
-                }
-            });
+        .icon-circle {
+            width: 40px;
+            height: 40px;
         }
-
-        // Xử lý nút Thêm task demo
-        const btnAdd = document.getElementById('btnAdd');
-        if (btnAdd) {
-            btnAdd.addEventListener('click', () => {
-                const firstList = document.querySelector('.task-list[data-list-id="todo"]');
-                if (!firstList) return;
-                const newId = 't' + Date.now() + Math.floor(Math.random() * 1000);
-                const newCard = document.createElement('div');
-                newCard.className = 'card task-card';
-                newCard.setAttribute('data-task-id', newId);
-                newCard.innerHTML = `
-                    <div class="card-body">
-                        <div class="task-title"><i class="fas fa-plus-circle"></i> Task mới (${newId.slice(-4)})</div>
-                        <div class="task-desc">Demo - kéo thả để sắp xếp</div>
-                    </div>
-                `;
-                firstList.appendChild(newCard);
-                initTaskLists();  // đảm bảo task mới có thể kéo thả
-                updateCounts();
-            });
+        .column {
+            min-width: 260px !important;
+            width: 260px !important;
         }
-
-        // Reset về trạng thái ban đầu (reload trang)
-        const btnReset = document.getElementById('btnReset');
-        if (btnReset) {
-            btnReset.addEventListener('click', () => location.reload());
+        .btn {
+            font-size: 0.85rem;
         }
-
-        // Khởi tạo số lượng ban đầu
-        updateCounts();
-    })();
-</script>
+    }
+</style>

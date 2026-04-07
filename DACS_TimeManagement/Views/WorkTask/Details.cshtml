@@ -5,144 +5,339 @@
     var totalTimeLogged = Model.TimeLogs?.Sum(t => t.DurationHours) ?? 0;
 }
 
-<div class="row mt-4">
-    <!-- Main Task Info -->
-    <div class="col-lg-8 mb-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white border-bottom pb-3 pt-4 px-4 d-flex justify-content-between align-items-center">
-                <h4 class="mb-0 text-primary fw-bold">
-                    <i class="fas fa-clipboard-list me-2"></i>@Model.Title
-                </h4>
-                <span class="badge bg-@(Model.Status == DACS_TimeManagement.Models.TaskStatus.Completed ? "success" : Model.Status == DACS_TimeManagement.Models.TaskStatus.InProgress ? "primary" : "secondary") fs-6 py-2 px-3">
-                    @Model.Status
-                </span>
-            </div>
-            
-            <div class="card-body p-4">
-                <div class="row mb-4">
-                    <div class="col-md-6 mb-3 mb-md-0">
-                        <div class="bg-light p-3 rounded-3 text-center h-100 border">
-                            <span class="d-block text-muted small fw-bold text-uppercase mb-1">Start Date</span>
-                            <span class="fs-5 fw-semibold"><i class="far fa-calendar-plus text-primary me-2"></i>@Model.StartDate.ToString("MMM dd, yyyy HH:mm")</span>
+<div class="task-details-container" data-aos="fade-up">
+    <div class="row g-4">
+        <!-- Main Task Info Column -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden hover-lift">
+                <!-- Card Header with Status Badge -->
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle bg-primary-soft text-primary">
+                            <i class="fas fa-clipboard-list fs-4"></i>
                         </div>
+                        <h3 class="fw-bold mb-0 text-gradient">@Model.Title</h3>
                     </div>
-                    <div class="col-md-6">
-                        <div class="bg-light p-3 rounded-3 text-center h-100 border @(Model.EndDate < DateTime.Now && Model.Status != DACS_TimeManagement.Models.TaskStatus.Completed ? "border-danger alert-danger" : "")">
-                            <span class="d-block text-muted small fw-bold text-uppercase mb-1">Due Date</span>
-                            <span class="fs-5 fw-semibold"><i class="far fa-calendar-check text-warning me-2"></i>@Model.EndDate.ToString("MMM dd, yyyy HH:mm")</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-4">
-                    <h6 class="text-muted fw-bold text-uppercase mb-2">Description</h6>
-                    <p class="fs-5" style="white-space: pre-wrap;">@(string.IsNullOrEmpty(Model.Description) ? "No description provided." : Model.Description)</p>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <h6 class="text-muted fw-bold text-uppercase mb-2">Project</h6>
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-project-diagram text-secondary me-2"></i>
-                            <span class="fw-semibold">@(Model.Project?.Name ?? "No Project Assigned")</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3 mb-md-0">
-                        <h6 class="text-muted fw-bold text-uppercase mb-2">Priority</h6>
-                        <span class="badge @(Model.Priority == DACS_TimeManagement.Models.Priority.Urgent || Model.Priority == DACS_TimeManagement.Models.Priority.High ? "bg-danger" : Model.Priority == DACS_TimeManagement.Models.Priority.Medium ? "bg-warning text-dark" : "bg-info") fs-6">
-                            @Model.Priority
-                        </span>
-                    </div>
-                    <div class="col-md-4">
-                        <h6 class="text-muted fw-bold text-uppercase mb-2">Completion Progress</h6>
-                        <div class="d-flex align-items-center">
-                            <div class="progress flex-grow-1 me-2" style="height: 12px; border-radius: 6px;">
-                                <div class="progress-bar @(Model.Progress == 100 ? "bg-success" : "bg-primary") progress-bar-striped @(Model.Progress > 0 && Model.Progress < 100 ? "progress-bar-animated" : "")" 
-                                     role="progressbar" style="width: @Model.Progress%;" aria-valuenow="@Model.Progress" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <span class="fw-bold">@Model.Progress%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <hr class="my-4" />
-
-                <div class="d-flex justify-content-between align-items-center">
-                    <a asp-action="Index" class="btn btn-outline-secondary px-4 fw-bold">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Tasks
-                    </a>
-                    <div class="btn-group shadow-sm">
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary px-4 fw-bold">
-                            <i class="fas fa-edit me-2"></i>Edit Task
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger px-4 fw-bold">
-                            <i class="fas fa-trash me-2"></i>Delete
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Time Logging Sidebar -->
-    <div class="col-lg-4">
-        <!-- Log Entry Form -->
-        <div class="card shadow-sm border-0 mb-4 bg-primary text-white">
-            <div class="card-body p-4">
-                <h5 class="fw-bold mb-3"><i class="fas fa-stopwatch me-2"></i>Log Work Time</h5>
-                <form asp-controller="TimeLog" asp-action="LogTime" method="post">
-                    <input type="hidden" name="workTaskId" value="@Model.Id" />
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Time Spent (Hours)</label>
-                        <div class="input-group">
-                            <input type="number" name="durationHours" class="form-control" step="0.25" min="0.25" max="24" required placeholder="1.5">
-                            <span class="input-group-text">hrs</span>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Work Notes (Optional)</label>
-                        <input type="text" name="note" class="form-control" placeholder="What did you work on?">
-                    </div>
-                    <button type="submit" class="btn btn-light w-100 fw-bold text-primary">
-                        Save Time Log
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- History Card -->
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
-                <span class="fw-bold text-dark"><i class="fas fa-history me-2 text-muted"></i>Time History</span>
-                <span class="badge bg-light text-dark border">@totalTimeLogged hrs total</span>
-            </div>
-            <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
-                @if (Model.TimeLogs == null || !Model.TimeLogs.Any())
-                {
-                    <div class="text-center p-4 text-muted">
-                        <i class="far fa-clock fa-2x mb-2 opacity-50"></i>
-                        <p class="small mb-0">No time logged yet.</p>
-                    </div>
-                }
-                else
-                {
-                    <ul class="list-group list-group-flush">
-                        @foreach(var log in Model.TimeLogs.OrderByDescending(t => t.LogDate))
+                    @{
+                        string statusClass = Model.Status switch
                         {
-                            <li class="list-group-item p-3">
-                                <div class="d-flex justify-content-between">
-                                    <span class="fw-bold text-dark">@log.DurationHours hrs</span>
-                                    <small class="text-muted">@log.LogDate.ToString("MMM dd HH:mm")</small>
+                            DACS_TimeManagement.Models.TaskStatus.Completed => "success",
+                            DACS_TimeManagement.Models.TaskStatus.InProgress => "primary",
+                            _ => "secondary"
+                        };
+                        string statusIcon = Model.Status switch
+                        {
+                            DACS_TimeManagement.Models.TaskStatus.Completed => "fa-check-circle",
+                            DACS_TimeManagement.Models.TaskStatus.InProgress => "fa-spinner fa-pulse",
+                            _ => "fa-hourglass-half"
+                        };
+                    }
+                    <span class="badge bg-@statusClass rounded-pill px-3 py-2 fs-6 fw-semibold">
+                        <i class="fas @statusIcon me-1"></i> @Model.Status
+                    </span>
+                </div>
+
+                <div class="card-body p-4 pt-2">
+                    <!-- Date Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="info-card p-3 rounded-3 h-100">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="info-icon bg-primary-soft text-primary">
+                                        <i class="far fa-calendar-plus"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted small text-uppercase fw-semibold">Start Date</span>
+                                        <p class="fw-bold mb-0">@Model.StartDate.ToString("MMM dd, yyyy · HH:mm")</p>
+                                    </div>
                                 </div>
-                                @if (!string.IsNullOrEmpty(log.Note))
-                                {
-                                    <p class="small text-muted mb-0 mt-1 fst-italic">"@log.Note"</p>
-                                }
-                            </li>
-                        }
-                    </ul>
-                }
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-card p-3 rounded-3 h-100 @(Model.EndDate < DateTime.Now && Model.Status != DACS_TimeManagement.Models.TaskStatus.Completed ? "border-start border-danger border-3" : "")">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="info-icon bg-warning-soft text-warning">
+                                        <i class="far fa-calendar-check"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted small text-uppercase fw-semibold">Due Date</span>
+                                        <p class="fw-bold mb-0">@Model.EndDate.ToString("MMM dd, yyyy · HH:mm")</p>
+                                        @if (Model.EndDate < DateTime.Now && Model.Status != DACS_TimeManagement.Models.TaskStatus.Completed)
+                                        {
+                                            <span class="badge bg-danger mt-1">Overdue</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <h6 class="text-muted fw-bold text-uppercase small mb-3">
+                            <i class="fas fa-align-left me-2"></i>Description
+                        </h6>
+                        <div class="description-box p-3 rounded-3">
+                            <p class="mb-0" style="white-space: pre-wrap;">@(string.IsNullOrEmpty(Model.Description) ? "No description provided." : Model.Description)</p>
+                        </div>
+                    </div>
+
+                    <!-- Project, Priority, Progress -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="info-light p-3 rounded-3 text-center">
+                                <i class="fas fa-diagram-project text-primary mb-2 d-block"></i>
+                                <span class="text-muted small text-uppercase fw-semibold">Project</span>
+                                <p class="fw-bold mb-0">@(Model.Project?.Name ?? "—")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-light p-3 rounded-3 text-center">
+                                <i class="fas fa-flag text-primary mb-2 d-block"></i>
+                                <span class="text-muted small text-uppercase fw-semibold">Priority</span>
+                                <div>
+                                    @{
+                                        string priorityClass = Model.Priority switch
+                                        {
+                                            DACS_TimeManagement.Models.Priority.Urgent or DACS_TimeManagement.Models.Priority.High => "danger",
+                                            DACS_TimeManagement.Models.Priority.Medium => "warning text-dark",
+                                            _ => "info"
+                                        };
+                                    }
+                                    <span class="badge bg-@priorityClass rounded-pill px-3 py-1">@Model.Priority</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-light p-3 rounded-3">
+                                <span class="text-muted small text-uppercase fw-semibold">Progress</span>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <div class="progress flex-grow-1" style="height: 10px; border-radius: 10px;">
+                                        <div class="progress-bar @(Model.Progress == 100 ? "bg-success" : "bg-primary") progress-bar-striped @(Model.Progress > 0 && Model.Progress < 100 ? "progress-bar-animated" : "")" 
+                                             style="width: @Model.Progress%; border-radius: 10px;"></div>
+                                    </div>
+                                    <span class="fw-bold">@Model.Progress%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <hr class="my-4 opacity-25">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Tasks
+                        </a>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                                <i class="fas fa-edit me-2"></i>Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger rounded-pill px-4">
+                                <i class="fas fa-trash-alt me-2"></i>Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Column: Time Logging & History -->
+        <div class="col-lg-4">
+            <!-- Log Work Time Card (Gradient) -->
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden mb-4 bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <i class="fas fa-stopwatch fa-2x"></i>
+                        <h5 class="fw-bold mb-0">Log Work Time</h5>
+                    </div>
+                    <form asp-controller="TimeLog" asp-action="LogTime" method="post" id="logTimeForm">
+                        <input type="hidden" name="workTaskId" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Time Spent (Hours)</label>
+                            <div class="input-group">
+                                <input type="number" name="durationHours" class="form-control bg-white bg-opacity-20 border-0 text-white" 
+                                       step="0.25" min="0.25" max="24" required placeholder="1.5">
+                                <span class="input-group-text bg-white bg-opacity-20 border-0 text-white">hrs</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Work Notes</label>
+                            <input type="text" name="note" class="form-control bg-white bg-opacity-20 border-0 text-white" 
+                                   placeholder="What did you work on?">
+                        </div>
+                        <button type="submit" class="btn btn-light w-100 fw-bold text-primary rounded-pill shadow-sm">
+                            <i class="fas fa-save me-2"></i>Save Time Log
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Time History Card -->
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
+                <div class="card-header bg-transparent border-0 pt-3 px-4 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-history text-primary"></i>
+                        <h5 class="fw-bold mb-0">Time History</h5>
+                    </div>
+                    <span class="badge bg-primary-soft text-primary rounded-pill px-3 py-1">@totalTimeLogged hrs total</span>
+                </div>
+                <div class="card-body p-0" style="max-height: 380px; overflow-y: auto;">
+                    @if (Model.TimeLogs == null || !Model.TimeLogs.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="far fa-clock fa-3x text-muted opacity-50 mb-2"></i>
+                            <p class="small text-muted mb-0">No time logged yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="timeline-list">
+                            @foreach (var log in Model.TimeLogs.OrderByDescending(t => t.LogDate))
+                            {
+                                <div class="timeline-item p-3 border-bottom transition-all">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <i class="fas fa-play-circle text-primary small"></i>
+                                                <span class="fw-bold">@log.DurationHours hrs</span>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(log.Note))
+                                            {
+                                                <p class="small text-muted mb-0 fst-italic">“@log.Note”</p>
+                                            }
+                                        </div>
+                                        <small class="text-muted">@log.LogDate.ToString("MMM dd, HH:mm")</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Custom styles for Task Details page */
+    .task-details-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 0.5rem;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, var(--primary, #6366f1), #8b5cf6);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+    }
+    .bg-primary-soft {
+        background: rgba(99, 102, 241, 0.12);
+    }
+    .bg-warning-soft {
+        background: rgba(245, 158, 11, 0.12);
+    }
+    .info-card, .info-light, .description-box {
+        background: var(--card-bg, white);
+        border: 1px solid var(--border-color, #e5e7eb);
+        transition: all 0.2s ease;
+    }
+    .info-icon {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+        background: rgba(99, 102, 241, 0.1);
+    }
+    .hover-lift {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15) !important;
+    }
+    .timeline-item {
+        transition: background 0.2s ease;
+    }
+    .timeline-item:hover {
+        background: rgba(99, 102, 241, 0.05);
+        transform: translateX(4px);
+    }
+    /* Gradient primary card */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary, #6366f1), var(--primary-dark, #4f46e5));
+    }
+    .bg-gradient-primary .form-control, 
+    .bg-gradient-primary .input-group-text {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        placeholder-color: rgba(255,255,255,0.7);
+    }
+    .bg-gradient-primary .form-control::placeholder {
+        color: rgba(255,255,255,0.7);
+    }
+    .bg-gradient-primary .form-control:focus {
+        background: rgba(255,255,255,0.3);
+        box-shadow: none;
+        border-color: white;
+    }
+    /* Dark mode overrides */
+    body.theme-dark .info-card,
+    body.theme-dark .info-light,
+    body.theme-dark .description-box {
+        background: var(--card-bg, #1e293b);
+        border-color: var(--border-color, #334155);
+    }
+    body.theme-dark .timeline-item:hover {
+        background: rgba(99,102,241,0.15);
+    }
+    body.theme-dark .bg-primary-soft {
+        background: rgba(99,102,241,0.2);
+    }
+    body.theme-dark .bg-warning-soft {
+        background: rgba(245,158,11,0.2);
+    }
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .icon-circle {
+            width: 40px;
+            height: 40px;
+        }
+        .info-icon {
+            width: 36px;
+            height: 36px;
+        }
+        .card-header h3 {
+            font-size: 1.3rem;
+        }
+    }
+</style>
+
+<script>
+    // Optional: Auto refresh AOS nếu có
+    if (typeof AOS !== 'undefined') {
+        AOS.refresh();
+    }
+    // Hiệu ứng focus cho form log time
+    document.querySelectorAll('#logTimeForm .form-control').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
+</script>

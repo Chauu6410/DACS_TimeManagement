@@ -402,6 +402,7 @@
                 </div>
 
                 <form id="account" method="post">
+                    @Html.AntiForgeryToken()
                     <div asp-validation-summary="ModelOnly" class="validation-summary-errors" role="alert"></div>
                     
                     <div class="form-floating mb-3">

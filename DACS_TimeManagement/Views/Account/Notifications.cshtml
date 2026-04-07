@@ -2,24 +2,281 @@
     ViewData["Title"] = "Notifications";
 }
 
-<div class="container py-4">
-    <h2><i class="fas fa-bell text-primary"></i> Notifications</h2>
-
-    <div class="list-group mt-3">
-        @foreach (var n in ViewBag.Notifications ?? new List<DACS_TimeManagement.Models.Notification>())
-        {
-            <div class="list-group-item d-flex justify-content-between align-items-start">
-                <div>
-                    <h6 class="mb-1">@n.Title</h6>
-                    <p class="small text-muted mb-0">@n.Message</p>
-                </div>
-                <div class="text-end">
-                    <small class="text-muted">@n.CreatedAt.ToString("g")</small>
-                    <div class="mt-2">
-                        <button class="btn btn-sm btn-outline-primary">Mark read</button>
-                    </div>
-                </div>
+<div class="notifications-container" data-aos="fade-up">
+    <!-- Header Pastel -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="icon-circle bg-pastel-primary-soft">
+                <i class="fas fa-bell text-pastel-primary fs-4"></i>
             </div>
-        }
+            <div>
+                <h1 class="display-6 fw-bold text-gradient-pastel mb-0">Notifications</h1>
+                <p class="text-pastel-muted small mb-0">Stay updated with your latest alerts</p>
+            </div>
+        </div>
+        <div class="mt-2 mt-sm-0">
+            <button class="btn btn-outline-pastel rounded-pill px-3 py-1 btn-sm" id="markAllReadBtn">
+                <i class="fas fa-check-double me-1"></i>Mark all as read
+            </button>
+        </div>
+    </div>
+
+    <!-- Notifications List Card -->
+    <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+            <div class="d-flex align-items-center gap-2">
+                <div class="icon-circle bg-pastel-primary-soft" style="width: 36px; height: 36px;">
+                    <i class="fas fa-list-ul text-pastel-primary fs-6"></i>
+                </div>
+                <h5 class="fw-bold mb-0 text-pastel-dark">Recent Notifications</h5>
+                @{
+                    var notifications = ViewBag.Notifications as List<DACS_TimeManagement.Models.Notification> ?? new List<DACS_TimeManagement.Models.Notification>();
+                    var unreadCount = notifications.Count(n => !n.IsRead);
+                    if (unreadCount > 0)
+                    {
+                        <span class="badge bg-pastel-danger rounded-pill ms-2">@unreadCount unread</span>
+                    }
+                }
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (notifications.Any())
+            {
+                <div class="notification-timeline">
+                    @foreach (var n in notifications)
+                    {
+                        <div class="notification-item p-4 border-bottom @(!n.IsRead ? "unread" : "")">
+                            <div class="d-flex flex-wrap gap-3 align-items-start justify-content-between">
+                                <div class="d-flex gap-3 flex-grow-1">
+                                    <div class="notification-icon flex-shrink-0">
+                                        @if (!n.IsRead)
+                                        {
+                                            <i class="fas fa-circle text-pastel-primary" style="font-size: 10px;"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="far fa-circle text-pastel-muted" style="font-size: 10px;"></i>
+                                        }
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="fw-bold mb-1 text-pastel-dark">@n.Title</h6>
+                                        <p class="small text-pastel-muted mb-2">@n.Message</p>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <small class="text-pastel-muted">
+                                                <i class="far fa-clock me-1"></i>@n.CreatedAt.ToString("MMM dd, yyyy · HH:mm")
+                                            </small>
+                                            @if (!n.IsRead)
+                                            {
+                                                <button class="btn btn-sm btn-pastel-outline rounded-pill mark-read-btn" data-id="@n.Id">
+                                                    <i class="fas fa-envelope-open me-1"></i>Mark as read
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-pastel-success rounded-pill">
+                                                    <i class="fas fa-check-circle me-1"></i>Read
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state text-center py-5">
+                    <i class="fas fa-bell-slash fa-4x text-pastel-muted opacity-50 mb-3"></i>
+                    <h6 class="fw-semibold text-pastel-dark">No notifications yet</h6>
+                    <p class="small text-pastel-muted">When you receive alerts, they will appear here.</p>
+                </div>
+            }
+        </div>
     </div>
 </div>
+
+<style>
+    /* Notifications Pastel Styles - đồng bộ với toàn bộ hệ thống */
+    .notifications-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 1rem;
+    }
+
+    .text-gradient-pastel {
+        background: linear-gradient(135deg, var(--pastel-primary-dark, #818cf8), #c4b5fd);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .icon-circle {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+    }
+    .bg-pastel-primary-soft {
+        background: rgba(99, 102, 241, 0.12);
+    }
+    .text-pastel-primary {
+        color: var(--pastel-primary-dark, #818cf8);
+    }
+    .text-pastel-dark {
+        color: var(--pastel-dark, #1e293b);
+    }
+    .text-pastel-muted {
+        color: var(--pastel-muted, #64748b);
+    }
+
+    /* Buttons */
+    .btn-pastel-outline {
+        border: 1px solid var(--pastel-primary-dark, #818cf8);
+        color: var(--pastel-primary-dark, #818cf8);
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .btn-pastel-outline:hover {
+        background: var(--pastel-primary-dark, #818cf8);
+        color: white;
+    }
+    .btn-outline-pastel {
+        border: 1px solid var(--pastel-primary-dark, #818cf8);
+        color: var(--pastel-primary-dark, #818cf8);
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .btn-outline-pastel:hover {
+        background: var(--pastel-primary-dark, #818cf8);
+        color: white;
+    }
+
+    /* Badges */
+    .bg-pastel-danger {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+    .bg-pastel-success {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    /* Notification Items */
+    .notification-item {
+        transition: background 0.2s ease;
+    }
+    .notification-item.unread {
+        background: rgba(99, 102, 241, 0.04);
+        border-left: 3px solid var(--pastel-primary-dark, #818cf8);
+    }
+    .notification-item:hover {
+        background: rgba(99, 102, 241, 0.08);
+    }
+    .border-bottom {
+        border-bottom: 1px solid var(--pastel-border, #e2e8f0);
+    }
+
+    /* Dark Mode Variables */
+    body.theme-dark {
+        --pastel-primary-dark: #6366f1;
+        --pastel-border: #334155;
+        --pastel-card-bg: #1e293b;
+        --pastel-dark: #f1f5f9;
+        --pastel-muted: #94a3b8;
+    }
+    body.theme-dark .bg-pastel-primary-soft {
+        background: rgba(99, 102, 241, 0.2);
+    }
+    body.theme-dark .border-bottom {
+        border-bottom-color: #334155;
+    }
+    body.theme-dark .notification-item.unread {
+        background: rgba(99, 102, 241, 0.1);
+        border-left-color: #818cf8;
+    }
+    body.theme-dark .notification-item:hover {
+        background: rgba(99, 102, 241, 0.15);
+    }
+    body.theme-dark .bg-pastel-danger {
+        background: #7f1d1d;
+        color: #fecaca;
+    }
+    body.theme-dark .bg-pastel-success {
+        background: #14532d;
+        color: #bbf7d0;
+    }
+    body.theme-dark .btn-outline-pastel {
+        border-color: #818cf8;
+        color: #a5b4fc;
+    }
+    body.theme-dark .btn-outline-pastel:hover {
+        background: #818cf8;
+        color: #1e293b;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .notifications-container {
+            padding: 0 0.5rem;
+        }
+        .icon-circle {
+            width: 40px;
+            height: 40px;
+        }
+        .notification-item {
+            padding: 1rem !important;
+        }
+        .btn-sm {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.7rem;
+        }
+    }
+</style>
+
+<script>
+    // Simple client-side simulation for "Mark as read" buttons
+    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const notificationId = this.dataset.id;
+            // AJAX call to mark as read (replace with actual endpoint)
+            fetch(`/Notification/MarkAsRead/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Reload page or update UI
+                    location.reload();
+                }
+            })
+            .catch(err => console.error('Error:', err));
+        });
+    });
+
+    // Mark all as read button
+    const markAllBtn = document.getElementById('markAllReadBtn');
+    if (markAllBtn) {
+        markAllBtn.addEventListener('click', function() {
+            fetch('/Notification/MarkAllAsRead', {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                }
+            })
+            .catch(err => console.error('Error:', err));
+        });
+    }
+
+    if (typeof AOS !== 'undefined') AOS.refresh();
+</script>

@@ -3,31 +3,184 @@
     ViewData["Title"] = "Delete Goal";
 }
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card shadow-lg border-0">
-            <div class="card-header bg-danger text-white p-4 text-center">
-                <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
-                <h3 class="mb-0 fw-bold">Delete Goal</h3>
-            </div>
-            <div class="card-body p-4 text-center">
-                <h5 class="mb-3">Are you sure you want to abandon this goal?</h5>
-                <h3 class="text-dark fw-bold mb-3">"@Model.GoalName"</h3>
-                
-                <p class="text-muted mb-4">
-                    Deleting this goal will permanently erase your progress tracking data. 
-                </p>
+<div class="delete-goal-container" data-aos="fade-up">
+    <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-7 col-11">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden transition-all hover-lift">
+                <!-- Header Danger Gradient (Pastel) -->
+                <div class="card-header bg-gradient-pastel-danger text-white border-0 py-4 text-center">
+                    <div class="icon-circle bg-white bg-opacity-20 mx-auto mb-3">
+                        <i class="fas fa-trash-alt fa-2x"></i>
+                    </div>
+                    <h3 class="mb-0 fw-bold">Delete Goal</h3>
+                    <p class="opacity-75 small mb-0">This action is permanent</p>
+                </div>
 
-                <form asp-action="Delete" method="post" class="d-flex justify-content-center gap-3 mt-4">
-                    <input type="hidden" asp-for="Id" />
-                    <a asp-action="Index" class="btn btn-light border px-4 py-2 fw-bold text-muted">
-                        <i class="fas fa-times me-2"></i>Cancel
-                    </a>
-                    <button type="submit" class="btn btn-danger px-4 py-2 fw-bold shadow">
-                        <i class="fas fa-trash-alt me-2"></i>Yes, Delete Goal
-                    </button>
-                </form>
+                <!-- Body -->
+                <div class="card-body p-4 p-md-5 text-center">
+                    <div class="warning-icon mb-4">
+                        <i class="fas fa-exclamation-triangle fa-4x text-pastel-warning"></i>
+                    </div>
+                    
+                    <h5 class="fw-semibold mb-3">Are you absolutely sure?</h5>
+                    
+                    <div class="goal-name-highlight p-3 rounded-3 mb-4">
+                        <i class="fas fa-quote-left text-pastel-muted me-1 small"></i>
+                        <span class="fw-bold fs-5 text-pastel-dark">@Model.GoalName</span>
+                        <i class="fas fa-quote-right text-pastel-muted ms-1 small"></i>
+                    </div>
+                    
+                    <div class="alert alert-pastel-danger border-0 rounded-3 py-3 mb-4 text-start">
+                        <i class="fas fa-skull-crossbones me-2"></i>
+                        <strong>Warning:</strong> This action <strong>cannot be undone</strong>. All progress tracking data for this goal will be permanently deleted.
+                    </div>
+
+                    <form asp-action="Delete" method="post" class="d-flex flex-wrap justify-content-center gap-3 mt-4">
+                        <input type="hidden" asp-for="Id" />
+                        <a asp-action="Index" class="btn btn-outline-pastel rounded-pill px-4 py-2">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-pastel-danger rounded-pill px-4 py-2 shadow-sm fw-semibold btn-glow">
+                            <i class="fas fa-trash-alt me-2"></i>Yes, Delete Goal
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Delete Goal Pastel Styles (đồng bộ với các file delete khác) */
+    .delete-goal-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+
+    .bg-gradient-pastel-danger {
+        background: linear-gradient(135deg, #f87171, #ef4444);
+    }
+
+    .icon-circle {
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        transition: transform 0.2s ease;
+    }
+    .icon-circle i {
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+
+    .hover-lift {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .goal-name-highlight {
+        background: rgba(99, 102, 241, 0.08);
+        border-left: 3px solid var(--primary, #6366f1);
+        font-size: 1.1rem;
+        word-break: break-word;
+    }
+
+    .alert-pastel-danger {
+        background: rgba(239, 68, 68, 0.12);
+        border-left: 4px solid #ef4444;
+        color: #b91c1c;
+    }
+    body.theme-dark .alert-pastel-danger {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+    }
+
+    .btn-pastel-danger {
+        background: #ef4444;
+        color: white;
+        border: none;
+        transition: all 0.2s;
+    }
+    .btn-pastel-danger:hover {
+        background: #dc2626;
+        transform: scale(1.02);
+        box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+    }
+    .btn-outline-pastel {
+        border: 1px solid var(--primary, #6366f1);
+        color: var(--primary, #6366f1);
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .btn-outline-pastel:hover {
+        background: var(--primary, #6366f1);
+        color: white;
+    }
+
+    .text-pastel-warning {
+        color: #f59e0b;
+    }
+    .text-pastel-dark {
+        color: var(--text-dark, #0f172a);
+    }
+    .text-pastel-muted {
+        color: var(--text-muted, #64748b);
+    }
+
+    /* Dark mode overrides */
+    body.theme-dark .goal-name-highlight {
+        background: rgba(99, 102, 241, 0.15);
+        border-left-color: #818cf8;
+    }
+    body.theme-dark .btn-outline-pastel {
+        border-color: #818cf8;
+        color: #a5b4fc;
+    }
+    body.theme-dark .btn-outline-pastel:hover {
+        background: #818cf8;
+        color: #1e293b;
+    }
+    body.theme-dark .text-pastel-dark {
+        color: #f1f5f9;
+    }
+
+    /* Responsive */
+    @@media (max-width: 576px) {
+        .card-body {
+            padding: 1.5rem !important;
+        }
+        .icon-circle {
+            width: 52px;
+            height: 52px;
+        }
+        .icon-circle i {
+            font-size: 1.6rem;
+        }
+        .goal-name-highlight {
+            font-size: 0.95rem;
+        }
+        .btn {
+            width: 100%;
+            margin: 0.25rem 0;
+        }
+        .d-flex.flex-wrap {
+            flex-direction: column;
+        }
+    }
+</style>
+
+@* Kích hoạt AOS nếu có *@
+<script>
+    if (typeof AOS !== 'undefined') {
+        AOS.refresh();
+    }
+</script>

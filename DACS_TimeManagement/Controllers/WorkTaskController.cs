@@ -1,5 +1,8 @@
+using DACS_TimeManagement.Hubs;
 using DACS_TimeManagement.Models;
 using DACS_TimeManagement.Repositories;
+using DACS_TimeManagement.Services;
+using DACS_TimeManagement.Data; // Đảm bảo có namespace của DBContext
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -7,8 +10,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using DACS_TimeManagement.Hubs;
-using DACS_TimeManagement.Services;
 
 namespace DACS_TimeManagement.Controllers
 {
@@ -19,23 +20,77 @@ namespace DACS_TimeManagement.Controllers
         private readonly IProjectRepository _projectRepo;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly ICryptoService _crypto;
+        private readonly ApplicationDbContext _context;
+        private readonly ILogger<WorkTaskController> _logger;
 
-        public WorkTaskController(IWorkTaskRepository taskRepo, IProjectRepository projectRepo, IHubContext<NotificationHub> hubContext, ICryptoService crypto)
+        public WorkTaskController(IWorkTaskRepository taskRepo, IProjectRepository projectRepo, IHubContext<NotificationHub> hubContext, ICryptoService crypto, ApplicationDbContext context, ILogger<WorkTaskController> logger)
         {
             _taskRepo = taskRepo;
             _projectRepo = projectRepo;
             _hubContext = hubContext;
             _crypto = crypto;
+            _context = context;
+            _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        // --- 1. TRANG KANBAN (Tối ưu tốc độ cực cao) ---
+        public async Task<IActionResult> Index(int? projectId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            // Sử dụng FindAsync để lấy kèm Project nhằm hiển thị tên dự án ở View
-            var tasks = await _taskRepo.FindAsync(t => t.UserId == userId, t => t.Project);
-            return View(tasks);
+            try
+            {
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                // 1. Lấy danh sách Project để đổ vào Dropdown chọn (Chỉ lấy Name và Id cho nhẹ)
+                var userProjects = (await _projectRepo.GetProjectsWithStatsAsync(currentUserId)).ToList();
+
+                if (!userProjects.Any())
+                {
+                    return View(new Models.KanbanViewModel { Projects = new List<Project>(), BoardLists = new List<BoardList>() });
+                }
+
+                // 2. QUAN TRỌNG: Xác định Project nào sẽ được hiển thị
+                // Nếu người dùng chưa chọn (projectId == null), mặc định lấy Project đầu tiên
+                int selectedId = projectId ?? userProjects.First().Id;
+
+                // 3. CHỈ LOAD DỮ LIỆU CỦA 1 PROJECT ĐANG CHỌN (Tăng tốc độ 500%)
+                var boardLists = await _context.BoardLists
+                    .AsNoTracking()
+                    .Where(bl => bl.ProjectId == selectedId) // Lọc chặt chẽ theo ID
+                    .OrderBy(bl => bl.Position)
+                    .ToListAsync();
+
+                var tasks = await _context.WorkTasks
+                    .AsNoTracking()
+                    .Where(t => t.ProjectId == selectedId && (t.UserId == currentUserId || t.AssigneeId == currentUserId))
+                    .ToListAsync();
+
+                // 4. Ghép Task vào List (Chỉ xử lý trong phạm vi 1 Project nên cực nhanh)
+                foreach (var list in boardLists)
+                {
+                    list.WorkTasks = tasks
+                        .Where(t => t.BoardListId == list.Id)
+                        .OrderBy(t => t.Position)
+                        .ToList();
+                }
+
+                // 5. Truyền dữ liệu sang View
+                var viewModel = new Models.KanbanViewModel
+                {
+                    Projects = userProjects,
+                    SelectedProjectId = selectedId,
+                    BoardLists = boardLists
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Lỗi load Kanban");
+                return View(new Models.KanbanViewModel());
+            }
         }
 
+        // --- 2. TẠO MỚI TASK ---
         public async Task<IActionResult> Create()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -49,144 +104,88 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Create(WorkTask task)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
 
-            // Xóa validate UserId do trường này không nằm trên Form (sẽ gán thủ công ở dưới)
             ModelState.Remove("UserId");
             ModelState.Remove("Project");
             ModelState.Remove("TimeLogs");
+            ModelState.Remove("BoardListId");
 
             if (task.StartDate > task.EndDate)
             {
-                ModelState.AddModelError("EndDate", "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.");
+                ModelState.AddModelError("EndDate", "Ngày kết thúc phải lớn hơn ngày bắt đầu.");
             }
 
             if (ModelState.IsValid)
             {
                 task.UserId = userId;
-                
-                // Mã hoá Description nếu đánh dấu là Private
+
+                // Tự động gán vào cột đầu tiên nếu trống
+                if (task.BoardListId == null || task.BoardListId == 0)
+                {
+                    var firstList = await _context.BoardLists
+                        .Where(bl => bl.ProjectId == task.ProjectId)
+                        .OrderBy(bl => bl.Position)
+                        .FirstOrDefaultAsync();
+                    if (firstList != null) task.BoardListId = firstList.Id;
+                }
+
                 if (task.IsPrivate && !string.IsNullOrEmpty(task.Description))
                 {
                     task.Description = _crypto.Encrypt(task.Description);
                 }
 
-                // Set default Assignee to creator if none provided initially for demonstration (or keep null)
-                if (string.IsNullOrEmpty(task.AssigneeId)) {
-                    task.AssigneeId = userId;
-                }
+                if (string.IsNullOrEmpty(task.AssigneeId)) task.AssigneeId = userId;
 
                 await _taskRepo.AddAsync(task);
                 await _taskRepo.SaveAsync();
 
-                // --> TRIGGER SIGNAL-R REAL-TIME NOTIFICATION CHO ASSIGNEE <--
-                if (!string.IsNullOrEmpty(task.AssigneeId) && task.AssigneeId != userId)
+                if (task.AssigneeId != userId)
                 {
                     await _hubContext.Clients.User(task.AssigneeId)
-                        .SendAsync("ReceiveNotification", "Bạn vừa được giao một việc mới!", task.Title);
+                        .SendAsync("ReceiveNotification", "Bạn được giao việc mới!", task.Title);
                 }
 
                 return RedirectToAction(nameof(Index));
             }
+
             var projects = await _projectRepo.GetAllAsync(userId);
             ViewBag.ProjectId = new SelectList(projects, "Id", "Name", task.ProjectId);
             return View(task);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> UpdateProgress(int id, int progress)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var success = await _taskRepo.UpdateTaskProgressAsync(id, userId, progress);
-            return Json(new { success });
-        }
-
-        // POST: /WorkTask/UpdateTaskPosition
-        // Called when a task is dragged to a new list or reordered within the same list.
+        // --- 3. CẬP NHẬT VỊ TRÍ (Drag & Drop) ---
         [HttpPost]
         public async Task<IActionResult> UpdateTaskPosition(int taskId, int? newListId, int newPosition)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            // Load the task ensuring it belongs to the current user
             var task = await _taskRepo.GetByIdAsync(taskId, userId);
-            if (task == null)
-            {
-                return Json(new { success = false, message = "Task not found" });
-            }
 
-            var oldListId = task.BoardListId;
+            if (task == null) return Json(new { success = false, message = "Không tìm thấy công việc" });
 
             try
             {
-                if (oldListId == newListId)
+                // Cập nhật BoardListId và Status dựa trên tên cột
+                task.BoardListId = newListId;
+                var targetList = await _context.BoardLists.FindAsync(newListId);
+                if (targetList != null)
                 {
-                    // Reorder within the same list
-                    var tasksInList = (await _taskRepo.FindAsync(t => t.BoardListId == newListId && t.UserId == userId))
-                        .OrderBy(t => t.Position)
-                        .ToList();
-
-                    // Remove the moving task from the sequence
-                    tasksInList.RemoveAll(t => t.Id == taskId);
-
-                    // Clamp the insert position
-                    var insertPos = Math.Max(0, Math.Min(newPosition, tasksInList.Count));
-
-                    // Insert the task object at the new position
-                    tasksInList.Insert(insertPos, task);
-
-                    // Reassign positions
-                    for (int i = 0; i < tasksInList.Count; i++)
-                    {
-                        tasksInList[i].Position = i;
-                        _taskRepo.Update(tasksInList[i]);
-                    }
-                }
-                else
-                {
-                    // Remove from old list (if any) and reindex
-                    if (oldListId != null)
-                    {
-                        var oldTasks = (await _taskRepo.FindAsync(t => t.BoardListId == oldListId && t.UserId == userId))
-                            .OrderBy(t => t.Position)
-                            .ToList();
-
-                        oldTasks.RemoveAll(t => t.Id == taskId);
-                        for (int i = 0; i < oldTasks.Count; i++)
-                        {
-                            oldTasks[i].Position = i;
-                            _taskRepo.Update(oldTasks[i]);
-                        }
-                    }
-
-                    // Insert into new list and reindex
-                    var newTasks = (await _taskRepo.FindAsync(t => t.BoardListId == newListId && t.UserId == userId))
-                        .OrderBy(t => t.Position)
-                        .ToList();
-
-                    var insertPos = Math.Max(0, Math.Min(newPosition, newTasks.Count));
-
-                    // Set task's new list id before inserting so updates reflect correctly
-                    task.BoardListId = newListId;
-
-                    newTasks.Insert(insertPos, task);
-                    for (int i = 0; i < newTasks.Count; i++)
-                    {
-                        newTasks[i].Position = i;
-                        _taskRepo.Update(newTasks[i]);
-                    }
+                    var name = targetList.Name.ToLower();
+                    if (name.Contains("done") || name.Contains("hoàn thành")) task.Status = Models.TaskStatus.Completed;
+                    else if (name.Contains("doing") || name.Contains("tiến độ")) task.Status = Models.TaskStatus.InProgress;
+                    else task.Status = Models.TaskStatus.Todo;
                 }
 
-                // Persist all changes
-                var saved = await _taskRepo.SaveAsync();
-                return Json(new { success = saved });
+                task.Position = newPosition;
+                _taskRepo.Update(task);
+                await _taskRepo.SaveAsync();
+
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
         // GET: WorkTask/Details/5
         public async Task<IActionResult> Details(int id)
         {

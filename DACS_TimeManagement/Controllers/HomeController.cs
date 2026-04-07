@@ -84,7 +84,7 @@ namespace DACS_TimeManagement.Controllers
             ViewBag.WeeklyHours = weeklyHours;
             ViewBag.WeeklyTasks = weeklyTasks;
 
-            return View();
+            return View(tasks ?? new List<WorkTask>());
         }
 
 

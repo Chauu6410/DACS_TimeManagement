@@ -4,79 +4,246 @@
     var sharedEvents = ViewBag.SharedEvents as IEnumerable<DACS_TimeManagement.Models.SharedEvent> ?? new List<DACS_TimeManagement.Models.SharedEvent>();
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h3 fw-bold text-dark"><i class="fas fa-users text-primary me-2"></i>Shared Workspace</h2>
-    <button class="btn btn-primary shadow-sm px-4 fw-bold disabled" aria-disabled="true">
-        <i class="fas fa-share-alt me-2"></i>Share New Item
-    </button>
-</div>
+<div class="shared-workspace-container" data-aos="fade-up">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-6 fw-bold text-gradient mb-2">
+                <i class="fas fa-users me-2 text-primary"></i>Shared Workspace
+            </h1>
+            <p class="text-muted lead fs-6">Collaborate seamlessly with your team – tasks and events shared with you.</p>
+        </div>
+        <div class="mt-3 mt-sm-0">
+            <button class="btn btn-primary rounded-pill px-4 py-2 shadow-sm fw-semibold disabled" aria-disabled="true">
+                <i class="fas fa-plus-circle me-2"></i>New Share
+            </button>
+        </div>
+    </div>
 
-<div class="row g-4">
-    <!-- Tasks Shared With Me -->
-    <div class="col-lg-6">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white border-bottom p-4">
-                <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-tasks text-primary me-2"></i>Tasks Shared with Me</h5>
-            </div>
-            <div class="card-body p-0">
-                @if (!Model.Any())
+    <div class="row g-4">
+        <!-- Shared Tasks Column -->
+        <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-lg rounded-4 overflow-hidden hover-lift transition-all">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="icon-circle bg-primary-soft text-primary">
+                            <i class="fas fa-tasks fs-5"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">Tasks Shared with Me</h5>
+                        <span class="badge bg-primary rounded-pill ms-auto">@Model.Count()</span>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    @if (!Model.Any())
+                    {
+                        <div class="empty-state text-center py-5">
+                            <div class="empty-icon mb-3">
+                                <i class="fas fa-inbox fa-4x text-muted opacity-50"></i>
+                            </div>
+                            <h6 class="fw-semibold">No shared tasks yet</h6>
+                            <p class="small text-muted mb-0">Tasks shared with you by teammates will appear here.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="task-list">
+                            @foreach (var st in Model)
+                            {
+                                <div class="task-item mb-3 p-3 rounded-3 border bg-white theme-bg-card transition-all">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <i class="fas fa-check-circle text-success small"></i>
+                                                <h6 class="fw-bold mb-0">@st.WorkTask?.Title</h6>
+                                            </div>
+                                            <p class="small text-muted mb-0">
+                                                <i class="far fa-calendar-alt me-1"></i>Shared on @st.SharedDate.ToString("MMM dd, yyyy")
+                                            </p>
+                                        </div>
+                                        <div>
+                                            @{
+                                                string badgeClass = st.PermissionLevel?.ToLower() switch
+                                                {
+                                                    "edit" => "bg-warning text-dark",
+                                                    "view" => "bg-secondary",
+                                                    _ => "bg-info"
+                                                };
+                                            }
+                                            <span class="badge @badgeClass rounded-pill px-3 py-1 fw-normal">
+                                                <i class="fas @(st.PermissionLevel == "edit" ? "fa-pen" : "fa-eye") me-1"></i>@st.PermissionLevel
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+                @if (Model.Any())
                 {
-                    <div class="p-5 text-center text-muted">
-                        <i class="fas fa-clipboard-list fa-3x mb-3 text-light"></i>
-                        <h6>No shared tasks yet</h6>
-                        <p class="small">Tasks your teammates share with you will appear here.</p>
+                    <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-4">
+                        <a href="#" class="text-decoration-none small fw-semibold text-primary">View all tasks →</a>
                     </div>
                 }
-                else
-                {
-                    <ul class="list-group list-group-flush m-0">
-                        @foreach(var st in Model)
-                        {
-                            <li class="list-group-item p-4">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0 fw-bold">@st.WorkTask?.Title</h6>
-                                    <span class="badge bg-info">@st.PermissionLevel</span>
+            </div>
+        </div>
+
+        <!-- Shared Events Column -->
+        <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-lg rounded-4 overflow-hidden hover-lift transition-all">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="icon-circle bg-warning-soft text-warning">
+                            <i class="far fa-calendar-alt fs-5"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">Events Shared with Me</h5>
+                        <span class="badge bg-warning rounded-pill ms-auto">@sharedEvents.Count()</span>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    @if (!sharedEvents.Any())
+                    {
+                        <div class="empty-state text-center py-5">
+                            <div class="empty-icon mb-3">
+                                <i class="far fa-calendar-times fa-4x text-muted opacity-50"></i>
+                            </div>
+                            <h6 class="fw-semibold">No shared events yet</h6>
+                            <p class="small text-muted mb-0">Calendar events shared with you will be listed here.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="event-list">
+                            @foreach (var se in sharedEvents)
+                            {
+                                <div class="event-item mb-3 p-3 rounded-3 border bg-white theme-bg-card transition-all">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <i class="fas fa-video text-primary small"></i>
+                                                <h6 class="fw-bold mb-0">@se.Event?.Subject</h6>
+                                            </div>
+                                            <p class="small text-muted mb-0">
+                                                <i class="far fa-clock me-1"></i>@se.Event?.StartTime.ToString("MMM dd, yyyy · HH:mm")
+                                            </p>
+                                        </div>
+                                        <div>
+                                            @{
+                                                string eventBadgeClass = se.PermissionLevel?.ToLower() switch
+                                                {
+                                                    "edit" => "bg-warning text-dark",
+                                                    "view" => "bg-secondary",
+                                                    _ => "bg-info"
+                                                };
+                                            }
+                                            <span class="badge @eventBadgeClass rounded-pill px-3 py-1 fw-normal">
+                                                <i class="fas @(se.PermissionLevel == "edit" ? "fa-pen" : "fa-eye") me-1"></i>@se.PermissionLevel
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p class="text-muted small mb-0">Shared on @st.SharedDate.ToString("MMM dd, yyyy")</p>
-                            </li>
-                        }
-                    </ul>
+                            }
+                        </div>
+                    }
+                </div>
+                @if (sharedEvents.Any())
+                {
+                    <div class="card-footer bg-transparent border-0 pt-0 pb-3 px-4">
+                        <a href="#" class="text-decoration-none small fw-semibold text-primary">View all events →</a>
+                    </div>
                 }
             </div>
         </div>
     </div>
-
-    <!-- Events Shared With Me -->
-    <div class="col-lg-6">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-header bg-white border-bottom p-4">
-                <h5 class="mb-0 fw-bold text-dark"><i class="far fa-calendar-alt text-warning me-2"></i>Events Shared with Me</h5>
-            </div>
-            <div class="card-body p-0">
-                @if (!sharedEvents.Any())
-                {
-                    <div class="p-5 text-center text-muted">
-                        <i class="far fa-calendar-check fa-3x mb-3 text-light"></i>
-                        <h6>No shared events yet</h6>
-                        <p class="small">Meetings and calendar events assigned to you will appear here.</p>
-                    </div>
-                }
-                else
-                {
-                    <ul class="list-group list-group-flush m-0">
-                        @foreach(var se in sharedEvents)
-                        {
-                            <li class="list-group-item p-4">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0 fw-bold">@se.Event?.Subject</h6>
-                                    <span class="badge bg-warning text-dark">@se.PermissionLevel</span>
-                                </div>
-                                <p class="text-muted small mb-0">Scheduled for @se.Event?.StartTime.ToString("MMM dd HH:mm")</p>
-                            </li>
-                        }
-                    </ul>
-                }
-            </div>
-        </div>
-    </div>
 </div>
+
+<style>
+    /* Additional styles for Shared Workspace */
+    .shared-workspace-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, var(--primary, #6366f1), #8b5cf6);
+        background-clip: text;
+        -webkit-background-clip: text;
+        color: transparent;
+    }
+
+    .icon-circle {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+    }
+
+    .bg-primary-soft {
+        background: rgba(99, 102, 241, 0.12);
+    }
+    .bg-warning-soft {
+        background: rgba(245, 158, 11, 0.12);
+    }
+
+    .hover-lift {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .task-item, .event-item {
+        transition: all 0.2s ease;
+        background-color: var(--card-bg, white);
+        border-color: var(--border-color, #e5e7eb);
+    }
+    .task-item:hover, .event-item:hover {
+        background-color: rgba(99, 102, 241, 0.03);
+        transform: translateX(4px);
+        border-left: 3px solid var(--primary, #6366f1);
+    }
+
+    /* Dark mode overrides */
+    body.theme-dark .task-item,
+    body.theme-dark .event-item {
+        background-color: var(--card-bg, #1e293b);
+        border-color: var(--border-color, #334155);
+    }
+    body.theme-dark .task-item:hover,
+    body.theme-dark .event-item:hover {
+        background-color: rgba(99, 102, 241, 0.1);
+    }
+    body.theme-dark .bg-primary-soft {
+        background: rgba(99, 102, 241, 0.2);
+    }
+    body.theme-dark .bg-warning-soft {
+        background: rgba(245, 158, 11, 0.2);
+    }
+    body.theme-dark .empty-icon i {
+        color: #475569;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .icon-circle {
+            width: 36px;
+            height: 36px;
+        }
+        .task-item, .event-item {
+            padding: 1rem !important;
+        }
+        .card-header .badge {
+            font-size: 0.7rem;
+        }
+    }
+</style>
+
+<script>
+    // Optional: Kích hoạt AOS nếu có trong layout (đã có sẵn)
+    if (typeof AOS !== 'undefined') {
+        AOS.refresh();
+    }
+</script>
