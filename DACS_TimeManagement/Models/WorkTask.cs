@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
@@ -46,8 +47,15 @@ namespace DACS_TimeManagement.Models
         // Người được giao việc (Assignee)
         public string? AssigneeId { get; set; }
 
+        [ForeignKey("UserId")]
+        public virtual IdentityUser? Creator { get; set; }
+
+        [ForeignKey("AssigneeId")]
+        public virtual IdentityUser? Assignee { get; set; }
+
         public bool IsPrivate { get; set; } = false; // Đánh dấu thẻ là riêng tư
 
         public ICollection<TimeLog> TimeLogs { get; set; } = new List<TimeLog>();
+
     }
 }

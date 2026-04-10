@@ -61,6 +61,7 @@ namespace DACS_TimeManagement.Controllers
 
                 var tasks = await _context.WorkTasks
                     .AsNoTracking()
+                    .Include(t => t.Assignee)
                     .Where(t => t.ProjectId == selectedId && (t.UserId == currentUserId || t.AssigneeId == currentUserId))
                     .ToListAsync();
 
@@ -94,11 +95,19 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Create()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // 1. Lấy danh sách Project của người đang đăng nhập
             var projects = await _projectRepo.GetAllAsync(userId);
             ViewBag.ProjectId = new SelectList(projects, "Id", "Name");
+            // 2. Lấy danh sách tất cả User trong hệ thống để chọn Người thực hiện
+            // (Cần inject UserManager vào Controller)
+            var allUsers = await _context.Users.Select(u => new {
+                Id = u.Id,
+                DisplayName = u.Email // Hoặc u.UserName
+            }).ToListAsync();
+            ViewBag.AssigneeId = new SelectList(allUsers, "Id", "DisplayName");
             return View();
         }
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(WorkTask task)

@@ -86,6 +86,15 @@
                                 <span asp-validation-for="ProjectId" class="text-danger small"></span>
                             </div>
 
+                            <!-------->
+                            <div class="form-group mb-3">
+                                <label class="form-label fw-bold">Người thực hiện</label>
+                                <select asp-for="AssigneeId" class="form-select border-0 shadow-sm rounded-4" 
+                                        asp-items="ViewBag.AssigneeId">
+                                    <option value="">-- Chọn thành viên --</option>
+                                </select>
+                            </div>
+
                             <!-- Progress -->
                             <div class="col-12">
                                 <label asp-for="Progress" class="form-label fw-semibold mb-2">

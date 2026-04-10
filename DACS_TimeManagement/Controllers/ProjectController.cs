@@ -48,6 +48,7 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Create(Project project)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+            // Xóa các lỗi validate không cần thiết
             ModelState.Remove("UserId");
             ModelState.Remove("Tasks");
 
@@ -56,21 +57,25 @@ namespace DACS_TimeManagement.Controllers
                 project.UserId = userId;
                 project.CreatedDate = DateTime.Now;
 
-                // Tự động tạo 3 cột cơ bản cho Kanban Board
-                project.BoardLists = new List<BoardList>
-                {
-                    new BoardList { Name = "To Do", Position = 0 },
-                    new BoardList { Name = "Doing", Position = 1 },
-                    new BoardList { Name = "Done", Position = 2 }
-                };
+                // BƯỚC 1: CHỈ LƯU PROJECT 1 LẦN DUY NHẤT
+                _context.Projects.Add(project);
+                await _context.SaveChangesAsync();
 
-                await _projectRepo.AddAsync(project);
-                await _projectRepo.SaveAsync();
+                // Tự động tạo 3 cột cơ bản cho Kanban Board
+                var defaultLists = new List<BoardList>
+                {
+                    new BoardList { Name = "Cần làm", Position = 0, ProjectId = project.Id },
+                    new BoardList { Name = "Đang làm", Position = 1, ProjectId = project.Id },
+                    new BoardList { Name = "Hoàn tất", Position = 2, ProjectId = project.Id }
+                };
+                _context.BoardLists.AddRange(defaultLists);
+                await _context.SaveChangesAsync();  // Lưu các cột xong là xong
+
+                
                 return RedirectToAction(nameof(Index));
             }
             return View(project);
         }
-
         public async Task<IActionResult> Details(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";

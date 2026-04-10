@@ -100,6 +100,29 @@
                                                     {
                                                         <p class="small text-pastel-muted mb-0"><i class="far fa-file-alt me-1"></i>No description</p>
                                                     }
+                                                    <!------------->
+                                                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-light">
+                                                        <div class="assignee-info d-flex align-items-center gap-2">
+                                                            @if (t.Assignee != null)
+                                                            {
+                                                                @* Vòng tròn nhỏ hiện chữ cái đầu của Email *@
+                                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                                                     style="width: 24px; height: 24px; font-size: 10px; font-weight: bold;">
+                                                                    @t.Assignee.Email.Substring(0, 1).ToUpper()
+                                                                </div>
+                                                                <span class="small text-muted" style="font-size: 0.75rem;">@t.Assignee.Email.Split('@')[0]</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="small text-muted" style="font-size: 0.75rem;"><i class="fas fa-user-slash me-1"></i>Chưa giao</span>
+                                                            }
+                                                        </div>
+    
+                                                        @if (t.IsPrivate)
+                                                        {
+                                                            <i class="fas fa-lock text-warning" title="Bảo mật AES" style="font-size: 0.8rem;"></i>
+                                                        }
+                                                    </div>
                                                 </div>
                                             </div>
                                         }
