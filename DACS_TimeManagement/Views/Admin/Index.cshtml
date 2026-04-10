@@ -1,9 +1,18 @@
+@using Microsoft.AspNetCore.Identity
 @model DACS_TimeManagement.Models.AdminViewModel
+@inject UserManager<IdentityUser> _userManager
 @{
     ViewData["Title"] = "System Admin Dashboard";
 }
 
 <div class="admin-container" data-aos="fade-up">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-pastel-success alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
     <!-- Header -->
     <div class="welcome-card card border-0 shadow-xl rounded-4 overflow-hidden mb-4">
         <div class="bg-gradient-primary text-white p-4">
@@ -85,15 +94,18 @@
                             <th class="ps-4">User ID</th>
                             <th>Email / Username</th>
                             <th>Email Confirmed</th>
+                            <th class="text-end pe-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var user in Model.Users)
                         {
+                            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                            var isLocked = await _userManager.IsLockedOutAsync(user);
                             <tr>
                                 <td class="ps-4 text-pastel-muted small font-monospace">@user.Id</td>
                                 <td class="fw-semibold text-pastel-dark">
-                                    @if (user.Email == "admin@gmail.com")
+                                    @if (isAdmin)
                                     {
                                         <span class="badge bg-pastel-danger me-2">Admin</span>
                                     }
@@ -108,9 +120,24 @@
                                     }
                                     else
                                     {
-                                        <span class="badge bg-pastel-warning rounded-pill px-3 py-1 text-dark">
-                                            <i class="fas fa-clock me-1"></i>Pending
-                                        </span>
+                                        <form asp-action="ConfirmEmail" asp-route-userId="@user.Id" method="post" class="d-inline">
+                                            <button type="submit" class="badge bg-pastel-warning border-0 rounded-pill px-3 py-1 text-dark cursor-pointer" style="cursor: pointer;">
+                                                <i class="fas fa-clock me-1"></i>Pending (Fix)
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    @if (user.Email != "admin@gmail.com")
+                                    {
+                                        <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                            <button type="button" class="btn btn-sm bg-white text-primary border-end toggle-admin-btn" data-user-id="@user.Id" data-is-admin="@(isAdmin ? "true" : "false")" title="Toggle Admin/User">
+                                                <i class="fas fa-user-tag"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm bg-white @(isLocked ? "text-danger" : "text-dark") toggle-lock-btn" data-user-id="@user.Id" data-is-locked="@(isLocked ? "true" : "false")" title="@(isLocked ? "Unlock" : "Lock")">
+                                                <i class="fas @(isLocked ? "fa-lock" : "fa-unlock")"></i>
+                                            </button>
+                                        </div>
                                     }
                                 </td>
                             </tr>
@@ -118,7 +145,7 @@
                         @if (!Model.Users.Any())
                         {
                             <tr>
-                                <td colspan="3" class="text-center text-pastel-muted py-5">No users found.</td>
+                                <td colspan="4" class="text-center text-pastel-muted py-5">No users found.</td>
                             </tr>
                         }
                     </tbody>
@@ -126,6 +153,124 @@
             </div>
         </div>
     </div>
+    @section Scripts {
+    <script>
+        // Handle Toggle Admin Role
+        document.querySelectorAll('.toggle-admin-btn').forEach(btn => {
+            btn.addEventListener('click', async function(e) {
+                const userId = this.dataset.userId;
+                const isAdmin = this.dataset.isAdmin === 'true';
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.disabled = true;
+
+                try {
+                    const response = await fetch('/Admin/ToggleAdminRole', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: `userId=${encodeURIComponent(userId)}`
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showToast(result.message, 'success');
+                        // Cập nhật giao diện: thay đổi badge Admin và trạng thái nút
+                        const row = this.closest('tr');
+                        const emailCell = row.cells[1];
+                        const badgeSpan = emailCell.querySelector('.badge.bg-pastel-danger');
+                        if (result.isAdmin) {
+                            if (!badgeSpan) {
+                                const newBadge = document.createElement('span');
+                                newBadge.className = 'badge bg-pastel-danger me-2';
+                                newBadge.innerText = 'Admin';
+                                emailCell.insertBefore(newBadge, emailCell.firstChild);
+                            }
+                            this.dataset.isAdmin = 'true';
+                        } else {
+                            if (badgeSpan) badgeSpan.remove();
+                            this.dataset.isAdmin = 'false';
+                        }
+                    } else {
+                        showToast(result.message || 'Error', 'error');
+                    }
+                } catch (err) {
+                    showToast('Network error', 'error');
+                } finally {
+                    this.innerHTML = originalHtml;
+                    this.disabled = false;
+                }
+            });
+        });
+
+        // Handle Toggle Lockout
+        document.querySelectorAll('.toggle-lock-btn').forEach(btn => {
+            btn.addEventListener('click', async function(e) {
+                const userId = this.dataset.userId;
+                const isLocked = this.dataset.isLocked === 'true';
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.disabled = true;
+
+                try {
+                    const response = await fetch('/Admin/ToggleLockout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: `userId=${encodeURIComponent(userId)}`
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        showToast(result.message, 'success');
+                        // Cập nhật icon và trạng thái
+                        const icon = this.querySelector('i');
+                        if (result.isLocked) {
+                            icon.className = 'fas fa-lock';
+                            this.classList.add('text-danger');
+                            this.classList.remove('text-dark');
+                            this.title = 'Unlock';
+                            this.dataset.isLocked = 'true';
+                        } else {
+                            icon.className = 'fas fa-unlock';
+                            this.classList.add('text-dark');
+                            this.classList.remove('text-danger');
+                            this.title = 'Lock';
+                            this.dataset.isLocked = 'false';
+                        }
+                    } else {
+                        showToast(result.message || 'Error', 'error');
+                    }
+                } catch (err) {
+                    showToast('Network error', 'error');
+                } finally {
+                    this.innerHTML = originalHtml;
+                    this.disabled = false;
+                }
+            });
+        });
+
+        function showToast(message, type) {
+            // Tạo toast tạm thời
+            const toast = document.createElement('div');
+            toast.className = `alert alert-pastel-${type} alert-dismissible fade show position-fixed bottom-0 end-0 m-3 shadow-lg`;
+            toast.style.zIndex = '9999';
+            toast.style.minWidth = '250px';
+            toast.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+}
 </div>
 
 <style>
@@ -137,7 +282,7 @@
     }
 
     .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--pastel-primary-dark, #6366f1), #4f46e5);
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
     }
 
     .icon-circle {
@@ -152,13 +297,13 @@
         background: rgba(99, 102, 241, 0.12);
     }
     .text-pastel-primary {
-        color: var(--pastel-primary-dark, #818cf8);
+        color: #4f46e5;
     }
     .text-pastel-dark {
-        color: var(--pastel-dark, #1e293b);
+        color: #1e293b;
     }
     .text-pastel-muted {
-        color: var(--pastel-muted, #64748b);
+        color: #64748b;
     }
 
     /* Stats Cards Pastel */
@@ -193,24 +338,24 @@
 
     /* Table Pastel */
     .table-pastel {
-        background-color: var(--pastel-card-bg, #ffffff);
-        color: var(--pastel-dark, #0f172a);
+        background-color: #ffffff;
+        color: #1e293b;
         border-collapse: separate;
         border-spacing: 0;
     }
     .table-pastel thead th {
-        background-color: var(--pastel-soft, #f8fafc);
-        border-bottom: 1px solid var(--pastel-border, #e2e8f0);
+        background-color: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
         font-size: 0.75rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-weight: 600;
-        color: var(--pastel-muted, #64748b);
+        color: #64748b;
         padding: 1rem 0.75rem;
     }
     .table-pastel tbody td {
         padding: 1rem 0.75rem;
-        border-bottom: 1px solid var(--pastel-border, #e2e8f0);
+        border-bottom: 1px solid #e2e8f0;
         vertical-align: middle;
     }
     .table-pastel tbody tr:hover {
@@ -229,6 +374,24 @@
     .bg-pastel-warning {
         background: #fef9c3;
         color: #854d0e;
+    }
+
+    /* Button group custom */
+    .btn-group .btn {
+        border-radius: 0;
+        transition: all 0.2s;
+    }
+    .btn-group .btn:first-child {
+        border-top-left-radius: 40px;
+        border-bottom-left-radius: 40px;
+    }
+    .btn-group .btn:last-child {
+        border-top-right-radius: 40px;
+        border-bottom-right-radius: 40px;
+    }
+    .btn-group .btn:hover {
+        background-color: #f1f5f9 !important;
+        transform: scale(1.02);
     }
 
     /* Dark Mode Variables */
@@ -282,6 +445,24 @@
         background: #854d0e;
         color: #fef9c3;
     }
+    body.theme-dark .btn-group .btn {
+        background-color: #1e293b !important;
+        color: #cbd5e1;
+        border-color: #334155;
+    }
+    body.theme-dark .btn-group .btn:hover {
+        background-color: #334155 !important;
+    }
+    .alert-pastel-success {
+        background: #dcfce7;
+        border-left: 4px solid #22c55e;
+        color: #166534;
+    }
+    body.theme-dark .alert-pastel-success {
+        background: #14532d;
+        color: #bbf7d0;
+        border-left-color: #4ade80;
+    }
 
     /* Responsive */
     @@media (max-width: 768px) {
@@ -302,9 +483,30 @@
     }
 </style>
 
-@* Kích hoạt AOS nếu có *@
 <script>
     if (typeof AOS !== 'undefined') {
         AOS.refresh();
     }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $('.role-form').on('submit', function(e) {
+        e.preventDefault();
+        var form = this;
+        Swal.fire({
+            title: 'Xác nhận thay đổi quyền?',
+            text: "Vai trò của người dùng này sẽ bị thay đổi ngay lập tức!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#6366f1',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Đồng ý',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
 </script>

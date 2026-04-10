@@ -7,6 +7,25 @@ namespace DACS_TimeManagement.Repositories
     {
         public NotificationRepository(ApplicationDbContext context) : base(context) { }
 
+        // Lấy danh sách thông báo phân trang (sắp xếp mới nhất trước)
+        public async Task<IEnumerable<Notification>> GetPagedAsync(string userId, int page, int pageSize)
+        {
+            return await _context.Notifications
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.TriggerTime)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        // Đếm tổng số thông báo của user
+        public async Task<int> CountAsync(string userId)
+        {
+            return await _context.Notifications
+                .CountAsync(n => n.UserId == userId);
+        }
+
+        // Lấy danh sách thông báo chưa đọc (không phân trang)
         public async Task<IEnumerable<Notification>> GetUnreadAsync(string userId)
         {
             return await _context.Notifications
@@ -15,6 +34,7 @@ namespace DACS_TimeManagement.Repositories
                 .ToListAsync();
         }
 
+        // Đánh dấu một thông báo đã đọc
         public async Task MarkReadAsync(int id, string userId)
         {
             var notification = await _context.Notifications
@@ -28,6 +48,7 @@ namespace DACS_TimeManagement.Repositories
             }
         }
 
+        // Đánh dấu tất cả thông báo của user là đã đọc
         public async Task MarkAllAsReadAsync(string userId)
         {
             var unreadNotifications = await _context.Notifications
@@ -42,6 +63,7 @@ namespace DACS_TimeManagement.Repositories
             await _context.SaveChangesAsync();
         }
 
+        // Đếm số thông báo chưa đọc
         public async Task<int> CountUnreadAsync(string userId)
         {
             return await _context.Notifications

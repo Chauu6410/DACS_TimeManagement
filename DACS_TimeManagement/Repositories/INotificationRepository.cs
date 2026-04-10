@@ -5,6 +5,8 @@ namespace DACS_TimeManagement.Repositories
     public interface INotificationRepository : IRepository<Notification>
     {
         // Lấy danh sách thông báo chưa đọc của người dùng
+        Task<IEnumerable<Notification>> GetPagedAsync(string userId, int page, int pageSize);
+        Task<int> CountAsync(string userId);
         Task<IEnumerable<Notification>> GetUnreadAsync(string userId);
 
         // Đánh dấu một thông báo cụ thể là đã đọc

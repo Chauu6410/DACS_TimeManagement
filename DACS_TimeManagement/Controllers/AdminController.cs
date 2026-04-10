@@ -11,11 +11,13 @@ namespace DACS_TimeManagement.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public AdminController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public AdminController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         public async Task<IActionResult> Index()
@@ -33,6 +35,65 @@ namespace DACS_TimeManagement.Controllers
             };
 
             return View(model);
+        }
+
+        // 1. Xác thực email nhanh
+        [HttpPost]
+        public async Task<IActionResult> ConfirmEmail(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // 2. Gán quyền Admin / Gỡ quyền Admin
+        [HttpPost]
+        public async Task<IActionResult> ToggleAdminRole(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null || user.Email == "admin@gmail.com")
+                return Json(new { success = false, message = "Không thể thay đổi quyền của user này." });
+
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+
+            if (isAdmin)
+            {
+                await _userManager.RemoveFromRoleAsync(user, "Admin");
+                if (!await _userManager.IsInRoleAsync(user, "User"))
+                {
+                    await _userManager.AddToRoleAsync(user, "User");
+                }
+                return Json(new { success = true, message = $"Đã hạ cấp {user.Email} xuống Member.", isAdmin = false });
+            }
+            else
+            {
+                await _userManager.AddToRoleAsync(user, "Admin");
+                return Json(new { success = true, message = $"Đã cấp quyền Admin cho {user.Email}.", isAdmin = true });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleLockout(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null || user.Email == "admin@gmail.com")
+                return Json(new { success = false, message = "Không thể khóa/mở khóa user này." });
+
+            var isLocked = await _userManager.IsLockedOutAsync(user);
+            if (isLocked)
+            {
+                await _userManager.SetLockoutEndDateAsync(user, null);
+                return Json(new { success = true, message = $"Đã mở khóa tài khoản {user.Email}.", isLocked = false });
+            }
+            else
+            {
+                await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
+                return Json(new { success = true, message = $"Đã khóa tài khoản {user.Email}.", isLocked = true });
+            }
         }
     }
 }
