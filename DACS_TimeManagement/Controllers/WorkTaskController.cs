@@ -173,15 +173,33 @@ namespace DACS_TimeManagement.Controllers
 
             try
             {
-                // Cập nhật BoardListId và Status dựa trên tên cột
+                // Cập nhật BoardListId và Status dựa trên thứ tự cột của dự án thay vì dựa vào tên cột
                 task.BoardListId = newListId;
-                var targetList = await _context.BoardLists.FindAsync(newListId);
-                if (targetList != null)
+                if (newListId.HasValue && task.ProjectId.HasValue)
                 {
-                    var name = targetList.Name.ToLower();
-                    if (name.Contains("done") || name.Contains("hoàn thành")) task.Status = Models.TaskStatus.Completed;
-                    else if (name.Contains("doing") || name.Contains("tiến độ")) task.Status = Models.TaskStatus.InProgress;
-                    else task.Status = Models.TaskStatus.Todo;
+                    // Lấy tất cả các cột của dự án này, sắp xếp theo Position
+                    var projectLists = await _context.BoardLists
+                        .AsNoTracking()
+                        .Where(bl => bl.ProjectId == task.ProjectId.Value)
+                        .OrderBy(bl => bl.Position)
+                        .Select(bl => bl.Id)
+                        .ToListAsync();
+
+                    if (projectLists.Any())
+                    {
+                        if (newListId.Value == projectLists.First())
+                        {
+                            task.Status = Models.TaskStatus.Todo;
+                        }
+                        else if (newListId.Value == projectLists.Last())
+                        {
+                            task.Status = Models.TaskStatus.Completed;
+                        }
+                        else
+                        {
+                            task.Status = Models.TaskStatus.InProgress;
+                        }
+                    }
                 }
 
                 task.Position = newPosition;

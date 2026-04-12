@@ -134,8 +134,8 @@
                                             <button type="button" class="btn btn-sm bg-white text-primary border-end toggle-admin-btn" data-user-id="@user.Id" data-is-admin="@(isAdmin ? "true" : "false")" title="Toggle Admin/User">
                                                 <i class="fas fa-user-tag"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm bg-white @(isLocked ? "text-danger" : "text-dark") toggle-lock-btn" data-user-id="@user.Id" data-is-locked="@(isLocked ? "true" : "false")" title="@(isLocked ? "Unlock" : "Lock")">
-                                                <i class="fas @(isLocked ? "fa-lock" : "fa-unlock")"></i>
+                                            <button type="button" class="btn btn-sm bg-white @(isLocked ? "text-success" : "text-danger") toggle-lock-btn" data-user-id="@user.Id" data-is-locked="@(isLocked ? "true" : "false")" title="@(isLocked ? "Unlock" : "Lock")">
+                                                <i class="fas @(isLocked ? "fa-unlock" : "fa-lock")"></i>
                                             </button>
                                         </div>
                                     }
@@ -228,15 +228,15 @@
                         // Cập nhật icon và trạng thái
                         const icon = this.querySelector('i');
                         if (result.isLocked) {
-                            icon.className = 'fas fa-lock';
-                            this.classList.add('text-danger');
-                            this.classList.remove('text-dark');
+                            icon.className = 'fas fa-unlock';
+                            this.classList.add('text-success');
+                            this.classList.remove('text-danger');
                             this.title = 'Unlock';
                             this.dataset.isLocked = 'true';
                         } else {
-                            icon.className = 'fas fa-unlock';
-                            this.classList.add('text-dark');
-                            this.classList.remove('text-danger');
+                            icon.className = 'fas fa-lock';
+                            this.classList.add('text-danger');
+                            this.classList.remove('text-success');
                             this.title = 'Lock';
                             this.dataset.isLocked = 'false';
                         }

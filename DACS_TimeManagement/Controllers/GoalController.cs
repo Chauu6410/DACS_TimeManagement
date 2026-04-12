@@ -31,6 +31,7 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Create(PersonalGoal goal)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ModelState.Remove("UserId");
             if (ModelState.IsValid)
             {
                 goal.UserId = userId;
@@ -55,6 +56,7 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Edit(PersonalGoal goal)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            ModelState.Remove("UserId");
             if (ModelState.IsValid)
             {
                 goal.UserId = userId;
