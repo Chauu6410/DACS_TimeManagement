@@ -52,6 +52,8 @@ namespace DACS_TimeManagement.Controllers
                 // Nếu người dùng chưa chọn (projectId == null), mặc định lấy Project đầu tiên
                 int selectedId = projectId ?? userProjects.First().Id;
 
+                var isProjectOwner = userProjects.Any(p => p.Id == selectedId && p.UserId == currentUserId);
+
                 // 3. CHỈ LOAD DỮ LIỆU CỦA 1 PROJECT ĐANG CHỌN (Tăng tốc độ 500%)
                 var boardLists = await _context.BoardLists
                     .AsNoTracking()
@@ -62,7 +64,7 @@ namespace DACS_TimeManagement.Controllers
                 var tasks = await _context.WorkTasks
                     .AsNoTracking()
                     .Include(t => t.Assignee)
-                    .Where(t => t.ProjectId == selectedId && (t.UserId == currentUserId || t.AssigneeId == currentUserId))
+                    .Where(t => t.ProjectId == selectedId && (isProjectOwner || t.UserId == currentUserId || t.AssigneeId == currentUserId))
                     .ToListAsync();
 
                 // 4. Ghép Task vào List (Chỉ xử lý trong phạm vi 1 Project nên cực nhanh)
@@ -92,20 +94,52 @@ namespace DACS_TimeManagement.Controllers
         }
 
         // --- 2. TẠO MỚI TASK ---
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int? projectId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             // 1. Lấy danh sách Project của người đang đăng nhập
             var projects = await _projectRepo.GetAllAsync(userId);
-            ViewBag.ProjectId = new SelectList(projects, "Id", "Name");
-            // 2. Lấy danh sách tất cả User trong hệ thống để chọn Người thực hiện
-            // (Cần inject UserManager vào Controller)
-            var allUsers = await _context.Users.Select(u => new {
-                Id = u.Id,
-                DisplayName = u.Email // Hoặc u.UserName
-            }).ToListAsync();
-            ViewBag.AssigneeId = new SelectList(allUsers, "Id", "DisplayName");
-            return View();
+            ViewBag.ProjectId = new SelectList(projects, "Id", "Name", projectId);
+
+            // Fetch members for the selected project initially, or return empty
+            var assignees = new List<object>();
+            if (projectId.HasValue)
+            {
+                var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == projectId);
+                if (project != null)
+                {
+                    if (project.UserId == userId) 
+                    {
+                        // Nếu là Owner dự án -> Được phép giao cho tất cả mọi người
+                        var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == project.UserId);
+                        if (owner != null) assignees.Add(new { Id = owner.Id, DisplayName = owner.Email + " (Owner)" });
+
+                        var members = await _context.ProjectMembers
+                            .Where(pm => pm.ProjectId == projectId.Value)
+                            .Select(pm => new { Id = pm.UserId, DisplayName = _context.Users.FirstOrDefault(u => u.Id == pm.UserId).Email })
+                            .ToListAsync();
+                        
+                        assignees.AddRange(members.Where(m => m.Id != owner.Id));
+                    }
+                    else
+                    {
+                        // Nếu chỉ là Member -> Chỉ được giao cho chính bản thân mình
+                        var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                        if (currentUser != null) assignees.Add(new { Id = currentUser.Id, DisplayName = currentUser.Email + " (You)" });
+                    }
+                }
+            }
+            else
+            {
+                // Nếu chưa chọn project -> Chỉ giao cho mình
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (currentUser != null) assignees.Add(new { Id = currentUser.Id, DisplayName = currentUser.Email + " (You)" });
+            }
+            // Không gán allUsers nữa, load động hoặc để nguyên list rỗng lúc đầu
+            ViewBag.AssigneeId = new SelectList(assignees, "Id", "DisplayName", userId);
+            
+            var task = new WorkTask { ProjectId = projectId };
+            return View(task);
         }
         
         [HttpPost]
@@ -159,7 +193,65 @@ namespace DACS_TimeManagement.Controllers
 
             var projects = await _projectRepo.GetAllAsync(userId);
             ViewBag.ProjectId = new SelectList(projects, "Id", "Name", task.ProjectId);
+            
+            // Re-bind AssigneeId drop down just in case of validation failed
+            var assignees = new List<object>();
+            if (task.ProjectId.HasValue)
+            {
+               var proj = await _context.Projects.FirstOrDefaultAsync(p => p.Id == task.ProjectId);
+               if (proj != null)
+               {
+                   var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == proj.UserId);
+                   if (owner != null) assignees.Add(new { Id = owner.Id, DisplayName = owner.Email });
+
+                   var members = await _context.ProjectMembers
+                       .Where(pm => pm.ProjectId == task.ProjectId.Value)
+                       .Select(pm => new { Id = pm.UserId, DisplayName = _context.Users.FirstOrDefault(u => u.Id == pm.UserId).Email })
+                       .ToListAsync();
+                   assignees.AddRange(members.Where(m => m.Id != owner.Id));
+               }
+            }
+            ViewBag.AssigneeId = new SelectList(assignees, "Id", "DisplayName", task.AssigneeId);
+
             return View(task);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProjectMembers(int projectId)
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == projectId);
+            
+            var assignees = new List<object>();
+
+            if (project == null || projectId == 0) 
+            {
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
+                if (currentUser != null) assignees.Add(new { Id = currentUser.Id, DisplayName = currentUser.Email + " (You)" });
+                return Json(assignees);
+            }
+
+            if (project.UserId == currentUserId)
+            {
+                // Is Owner
+                var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == project.UserId);
+                if (owner != null) assignees.Add(new { Id = owner.Id, DisplayName = owner.Email + " (Owner)" });
+
+                var members = await _context.ProjectMembers
+                    .Where(pm => pm.ProjectId == projectId)
+                    .Select(pm => new { Id = pm.UserId, DisplayName = _context.Users.FirstOrDefault(u => u.Id == pm.UserId).Email })
+                    .ToListAsync();
+
+                assignees.AddRange(members.Where(m => m.Id != owner.Id));
+            }
+            else
+            {
+                // Is merely a member
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == currentUserId);
+                if (currentUser != null) assignees.Add(new { Id = currentUser.Id, DisplayName = currentUser.Email + " (You)" });
+            }
+            
+            return Json(assignees);
         }
 
         // --- 3. CẬP NHẬT VỊ TRÍ (Drag & Drop) ---

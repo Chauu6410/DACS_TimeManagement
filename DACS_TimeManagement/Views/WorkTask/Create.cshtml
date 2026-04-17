@@ -127,7 +127,7 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        // Optional: Thêm hiệu ứng focus cho form controls
+        // Effect on focus
         document.querySelectorAll('.form-control, .form-select').forEach(input => {
             input.addEventListener('focus', function() {
                 this.parentElement?.classList.add('focused');
@@ -135,6 +135,28 @@
             input.addEventListener('blur', function() {
                 this.parentElement?.classList.remove('focused');
             });
+        });
+
+        // AJAX update Assignee dropdown based on Project
+        document.getElementById('ProjectId').addEventListener('change', function() {
+            var projectId = this.value || "0";
+            var assigneeSelect = document.getElementById('AssigneeId');
+            
+            fetch('/WorkTask/GetProjectMembers?projectId=' + projectId)
+                .then(response => response.json())
+                .then(data => {
+                    assigneeSelect.innerHTML = '';
+                    if (data.length > 1) {
+                         assigneeSelect.innerHTML += '<option value="">-- Chọn thành viên --</option>';
+                    }
+                    data.forEach(item => {
+                        var option = document.createElement('option');
+                        option.value = item.id;
+                        option.text = item.displayName;
+                        assigneeSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching members:', error));
         });
     </script>
 }
