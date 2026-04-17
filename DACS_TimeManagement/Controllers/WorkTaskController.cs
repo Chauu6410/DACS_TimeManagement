@@ -259,9 +259,14 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> UpdateTaskPosition(int taskId, int? newListId, int newPosition)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var task = await _taskRepo.GetByIdAsync(taskId, userId);
+            
+            // Check if user is creator, assignee, or project owner
+            var task = await _context.WorkTasks
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == taskId && 
+                    (t.UserId == userId || t.AssigneeId == userId || (t.Project != null && t.Project.UserId == userId)));
 
-            if (task == null) return Json(new { success = false, message = "Không tìm thấy công việc" });
+            if (task == null) return Json(new { success = false, message = "Không tìm thấy công việc hoặc bạn không có quyền cập nhật" });
 
             try
             {
