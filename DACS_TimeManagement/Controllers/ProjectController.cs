@@ -64,9 +64,10 @@ namespace DACS_TimeManagement.Controllers
                 // Tự động tạo 3 cột cơ bản cho Kanban Board
                 var defaultLists = new List<BoardList>
                 {
-                    new BoardList { Name = "Cần làm", Position = 0, ProjectId = project.Id },
-                    new BoardList { Name = "Đang làm", Position = 1, ProjectId = project.Id },
-                    new BoardList { Name = "Hoàn tất", Position = 2, ProjectId = project.Id }
+                    new BoardList { Name = "To Do", Position = 0, ProjectId = project.Id },
+                    new BoardList { Name = "In Progress", Position = 1, ProjectId = project.Id },
+                    new BoardList { Name = "Testing", Position = 2, ProjectId = project.Id },
+                    new BoardList { Name = "Done", Position = 3, ProjectId = project.Id }
                 };
                 _context.BoardLists.AddRange(defaultLists);
                 await _context.SaveChangesAsync();  // Lưu các cột xong là xong
@@ -115,8 +116,9 @@ namespace DACS_TimeManagement.Controllers
                 var newBoards = new List<BoardList>
                 {
                     new BoardList { Name = "To Do", Position = 0, ProjectId = project.Id },
-                    new BoardList { Name = "Doing", Position = 1, ProjectId = project.Id },
-                    new BoardList { Name = "Done", Position = 2, ProjectId = project.Id }
+                    new BoardList { Name = "In Progress", Position = 1, ProjectId = project.Id },
+                    new BoardList { Name = "Testing", Position = 2, ProjectId = project.Id },
+                    new BoardList { Name = "Done", Position = 3, ProjectId = project.Id }
                 };
                 
                 project.BoardLists = newBoards;

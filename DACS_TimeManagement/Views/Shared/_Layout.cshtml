@@ -2,8 +2,11 @@
 @inject DACS_TimeManagement.Models.ApplicationDbContext _context
 @{
     var themeColor = "light";
-    var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
-    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    // Kiểm tra Landing Page (Home/Index)
+    var isLandingPage = string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
 
     if (User.Identity.IsAuthenticated)
     {
@@ -25,7 +28,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         /* ---------- RESET & GLOBAL ---------- */
         :root {
@@ -52,6 +54,10 @@
             --topbar-height: 68px;
             --pomodoro-gradient-start: #f97316;
             --pomodoro-gradient-end: #dc2626;
+            /* Typography */
+            --font-base: 0.938rem;   /* 15px */
+            --font-sm: 0.813rem;     /* 13px */
+            --font-xs: 0.75rem;      /* 12px */
         }
 
         /* Dark Theme */
@@ -80,11 +86,26 @@
 
         body {
             font-family: 'Inter', sans-serif;
+            font-size: var(--font-base);
             background: linear-gradient(135deg, var(--bg-light) 0%, rgba(99,102,241,0.03) 100%);
             color: var(--text-dark);
             overflow-x: hidden;
             height: 100vh;
             display: flex;
+        }
+
+        /* Landing Page Mode: body không có flex đặc biệt, cuộn tự nhiên */
+        body.landing-page-mode {
+            display: block;
+            height: auto;
+            overflow-y: auto;
+        }
+
+        /* Dashboard Mode: giữ layout flex cố định */
+        body.dashboard-mode {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
         /* Custom Scrollbar */
@@ -175,6 +196,7 @@
             font-weight: 500;
             transition: var(--transition);
             text-decoration: none;
+            font-size: 0.9rem;
         }
         .nav-link i {
             width: 22px;
@@ -275,6 +297,16 @@
             padding: 2rem;
             scroll-behavior: smooth;
         }
+        /* Dashboard mode: main content có padding bình thường */
+        body.dashboard-mode .main-content {
+            padding: 2rem;
+        }
+        /* Landing page mode: main content full width, không padding */
+        body.landing-page-mode .main-content {
+            padding: 0 !important;
+            overflow-y: visible;
+        }
+
         /* Card chuẩn */
         .card {
             background: var(--card-bg);
@@ -434,117 +466,136 @@
             transition: 0.2s;
             pointer-events: none;
         }
+
+        /* Small text utilities */
+        .text-sm {
+            font-size: var(--font-sm);
+        }
+        .text-xs {
+            font-size: var(--font-xs);
+        }
     </style>
 </head>
-<body class="theme-@themeColor">
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <a class="sidebar-brand" asp-controller="Home" asp-action="Index">
-                    <i class="fas fa-brain"></i> TimeMaster
-                </a>
-                <button class="mobile-toggle ms-auto" onclick="toggleSidebar()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="sidebar-content">
-                <ul class="nav flex-column">
-                    <li class="nav-category">Overview</li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
-                            <i class="fas fa-chart-line"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Report" ? "active" : "")" asp-controller="Report" asp-action="Index">
-                            <i class="fas fa-chart-pie"></i> Reporting
-                        </a>
-                    </li>
-                    <li class="nav-category mt-2">Workspace</li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "WorkTask" ? "active" : "")" asp-controller="WorkTask" asp-action="Index">
-                            <i class="fas fa-columns"></i> Kanban
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Calendar" ? "active" : "")" asp-controller="Calendar" asp-action="Index">
-                            <i class="far fa-calendar-alt"></i> Schedule
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Goal" ? "active" : "")" asp-controller="Goal" asp-action="Index">
-                            <i class="fas fa-bullseye"></i> Goals
-                        </a>
-                    </li>
-                    <li class="nav-category mt-2">Organization</li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Project" ? "active" : "")" asp-controller="Project" asp-action="Index">
-                            <i class="fas fa-project-diagram"></i> Projects
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(currentController == "Share" ? "active" : "")" asp-controller="Share" asp-action="Index">
-                            <i class="fas fa-share-alt"></i> Team Shared
-                        </a>
-                    </li>
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <li class="nav-category mt-2 text-primary">Admin</li>
+<body class="theme-@themeColor @(isLandingPage ? "landing-page-mode" : "dashboard-mode")">
+    @if (!isLandingPage)
+    {
+        <!-- Dashboard Mode: Hiển thị Sidebar, Topbar, Pomodoro -->
+        <div class="app-container">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <a class="sidebar-brand" asp-controller="Home" asp-action="Index">
+                        <i class="fas fa-brain"></i> TimeMaster
+                    </a>
+                    <button class="mobile-toggle ms-auto" onclick="toggleSidebar()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="sidebar-content">
+                    <ul class="nav flex-column">
+                        <li class="nav-category">Overview</li>
                         <li class="nav-item">
-                            <a class="nav-link @(currentController == "Admin" ? "active" : "")" asp-controller="Admin" asp-action="Index">
-                                <i class="fas fa-shield-alt"></i> System Admin
+                            <a class="nav-link @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-chart-line"></i> Dashboard
                             </a>
                         </li>
-                    }
-                </ul>
-            </div>
-            <div class="sidebar-footer">
-                <a class="nav-link @(currentController == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="Index">
-                    <i class="fas fa-user-cog"></i> Settings
-                </a>
-            </div>
-        </aside>
-
-        <!-- Main -->
-        <div class="main-wrapper">
-            <header class="topbar">
-                <div class="d-flex align-items-center gap-2">
-                    <button class="mobile-toggle" onclick="toggleSidebar()">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <h1 class="page-title mb-0">@ViewData["Title"]</h1>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Report" ? "active" : "")" asp-controller="Report" asp-action="Index">
+                                <i class="fas fa-chart-pie"></i> Reporting
+                            </a>
+                        </li>
+                        <li class="nav-category mt-2">Workspace</li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "WorkTask" ? "active" : "")" asp-controller="WorkTask" asp-action="Index">
+                                <i class="fas fa-columns"></i> Kanban
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Calendar" ? "active" : "")" asp-controller="Calendar" asp-action="Index">
+                                <i class="far fa-calendar-alt"></i> Schedule
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Goal" ? "active" : "")" asp-controller="Goal" asp-action="Index">
+                                <i class="fas fa-bullseye"></i> Goals
+                            </a>
+                        </li>
+                        <li class="nav-category mt-2">Organization</li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Project" ? "active" : "")" asp-controller="Project" asp-action="Index">
+                                <i class="fas fa-project-diagram"></i> Projects
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Share" ? "active" : "")" asp-controller="Share" asp-action="Index">
+                                <i class="fas fa-share-alt"></i> Team Shared
+                            </a>
+                        </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-category mt-2 text-primary">Admin</li>
+                            <li class="nav-item">
+                                <a class="nav-link @(currentController == "Admin" ? "active" : "")" asp-controller="Admin" asp-action="Index">
+                                    <i class="fas fa-shield-alt"></i> System Admin
+                                </a>
+                            </li>
+                        }
+                    </ul>
                 </div>
-                <div class="topbar-actions">
-                    <div class="dropdown">
-                        <div class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-badge" id="notifBadge" style="display: none;">0</span>
-                        </div>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 20px; min-width: 300px;">
-                            <li><h6 class="dropdown-header fw-bold py-3">Notifications</h6></li>
-                            <div id="notifList" style="max-height: 300px; overflow-y: auto;">
-                                <li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2"></i><br/>All caught up</li>
-                            </div>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-center fw-semibold" href="/Notification/Index">View all →</a></li>
-                        </ul>
+                <div class="sidebar-footer">
+                    <a class="nav-link @(currentController == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="Index">
+                        <i class="fas fa-user-cog"></i> Settings
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Main Wrapper -->
+            <div class="main-wrapper">
+                <header class="topbar">
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="mobile-toggle" onclick="toggleSidebar()">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h1 class="page-title mb-0">@ViewData["Title"]</h1>
                     </div>
-                    <partial name="_LoginPartial" />
-                </div>
-            </header>
-            <main class="main-content">
-                <div class="container-fluid px-0">
-                    @RenderBody()
-                </div>
-                <footer class="mt-5 pt-3 border-top text-center text-muted small">
-                    © 2026 TimeMaster · <a href="#" class="text-decoration-none">Privacy</a> · <a href="#" class="text-decoration-none">Terms</a>
-                </footer>
-            </main>
+                    <div class="topbar-actions">
+                        <div class="dropdown">
+                            <div class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-badge" id="notifBadge" style="display: none;">0</span>
+                            </div>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 20px; min-width: 300px;">
+                                <li><h6 class="dropdown-header fw-bold py-3">Notifications</h6></li>
+                                <div id="notifList" style="max-height: 300px; overflow-y: auto;">
+                                    <li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2"></i><br/>All caught up</li>
+                                </div>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-center fw-semibold" href="/Notification/Index">View all →</a></li>
+                            </ul>
+                        </div>
+                        <partial name="_LoginPartial" />
+                    </div>
+                </header>
+                <main class="main-content">
+                    <div class="container-fluid px-0">
+                        @RenderBody()
+                    </div>
+                    <footer class="mt-5 pt-3 border-top text-center text-muted small">
+                        © 2026 TimeMaster · <a href="#" class="text-decoration-none">Privacy</a> · <a href="#" class="text-decoration-none">Terms</a>
+                    </footer>
+                </main>
+            </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <!-- Landing Page Mode: Chỉ hiển thị nội dung, không sidebar, topbar, pomodoro -->
+        <main class="main-content" style="width: 100%; padding: 0; margin: 0;">
+            @RenderBody()
+        </main>
+    }
 
-    <!-- Scripts -->
+    <!-- Scripts chung (luôn chạy) -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
@@ -552,7 +603,7 @@
         AOS.init({ once: true, duration: 500 });
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('show');
+            if (sidebar) sidebar.classList.toggle('show');
         }
         $(function() {
             function fetchNotif() {
@@ -567,86 +618,88 @@
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 
-    <!-- Pomodoro Widget -->
-    <button id="togglePomodoro" class="position-fixed bottom-0 end-0 m-4 rounded-circle shadow-lg pulse-animation">
-        <span style="font-size: 1.6rem;">🍅</span>
-    </button>
-    <div id="pomodoroWidget" class="position-fixed shadow-xl draggable-widget" style="z-index:1050; display:none; bottom: 100px; right: 20px;">
-        <div class="card border-0 rounded-4 glass-card" style="width: 280px;">
-            <div id="pomodoroHeader" class="drag-handle d-flex justify-content-between align-items-center px-3 py-3">
-                <div><i class="fas fa-grip-vertical text-muted me-1"></i> <span class="fw-semibold small">FOCUS TIMER</span></div>
-                <button id="closePomodoroBtn" class="btn-close-custom" style="background: none; border: none;"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="card-body p-4 pt-2 text-center">
-                <h1 id="timerDisplay" class="display-5 fw-bold mb-1">25:00</h1>
-                <div class="progress my-3" style="height: 6px;"><div id="progressBar" class="progress-bar" style="width:100%"></div></div>
-                <div class="d-flex gap-2 justify-content-between">
-                    <button class="btn btn-pomo btn-start flex-grow-1" id="startBtn"><i class="fas fa-play me-1"></i> Start</button>
-                    <button class="btn btn-pomo btn-pause flex-grow-1" id="pauseBtn"><i class="fas fa-pause me-1"></i> Pause</button>
-                    <button class="btn btn-pomo btn-reset rounded-circle" id="resetBtn"><i class="fas fa-undo-alt"></i></button>
+    @if (!isLandingPage)
+    {
+        <!-- Pomodoro Widget (chỉ hiển thị ở dashboard mode) -->
+        <button id="togglePomodoro" class="position-fixed bottom-0 end-0 m-4 rounded-circle shadow-lg pulse-animation">
+            <span style="font-size: 1.6rem;">🍅</span>
+        </button>
+        <div id="pomodoroWidget" class="position-fixed shadow-xl draggable-widget" style="z-index:1050; display:none; bottom: 100px; right: 20px;">
+            <div class="card border-0 rounded-4 glass-card" style="width: 280px;">
+                <div id="pomodoroHeader" class="drag-handle d-flex justify-content-between align-items-center px-3 py-3">
+                    <div><i class="fas fa-grip-vertical text-muted me-1"></i> <span class="fw-semibold small">FOCUS TIMER</span></div>
+                    <button id="closePomodoroBtn" class="btn-close-custom" style="background: none; border: none;"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="card-body p-4 pt-2 text-center">
+                    <h1 id="timerDisplay" class="display-5 fw-bold mb-1">25:00</h1>
+                    <div class="progress my-3" style="height: 6px;"><div id="progressBar" class="progress-bar" style="width:100%"></div></div>
+                    <div class="d-flex gap-2 justify-content-between">
+                        <button class="btn btn-pomo btn-start flex-grow-1" id="startBtn"><i class="fas fa-play me-1"></i> Start</button>
+                        <button class="btn btn-pomo btn-pause flex-grow-1" id="pauseBtn"><i class="fas fa-pause me-1"></i> Pause</button>
+                        <button class="btn btn-pomo btn-reset rounded-circle" id="resetBtn"><i class="fas fa-undo-alt"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div id="pomodoroToast" class="toast-notify">🍅 Focus session completed! Great job.</div>
+        <div id="pomodoroToast" class="toast-notify">🍅 Focus session completed! Great job.</div>
+        <script>
+            (function() {
+                let timerInterval = null, isRunning = false, currentSeconds = 25*60, initialSeconds = 25*60;
+                const timerDisplay = document.getElementById('timerDisplay'), progressBar = document.getElementById('progressBar');
+                const startBtn = document.getElementById('startBtn'), pauseBtn = document.getElementById('pauseBtn'), resetBtn = document.getElementById('resetBtn');
+                const widget = document.getElementById('pomodoroWidget'), toggleBtn = document.getElementById('togglePomodoro'), closeBtn = document.getElementById('closePomodoroBtn');
+                const toast = document.getElementById('pomodoroToast');
+                function formatTime(s){ let m=Math.floor(s/60), sec=s%60; return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`; }
+                function updateUI(){ timerDisplay.innerText=formatTime(currentSeconds); progressBar.style.width=`${(currentSeconds/initialSeconds)*100}%`; }
+                function showToast(){ toast.style.opacity='1'; toast.style.transform='translateX(-50%) translateY(0px)'; setTimeout(()=>{ toast.style.opacity='0'; toast.style.transform='translateX(-50%) translateY(20px)'; },2800); if(navigator.vibrate) navigator.vibrate(200); try{ let audio=new Audio(); audio.src='data:audio/wav;base64,U3RlYWx0aCBzb3VuZA=='; audio.play(); }catch(e){} }
+                function endTimer(){ if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; showToast(); currentSeconds=initialSeconds; updateUI(); startBtn.disabled=false; }
+                function startCountdown(){ if(timerInterval) clearInterval(timerInterval); timerInterval=setInterval(()=>{ if(currentSeconds<=1){ clearInterval(timerInterval); timerInterval=null; currentSeconds=0; updateUI(); endTimer(); }else{ currentSeconds--; updateUI(); } },1000); }
+                function startTimer(){ if(isRunning) return; if(currentSeconds<=0) currentSeconds=initialSeconds; isRunning=true; startCountdown(); startBtn.disabled=true; }
+                function pauseTimer(){ if(!isRunning) return; if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; startBtn.disabled=false; }
+                function resetTimer(){ if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; currentSeconds=initialSeconds; updateUI(); startBtn.disabled=false; }
+                startBtn.addEventListener('click',startTimer); pauseBtn.addEventListener('click',pauseTimer); resetBtn.addEventListener('click',resetTimer);
+                toggleBtn.addEventListener('click',()=>{ widget.style.display = (widget.style.display==='none'||getComputedStyle(widget).display==='none')?'block':'none'; });
+                closeBtn.addEventListener('click',()=>widget.style.display='none');
+                const dragHandle=document.getElementById('pomodoroHeader'); let isDragging=false, startX,startY,startLeft,startTop;
+                function getWidgetPos(){ let left=parseFloat(widget.style.left),top=parseFloat(widget.style.top); if(isNaN(left)){ let rect=widget.getBoundingClientRect(); left=rect.left; top=rect.top; } return {left,top}; }
+                function onMouseDown(e){ if(!dragHandle.contains(e.target)) return; e.preventDefault(); isDragging=true; startX=e.clientX; startY=e.clientY; let {left,top}=getWidgetPos(); startLeft=left; startTop=top; if(widget.style.right!==''||widget.style.bottom!==''){ let rect=widget.getBoundingClientRect(); widget.style.left=rect.left+'px'; widget.style.top=rect.top+'px'; widget.style.right='auto'; widget.style.bottom='auto'; startLeft=rect.left; startTop=rect.top; } document.addEventListener('mousemove',onMouseMove); document.addEventListener('mouseup',onMouseUp); widget.style.transition='none'; }
+                function onMouseMove(e){ if(!isDragging) return; let newLeft=startLeft+(e.clientX-startX), newTop=startTop+(e.clientY-startY); newLeft=Math.min(Math.max(newLeft,10),window.innerWidth-widget.offsetWidth-10); newTop=Math.min(Math.max(newTop,10),window.innerHeight-widget.offsetHeight-10); widget.style.left=newLeft+'px'; widget.style.top=newTop+'px'; }
+                function onMouseUp(){ isDragging=false; document.removeEventListener('mousemove',onMouseMove); document.removeEventListener('mouseup',onMouseUp); widget.style.transition=''; }
+                dragHandle.addEventListener('mousedown',onMouseDown);
+                updateUI();
+            })();
+        </script>
 
-    <script>
-        (function() {
-            let timerInterval = null, isRunning = false, currentSeconds = 25*60, initialSeconds = 25*60;
-            const timerDisplay = document.getElementById('timerDisplay'), progressBar = document.getElementById('progressBar');
-            const startBtn = document.getElementById('startBtn'), pauseBtn = document.getElementById('pauseBtn'), resetBtn = document.getElementById('resetBtn');
-            const widget = document.getElementById('pomodoroWidget'), toggleBtn = document.getElementById('togglePomodoro'), closeBtn = document.getElementById('closePomodoroBtn');
-            const toast = document.getElementById('pomodoroToast');
-            function formatTime(s){ let m=Math.floor(s/60), sec=s%60; return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`; }
-            function updateUI(){ timerDisplay.innerText=formatTime(currentSeconds); progressBar.style.width=`${(currentSeconds/initialSeconds)*100}%`; }
-            function showToast(){ toast.style.opacity='1'; toast.style.transform='translateX(-50%) translateY(0px)'; setTimeout(()=>{ toast.style.opacity='0'; toast.style.transform='translateX(-50%) translateY(20px)'; },2800); if(navigator.vibrate) navigator.vibrate(200); try{ let audio=new Audio(); audio.src='data:audio/wav;base64,U3RlYWx0aCBzb3VuZA=='; audio.play(); }catch(e){} }
-            function endTimer(){ if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; showToast(); currentSeconds=initialSeconds; updateUI(); startBtn.disabled=false; }
-            function startCountdown(){ if(timerInterval) clearInterval(timerInterval); timerInterval=setInterval(()=>{ if(currentSeconds<=1){ clearInterval(timerInterval); timerInterval=null; currentSeconds=0; updateUI(); endTimer(); }else{ currentSeconds--; updateUI(); } },1000); }
-            function startTimer(){ if(isRunning) return; if(currentSeconds<=0) currentSeconds=initialSeconds; isRunning=true; startCountdown(); startBtn.disabled=true; }
-            function pauseTimer(){ if(!isRunning) return; if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; startBtn.disabled=false; }
-            function resetTimer(){ if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; currentSeconds=initialSeconds; updateUI(); startBtn.disabled=false; }
-            startBtn.addEventListener('click',startTimer); pauseBtn.addEventListener('click',pauseTimer); resetBtn.addEventListener('click',resetTimer);
-            toggleBtn.addEventListener('click',()=>{ widget.style.display = (widget.style.display==='none'||getComputedStyle(widget).display==='none')?'block':'none'; });
-            closeBtn.addEventListener('click',()=>widget.style.display='none');
-            const dragHandle=document.getElementById('pomodoroHeader'); let isDragging=false, startX,startY,startLeft,startTop;
-            function getWidgetPos(){ let left=parseFloat(widget.style.left),top=parseFloat(widget.style.top); if(isNaN(left)){ let rect=widget.getBoundingClientRect(); left=rect.left; top=rect.top; } return {left,top}; }
-            function onMouseDown(e){ if(!dragHandle.contains(e.target)) return; e.preventDefault(); isDragging=true; startX=e.clientX; startY=e.clientY; let {left,top}=getWidgetPos(); startLeft=left; startTop=top; if(widget.style.right!==''||widget.style.bottom!==''){ let rect=widget.getBoundingClientRect(); widget.style.left=rect.left+'px'; widget.style.top=rect.top+'px'; widget.style.right='auto'; widget.style.bottom='auto'; startLeft=rect.left; startTop=rect.top; } document.addEventListener('mousemove',onMouseMove); document.addEventListener('mouseup',onMouseUp); widget.style.transition='none'; }
-            function onMouseMove(e){ if(!isDragging) return; let newLeft=startLeft+(e.clientX-startX), newTop=startTop+(e.clientY-startY); newLeft=Math.min(Math.max(newLeft,10),window.innerWidth-widget.offsetWidth-10); newTop=Math.min(Math.max(newTop,10),window.innerHeight-widget.offsetHeight-10); widget.style.left=newLeft+'px'; widget.style.top=newTop+'px'; }
-            function onMouseUp(){ isDragging=false; document.removeEventListener('mousemove',onMouseMove); document.removeEventListener('mouseup',onMouseUp); widget.style.transition=''; }
-            dragHandle.addEventListener('mousedown',onMouseDown);
-            updateUI();
-        })();
-    </script>
-
-    <!-- SignalR Toast -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1080">
-        <div id="realtimeToast" class="toast bg-white shadow border-0 rounded-4" role="alert">
-            <div class="toast-header border-0 bg-primary text-white rounded-top-4">
-                <i class="fas fa-bell me-2"></i><strong class="me-auto">New Assignment</strong>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body p-3">
-                <div class="d-flex gap-3">
-                    <div class="bg-primary-subtle text-primary rounded-circle p-2 fs-4"><i class="fas fa-tasks"></i></div>
-                    <div><p class="mb-0 fw-bold" id="toastMessage">New task assigned!</p><small class="text-muted" id="toastDetail">Check workspace.</small></div>
+        <!-- SignalR Toast -->
+        <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1080">
+            <div id="realtimeToast" class="toast bg-white shadow border-0 rounded-4" role="alert">
+                <div class="toast-header border-0 bg-primary text-white rounded-top-4">
+                    <i class="fas fa-bell me-2"></i><strong class="me-auto">New Assignment</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body p-3">
+                    <div class="d-flex gap-3">
+                        <div class="bg-primary-subtle text-primary rounded-circle p-2 fs-4"><i class="fas fa-tasks"></i></div>
+                        <div><p class="mb-0 fw-bold" id="toastMessage">New task assigned!</p><small class="text-muted" id="toastDetail">Check workspace.</small></div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const connection = new signalR.HubConnectionBuilder().withUrl("/notificationHub").configureLogging(signalR.LogLevel.Information).build();
-            connection.on("ReceiveNotification", function(message, taskTitle) {
-                document.getElementById("toastMessage").innerText = message;
-                if(taskTitle) document.getElementById("toastDetail").innerText = `Task: ${taskTitle}`;
-                let badge = document.getElementById("notifBadge");
-                if(badge) { let cnt = parseInt(badge.innerText)||0; badge.innerText=cnt+1; badge.style.display="inline"; }
-                new bootstrap.Toast(document.getElementById("realtimeToast"), {delay:5000}).show();
-                if(navigator.vibrate) navigator.vibrate([100,50,100]);
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const connection = new signalR.HubConnectionBuilder().withUrl("/notificationHub").configureLogging(signalR.LogLevel.Information).build();
+                connection.on("ReceiveNotification", function(message, taskTitle) {
+                    document.getElementById("toastMessage").innerText = message;
+                    if(taskTitle) document.getElementById("toastDetail").innerText = `Task: ${taskTitle}`;
+                    let badge = document.getElementById("notifBadge");
+                    if(badge) { let cnt = parseInt(badge.innerText)||0; badge.innerText=cnt+1; badge.style.display="inline"; }
+                    new bootstrap.Toast(document.getElementById("realtimeToast"), {delay:5000}).show();
+                    if(navigator.vibrate) navigator.vibrate([100,50,100]);
+                });
+                connection.start().catch(err=>console.error(err));
             });
-            connection.start().catch(err=>console.error(err));
-        });
-    </script>
+        </script>
+    }
 </body>
 </html>

@@ -1,545 +1,307 @@
 ﻿@{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "TimeMaster - Smart Time Management";
+    Layout = "_Layout";
 }
 
-<div class="dashboard-container" data-aos="fade-up">
-    <!-- Welcome Section with Gradient -->
-    <div class="welcome-card card border-0 shadow-xl rounded-4 overflow-hidden mb-4">
-        <div class="bg-gradient-primary text-white p-4 p-md-5">
-            <div class="d-flex flex-wrap justify-content-between align-items-center">
-                <div>
-                    <h1 class="display-5 fw-bold mb-2">
-                        <i class="fas fa-calendar-check me-2"></i>
-                        Welcome back, @User.Identity.Name!
+<div class="landing-page">
+    <!-- Hero Section với gradient và hiệu ứng -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center min-vh-100 py-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <div class="badge-new mb-3">✨ Next-Gen Time Manager</div>
+                    <h1 class="display-3 fw-bold mb-4">
+                        Master Your Time,<br>
+                        <span class="text-gradient">Master Your Life</span>
                     </h1>
-                    <p class="lead mb-0 opacity-90">Here's your time management overview for today</p>
-                </div>
-                <div class="current-time glass-panel mt-3 mt-md-0">
-                    <i class="fas fa-clock me-2"></i>
-                    <span id="currentDateTime" class="fw-semibold"></span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistics Cards (Pastel) -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="stats-card-pastel pastel-blue h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stats-icon mb-2">
-                            <i class="fas fa-tasks fa-2x"></i>
-                        </div>
-                        <div class="stats-number display-6 fw-bold">@ViewBag.TotalWorkTasks</div>
-                        <div class="stats-label text-muted small fw-semibold">Total WorkTasks</div>
-                    </div>
-                    <i class="fas fa-clipboard-list fa-3x opacity-25"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card-pastel pastel-green h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stats-icon mb-2">
-                            <i class="fas fa-check-circle fa-2x"></i>
-                        </div>
-                        <div class="stats-number display-6 fw-bold">@ViewBag.CompletedTasks</div>
-                        <div class="stats-label text-muted small fw-semibold">Completed Tasks</div>
-                    </div>
-                    <i class="fas fa-check-double fa-3x opacity-25"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card-pastel pastel-yellow h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stats-icon mb-2">
-                            <i class="fas fa-hourglass-half fa-2x"></i>
-                        </div>
-                        <div class="stats-number display-6 fw-bold">@ViewBag.InProgressTasks</div>
-                        <div class="stats-label text-muted small fw-semibold">In Progress</div>
-                    </div>
-                    <i class="fas fa-spinner fa-3x opacity-25"></i>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stats-card-pastel pastel-purple h-100">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stats-icon mb-2">
-                            <i class="fas fa-clock fa-2x"></i>
-                        </div>
-                        <div class="stats-number display-6 fw-bold">@ViewBag.HoursWorked</div>
-                        <div class="stats-label text-muted small fw-semibold">Hours Worked</div>
-                    </div>
-                    <i class="fas fa-stopwatch fa-3x opacity-25"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4">
-        <!-- Today's Schedule -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-xl rounded-4 overflow-hidden h-100">
-                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="icon-circle bg-pastel-primary-soft">
-                                <i class="fas fa-calendar-day text-pastel-primary"></i>
-                            </div>
-                            <h5 class="fw-bold mb-0">Today's Schedule</h5>
-                        </div>
-                        <a asp-controller="Calendar" asp-action="Create" class="btn btn-pastel-outline rounded-pill btn-sm">
-                            <i class="fas fa-plus me-1"></i>Add Event
+                    <p class="lead text-muted mb-4">
+                        A smart task management system that helps you optimize productivity,
+                        track progress with visual charts, and ensure absolute data security.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="/Identity/Account/Register" class="btn btn-primary-gradient btn-lg px-5 rounded-pill shadow-lg">
+                            Get Started <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                        <a href="/Identity/Account/Login" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">
+                            Sign In
                         </a>
                     </div>
-                </div>
-                <div class="card-body p-4">
-                    @if (ViewBag.TodayEvents != null && ViewBag.TodayEvents.Count > 0)
-                    {
-                        <div class="timeline-pastel">
-                            @foreach (var evt in ViewBag.TodayEvents)
-                            {
-                                <div class="timeline-item-pastel mb-3 pb-3 border-bottom">
-                                    <div class="d-flex gap-3">
-                                        <div class="timeline-time-pastel fw-bold text-pastel-primary" style="min-width: 70px;">
-                                            @evt.StartTime.ToString("HH:mm")
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <h6 class="fw-bold mb-1">@evt.Title</h6>
-                                            @if (!string.IsNullOrEmpty(evt.Description))
-                                            {
-                                                <p class="small text-muted mb-2">@evt.Description</p>
-                                            }
-                                            <span class="badge rounded-pill @(evt.Status == "Completed" ? "bg-pastel-success" : "bg-pastel-primary")">
-                                                @evt.Status
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="empty-state text-center py-5">
-                            <i class="fas fa-calendar-alt fa-4x text-pastel-muted opacity-50 mb-3"></i>
-                            <h6 class="fw-semibold">No events scheduled for today</h6>
-                            <p class="small text-muted">Start by adding an event to your calendar.</p>
-                            <a asp-controller="Calendar" asp-action="Create" class="btn btn-pastel-primary rounded-pill mt-2">
-                                Create New Event
-                            </a>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Tasks -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-xl rounded-4 overflow-hidden h-100">
-                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="icon-circle bg-pastel-primary-soft">
-                                <i class="fas fa-list-check text-pastel-primary"></i>
-                            </div>
-                            <h5 class="fw-bold mb-0">Recent Tasks</h5>
-                        </div>
-                        <a asp-controller="WorkTask" asp-action="Create" class="btn btn-pastel-outline rounded-pill btn-sm">
-                            <i class="fas fa-plus me-1"></i>Add Task
-                        </a>
+                    <div class="mt-5 d-flex gap-4">
+                        <div><i class="fas fa-check-circle text-primary me-2"></i> No credit card required</div>
+                        <div><i class="fas fa-check-circle text-primary me-2"></i> Free 14-day trial</div>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    @if (ViewBag.RecentTasks != null && ViewBag.RecentTasks.Count > 0)
-                    {
-                        <div class="list-group list-group-flush">
-                            @foreach (var task in ViewBag.RecentTasks)
-                            {
-                                <div class="list-group-item border-0 px-4 py-3 task-item-pastel">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex align-items-center gap-2 mb-1">
-                                                <input type="checkbox" class="task-checkbox form-check-input" data-id="@task.Id" @(task.IsCompleted ? "checked disabled" : "")>
-                                                <span class="fw-semibold @(task.IsCompleted ? "text-decoration-line-through text-muted" : "")">
-                                                    @task.Title
-                                                </span>
-                                                @if (task.Priority == "High")
-                                                {
-                                                    <span class="badge bg-pastel-danger rounded-pill">High</span>
-                                                }
-                                                else if (task.Priority == "Medium")
-                                                {
-                                                    <span class="badge bg-pastel-warning rounded-pill text-dark">Medium</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-pastel-info rounded-pill">Low</span>
-                                                }
-                                            </div>
-                                            <small class="text-muted">
-                                                <i class="far fa-calendar-alt me-1"></i>Due: @task.DueDate.ToString("MMM dd, yyyy")
-                                            </small>
-                                        </div>
-                                        <div class="btn-group">
-                                            <a asp-controller="WorkTask" asp-action="Edit" asp-route-id="@task.Id"
-                                               class="btn btn-sm btn-outline-pastel rounded-circle me-1" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a asp-controller="WorkTask" asp-action="Delete" asp-route-id="@task.Id"
-                                               class="btn btn-sm btn-outline-pastel-danger rounded-circle" title="Delete">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="empty-state text-center py-5">
-                            <i class="fas fa-tasks fa-4x text-pastel-muted opacity-50 mb-3"></i>
-                            <h6 class="fw-semibold">No tasks yet</h6>
-                            <p class="small text-muted">Create your first task to get started.</p>
-                            <a asp-controller="WorkTask" asp-action="Create" class="btn btn-pastel-primary rounded-pill mt-2">
-                                Create First Task
-                            </a>
-                        </div>
-                    }
+                <div class="col-lg-6 text-center" data-aos="fade-left" data-aos-delay="200">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2975/2975538.png" alt="Time Management" class="img-fluid floating-img" style="max-width: 80%;">
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Productivity Chart -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
-                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="icon-circle bg-pastel-primary-soft">
-                            <i class="fas fa-chart-line text-pastel-primary"></i>
+    <!-- Stats Section -->
+    <section class="stats-section py-5 bg-light">
+        <div class="container">
+            <div class="row text-center g-4">
+                <div class="col-md-3" data-aos="zoom-in">
+                    <div class="stat-number display-4 fw-bold text-primary">10k+</div>
+                    <div class="stat-label text-muted">Active Users</div>
+                </div>
+                <div class="col-md-3" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="stat-number display-4 fw-bold text-primary">95%</div>
+                    <div class="stat-label text-muted">Satisfaction Rate</div>
+                </div>
+                <div class="col-md-3" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="stat-number display-4 fw-bold text-primary">2M+</div>
+                    <div class="stat-label text-muted">Tasks Completed</div>
+                </div>
+                <div class="col-md-3" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="stat-number display-4 fw-bold text-primary">24/7</div>
+                    <div class="stat-label text-muted">Support Available</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section nâng cao -->
+    <section class="features-section py-5">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 class="display-5 fw-bold">Powerful Features</h2>
+                <p class="lead text-muted">Everything you need to manage your time effectively</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="0">
+                    <div class="feature-card h-100 text-center p-4">
+                        <div class="icon-box mx-auto mb-4 bg-blue-soft">
+                            <i class="fas fa-columns fa-2x text-primary"></i>
                         </div>
-                        <h5 class="fw-bold mb-0">Weekly Productivity</h5>
+                        <h4>Kanban Board</h4>
+                        <p class="text-muted">Visualize your workflow with customizable columns: To Do, In Progress, Review, Done.</p>
                     </div>
                 </div>
-                <div class="card-body p-4">
-                    <canvas id="productivityChart" height="100"></canvas>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card h-100 text-center p-4">
+                        <div class="icon-box mx-auto mb-4 bg-purple-soft">
+                            <i class="fas fa-chart-line fa-2x text-purple"></i>
+                        </div>
+                        <h4>Advanced Analytics</h4>
+                        <p class="text-muted">Track productivity trends, time estimates vs actual, and team performance.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card h-100 text-center p-4">
+                        <div class="icon-box mx-auto mb-4 bg-red-soft">
+                            <i class="fas fa-shield-alt fa-2x text-danger"></i>
+                        </div>
+                        <h4>AES-256 Encryption</h4>
+                        <p class="text-muted">Your data is encrypted at rest and in transit with bank-grade security.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card h-100 text-center p-4">
+                        <div class="icon-box mx-auto mb-4 bg-green-soft">
+                            <i class="fas fa-bell fa-2x text-success"></i>
+                        </div>
+                        <h4>Smart Reminders</h4>
+                        <p class="text-muted">Get notified via email, push, or Telegram about upcoming deadlines.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-card h-100 text-center p-4">
+                        <div class="icon-box mx-auto mb-4 bg-yellow-soft">
+                            <i class="fas fa-users fa-2x text-warning"></i>
+                        </div>
+                        <h4>Team Collaboration</h4>
+                        <p class="text-muted">Share projects, assign tasks, and comment in real-time.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-card h-100 text-center p-4">
+                        <div class="icon-box mx-auto mb-4 bg-indigo-soft">
+                            <i class="fas fa-chart-simple fa-2x text-info"></i>
+                        </div>
+                        <h4>Time Tracking</h4>
+                        <p class="text-muted">Built-in pomodoro timer and manual time logs for accurate billing.</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <!-- Testimonial / Trust Section -->
+    <section class="testimonial-section py-5 bg-light">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 class="display-5 fw-bold">Trusted by Professionals</h2>
+                <p class="lead text-muted">Join thousands of users who transformed their productivity</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="0">
+                    <div class="testimonial-card p-4 bg-white rounded-4 shadow-sm">
+                        <i class="fas fa-quote-left fa-2x text-primary opacity-25 mb-3"></i>
+                        <p class="mb-3">"TimeMaster completely changed how our team works. We cut project delays by 40% in just two months."</p>
+                        <div class="d-flex align-items-center">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg" class="rounded-circle me-3" width="50" height="50" alt="Avatar">
+                            <div><strong>Sarah Johnson</strong><br><small class="text-muted">Product Manager, TechCorp</small></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="testimonial-card p-4 bg-white rounded-4 shadow-sm">
+                        <i class="fas fa-quote-left fa-2x text-primary opacity-25 mb-3"></i>
+                        <p class="mb-3">"The AES encryption gives me peace of mind. Finally a time tracker that respects privacy."</p>
+                        <div class="d-flex align-items-center">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" class="rounded-circle me-3" width="50" height="50" alt="Avatar">
+                            <div><strong>David Chen</strong><br><small class="text-muted">Freelance Developer</small></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="testimonial-card p-4 bg-white rounded-4 shadow-sm">
+                        <i class="fas fa-quote-left fa-2x text-primary opacity-25 mb-3"></i>
+                        <p class="mb-3">"Best investment for my small business. The reporting features alone save me hours each week."</p>
+                        <div class="d-flex align-items-center">
+                            <img src="https://randomuser.me/api/portraits/women/45.jpg" class="rounded-circle me-3" width="50" height="50" alt="Avatar">
+                            <div><strong>Emily Rodriguez</strong><br><small class="text-muted">Startup Founder</small></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Final Section -->
+    <section class="cta-section py-5">
+        <div class="container">
+            <div class="cta-card bg-gradient-primary text-white rounded-4 p-5 text-center" data-aos="zoom-in">
+                <h2 class="display-5 fw-bold mb-3">Ready to take control of your time?</h2>
+                <p class="lead mb-4 opacity-90">Join thousands of productive users today.</p>
+                <a href="/Identity/Account/Register" class="btn btn-light btn-lg px-5 rounded-pill shadow-lg">
+                    Start Free Trial <i class="fas fa-rocket ms-2"></i>
+                </a>
+                <p class="mt-3 small opacity-75">No commitment. Cancel anytime.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer (đơn giản, vì layout đã có footer riêng, nhưng có thể thêm nếu muốn) -->
 </div>
 
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Update current time
-        function updateDateTime() {
-            const now = new Date();
-            const formatted = now.toLocaleString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            const timeElement = document.getElementById('currentDateTime');
-            if (timeElement) timeElement.innerText = formatted;
-        }
-        updateDateTime();
-        setInterval(updateDateTime, 1000);
-
-        // Task checkbox handler (complete task)
-        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
-                    const taskId = this.dataset.id;
-                    fetch(`/Tasks/Complete/${taskId}`, { method: 'POST' })
-                        .then(response => {
-                            if (response.ok) {
-                                location.reload();
-                            }
-                        })
-                        .catch(err => console.error('Error:', err));
-                }
-            });
-        });
-
-        // Productivity Chart with pastel colors
-        const ctx = document.getElementById('productivityChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [
-                    {
-                        label: 'Hours Worked',
-                        data: @Html.Raw(Json.Serialize(ViewBag.WeeklyHours)),
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#6366f1',
-                        pointBorderWidth: 2,
-                        pointRadius: 4
-                    },
-                    {
-                        label: 'Tasks Completed',
-                        data: @Html.Raw(Json.Serialize(ViewBag.WeeklyTasks)),
-                        borderColor: '#06b6d4',
-                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        fill: true,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#06b6d4',
-                        pointBorderWidth: 2,
-                        pointRadius: 4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: { usePointStyle: true, boxWidth: 10 }
-                    },
-                    tooltip: { mode: 'index' }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-    </script>
-}
-
 <style>
-    /* Dashboard Pastel Styles */
-    .dashboard-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 1rem;
+    /* General */
+    .landing-page {
+        overflow-x: hidden;
     }
-
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--primary, #6366f1), var(--primary-dark, #4f46e5));
+    .text-gradient {
+        background: linear-gradient(90deg, #6366f1, #a855f7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
-
-    .glass-panel {
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(8px);
+    /* Hero */
+    .hero-section {
+        position: relative;
+        background: radial-gradient(circle at 0% 0%, rgba(99,102,241,0.03), transparent);
+        padding: 2rem 0;
+    }
+    .floating-img {
+        animation: float 4s ease-in-out infinite;
+    }
+    @@keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+        100% { transform: translateY(0px); }
+    }
+    .badge-new {
+        display: inline-block;
+        padding: 6px 16px;
+        background: rgba(99,102,241,0.1);
+        color: #4f46e5;
         border-radius: 40px;
-        padding: 0.6rem 1.2rem;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        backdrop-filter: blur(4px);
     }
-
-    /* Stats Cards Pastel */
-    .stats-card-pastel {
-        border-radius: 20px;
-        padding: 1.25rem;
+    .btn-primary-gradient {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        border: none;
         transition: transform 0.2s, box-shadow 0.2s;
-        cursor: default;
     }
-    .stats-card-pastel:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 20px rgba(0,0,0,0.08);
+    .btn-primary-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(79,70,229,0.3);
     }
-    .pastel-blue {
-        background: #e0f2fe;
-        border-left: 4px solid #38bdf8;
+    /* Stats */
+    .stats-section {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
     }
-    .pastel-green {
-        background: #dcfce7;
-        border-left: 4px solid #4ade80;
+    .stat-number {
+        font-weight: 800;
     }
-    .pastel-yellow {
-        background: #fef9c3;
-        border-left: 4px solid #facc15;
+    /* Feature Cards */
+    .feature-card {
+        background: white;
+        border-radius: 24px;
+        transition: all 0.3s ease;
+        border: 1px solid #eef2ff;
     }
-    .pastel-purple {
-        background: #f3e8ff;
-        border-left: 4px solid #c084fc;
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 30px -12px rgba(0,0,0,0.1);
+        border-color: #c7d2fe;
     }
-    .stats-icon i {
-        color: #334155;
-    }
-    .stats-number {
-        color: #0f172a;
-    }
-    body.theme-dark .pastel-blue {
-        background: #1e293b;
-        border-left-color: #38bdf8;
-    }
-    body.theme-dark .pastel-green {
-        background: #1e293b;
-        border-left-color: #4ade80;
-    }
-    body.theme-dark .pastel-yellow {
-        background: #1e293b;
-        border-left-color: #facc15;
-    }
-    body.theme-dark .pastel-purple {
-        background: #1e293b;
-        border-left-color: #c084fc;
-    }
-    body.theme-dark .stats-icon i,
-    body.theme-dark .stats-number {
-        color: #f1f5f9;
-    }
-
-    /* Icon circle */
-    .icon-circle {
-        width: 40px;
-        height: 40px;
+    .icon-box {
+        width: 70px;
+        height: 70px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 30px;
+        border-radius: 20px;
     }
-    .bg-pastel-primary-soft {
-        background: rgba(99, 102, 241, 0.12);
-    }
-    .text-pastel-primary {
-        color: var(--primary, #6366f1);
-    }
-    .btn-pastel-primary {
-        background: var(--primary, #6366f1);
-        color: white;
-        border: none;
+    .bg-blue-soft { background: #eff6ff; }
+    .bg-purple-soft { background: #faf5ff; }
+    .bg-red-soft { background: #fef2f2; }
+    .bg-green-soft { background: #ecfdf5; }
+    .bg-yellow-soft { background: #fffbeb; }
+    .bg-indigo-soft { background: #eef2ff; }
+    .text-purple { color: #a855f7; }
+    /* Testimonial */
+    .testimonial-card {
         transition: all 0.2s;
+        border: 1px solid #e2e8f0;
     }
-    .btn-pastel-primary:hover {
-        background: var(--primary-dark, #4f46e5);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+    .testimonial-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 12px 24px -12px rgba(0,0,0,0.15);
     }
-    .btn-pastel-outline {
-        background: transparent;
-        border: 1px solid var(--primary, #6366f1);
-        color: var(--primary, #6366f1);
-        transition: all 0.2s;
+    /* CTA */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
     }
-    .btn-pastel-outline:hover {
-        background: var(--primary, #6366f1);
-        color: white;
+    .cta-card {
+        box-shadow: 0 20px 35px -10px rgba(79,70,229,0.3);
     }
-    .btn-outline-pastel {
-        border: 1px solid var(--primary, #6366f1);
-        color: var(--primary, #6366f1);
-        background: transparent;
-    }
-    .btn-outline-pastel:hover {
-        background: var(--primary, #6366f1);
-        color: white;
-    }
-    .btn-outline-pastel-danger {
-        border: 1px solid #f43f5e;
-        color: #f43f5e;
-        background: transparent;
-    }
-    .btn-outline-pastel-danger:hover {
-        background: #f43f5e;
-        color: white;
-    }
-
-    /* Badge pastel */
-    .bg-pastel-success {
-        background: #dcfce7;
-        color: #166534;
-    }
-    .bg-pastel-primary {
-        background: #e0f2fe;
-        color: #0369a1;
-    }
-    .bg-pastel-danger {
-        background: #fee2e2;
-        color: #b91c1c;
-    }
-    .bg-pastel-warning {
-        background: #fef9c3;
-        color: #854d0e;
-    }
-    .bg-pastel-info {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-    body.theme-dark .bg-pastel-success {
-        background: #14532d;
-        color: #bbf7d0;
-    }
-    body.theme-dark .bg-pastel-primary {
-        background: #1e3a8a;
-        color: #bfdbfe;
-    }
-    body.theme-dark .bg-pastel-danger {
-        background: #7f1d1d;
-        color: #fecaca;
-    }
-    body.theme-dark .bg-pastel-warning {
-        background: #854d0e;
-        color: #fef9c3;
-    }
-    body.theme-dark .bg-pastel-info {
-        background: #1e3a8a;
-        color: #bfdbfe;
-    }
-
-    /* Task item */
-    .task-item-pastel {
-        transition: background 0.2s;
-    }
-    .task-item-pastel:hover {
-        background: rgba(99, 102, 241, 0.04);
-    }
-    .timeline-item-pastel:last-child {
-        border-bottom: none !important;
-    }
-
-    /* Dark mode additional */
-    body.theme-dark .glass-panel {
-        background: rgba(0,0,0,0.3);
-    }
-    body.theme-dark .btn-pastel-outline {
-        border-color: #818cf8;
-        color: #a5b4fc;
-    }
-    body.theme-dark .btn-pastel-outline:hover {
-        background: #818cf8;
-        color: #1e293b;
-    }
-    body.theme-dark .task-item-pastel:hover {
-        background: rgba(129, 140, 248, 0.1);
-    }
-
     /* Responsive */
     @@media (max-width: 768px) {
-        .dashboard-container {
-            padding: 0 0.5rem;
+        .hero-section .min-vh-100 {
+            min-height: auto !important;
+            padding: 3rem 0;
         }
-        .glass-panel {
-            font-size: 0.75rem;
-            padding: 0.4rem 0.8rem;
+        .display-3 {
+            font-size: 2.5rem;
         }
-        .stats-card-pastel {
-            padding: 1rem;
+        .feature-card {
+            margin-bottom: 1rem;
         }
-        .stats-number {
-            font-size: 1.6rem;
+        .stat-number {
+            font-size: 2rem;
         }
     }
 </style>
+
+<!-- Thêm AOS script nếu chưa có (Layout đã có, nhưng đảm bảo) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof AOS !== 'undefined') AOS.refresh();
+    });
+</script>

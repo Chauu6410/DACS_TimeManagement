@@ -11,7 +11,7 @@ namespace DACS_TimeManagement.Data
 {
     /// <summary>
     /// Database seeder to create sample roles, users, projects, board lists and tasks.
-    /// Matches project structure in the solution (ApplicationDbContext, Project, BoardList, WorkTask, PersonalGoal, Notification).
+    /// All content is in English. Each user gets at least one project and personal goal.
     /// </summary>
     public static class DbSeeder
     {
@@ -35,33 +35,46 @@ namespace DACS_TimeManagement.Data
             var u2 = await CreateUserIfNotExists(userManager, "quynh.dev@gmail.com", "Dev@123", "User");
             var u3 = await CreateUserIfNotExists(userManager, "ngoc.test@gmail.com", "Dev@123", "User");
 
-            var userList = new List<IdentityUser> { admin, u1, u2, u3 };
+            var allUsers = new List<IdentityUser> { admin, u1, u2, u3 };
 
-            // 3) Avoid duplicate seeding
+            // 3) Avoid duplicate seeding if projects already exist
             if (await context.Projects.AsNoTracking().AnyAsync()) return;
 
-            // 4) Create 3 sample projects
-            var projects = new List<Project>
-            {
-                new Project { Name = "Hệ thống Quản lý TimeMaster", Description = "Dự án CNTT tích hợp mã hóa AES.", CreatedDate = DateTime.Now.AddDays(-20), UserId = admin.Id },
-                new Project { Name = "Nghiên cứu Cloud & AI", Description = "Triển khai hạ tầng và học máy.", CreatedDate = DateTime.Now.AddDays(-10), UserId = admin.Id },
-                new Project { Name = "Chiến dịch Marketing Q2", Description = "Quảng bá sản phẩm mới.", CreatedDate = DateTime.Now.AddDays(-5), UserId = admin.Id }
-            };
+            // 4) Create projects for each user (so everyone has their own data)
+            var projects = new List<Project>();
+
+            // Admin projects
+            projects.Add(new Project { Name = "TimeMaster Management System", Description = "Enterprise software with AES encryption integration.", CreatedDate = DateTime.Now.AddDays(-20), UserId = admin.Id });
+            projects.Add(new Project { Name = "Cloud & AI Research", Description = "Infrastructure deployment and machine learning experiments.", CreatedDate = DateTime.Now.AddDays(-10), UserId = admin.Id });
+            projects.Add(new Project { Name = "Marketing Campaign Q2", Description = "Promote new product features.", CreatedDate = DateTime.Now.AddDays(-5), UserId = admin.Id });
+
+            // User1 (Huong) personal projects
+            projects.Add(new Project { Name = "Personal Learning Plan", Description = "Upskilling in .NET and React", CreatedDate = DateTime.Now.AddDays(-15), UserId = u1.Id });
+            projects.Add(new Project { Name = "Fitness Tracker App", Description = "Mobile app for daily workouts", CreatedDate = DateTime.Now.AddDays(-8), UserId = u1.Id });
+
+            // User2 (Quynh) personal projects
+            projects.Add(new Project { Name = "Freelance Portfolio", Description = "Build a professional portfolio website", CreatedDate = DateTime.Now.AddDays(-12), UserId = u2.Id });
+            projects.Add(new Project { Name = "Digital Marketing Strategy", Description = "SEO and content plan", CreatedDate = DateTime.Now.AddDays(-3), UserId = u2.Id });
+
+            // User3 (Ngoc) personal projects
+            projects.Add(new Project { Name = "Reading Challenge 2025", Description = "Track 50 books this year", CreatedDate = DateTime.Now.AddDays(-7), UserId = u3.Id });
+            projects.Add(new Project { Name = "Meditation Habit", Description = "Daily mindfulness practice", CreatedDate = DateTime.Now.AddDays(-1), UserId = u3.Id });
 
             foreach (var proj in projects)
             {
                 context.Projects.Add(proj);
-                await context.SaveChangesAsync();
+                await context.SaveChangesAsync(); // Save to get Project.Id
 
-                // Ensure BoardLists exist for this project (do not duplicate)
-                var lists = await context.BoardLists.Where(b => b.ProjectId == proj.Id).OrderBy(b => b.Position).AsNoTracking().ToListAsync();
+                // Ensure BoardLists exist for this project
+                var lists = await context.BoardLists.Where(b => b.ProjectId == proj.Id).OrderBy(b => b.Position).ToListAsync();
                 if (!lists.Any())
                 {
                     lists = new List<BoardList>
                     {
-                        new BoardList { Name = "Cần làm", Position = 0, ProjectId = proj.Id },
-                        new BoardList { Name = "Đang làm", Position = 1, ProjectId = proj.Id },
-                        new BoardList { Name = "Hoàn tất", Position = 2, ProjectId = proj.Id }
+                        new BoardList { Name = "To Do", Position = 0, ProjectId = proj.Id },
+                        new BoardList { Name = "In Progress", Position = 1, ProjectId = proj.Id },
+                        new BoardList { Name = "Testing", Position = 2, ProjectId = proj.Id },
+                        new BoardList { Name = "Done", Position = 3, ProjectId = proj.Id }
                     };
                     context.BoardLists.AddRange(lists);
                     await context.SaveChangesAsync();
@@ -70,53 +83,64 @@ namespace DACS_TimeManagement.Data
                     lists = await context.BoardLists.Where(b => b.ProjectId == proj.Id).OrderBy(b => b.Position).ToListAsync();
                 }
 
-                // Create exactly 6 tasks per project and distribute assignees round-robin
-                for (int i = 1; i <= 6; i++)
+                // Create 4-6 tasks per project, assign random assignees (including project owner and others)
+                int taskCount = 5; // each project gets 5 tasks
+                for (int i = 1; i <= taskCount; i++)
                 {
-                    var assignee = userList[i % userList.Count];
+                    // Assignee: sometimes the project owner, sometimes another user (for collaboration demo)
+                    IdentityUser assignee = (i % 2 == 0) ? proj.UserId == admin.Id ? u1 : admin : allUsers.First(u => u.Id == proj.UserId);
                     var board = lists[i % lists.Count];
 
                     var task = new WorkTask
                     {
-                        Title = $"Task #{i} - {proj.Name}",
-                        Description = (i == 3) ? "Dữ liệu được mã hóa AES" : $"Mô tả cho công việc {i} - {proj.Name}",
+                        Title = (i == 1) ? $"Setup: {proj.Name}" : $"Task #{i} - {proj.Name}",
+                        Description = (i == 3) ? "This task involves encrypted data handling (AES-256)." : $"Detailed description for task {i} of project '{proj.Name}'.",
                         StartDate = DateTime.Now.AddDays(-i),
-                        EndDate = DateTime.Now.AddDays(i),
+                        EndDate = DateTime.Now.AddDays(i * 2),
                         Priority = (Priority)(i % 4),
                         Status = (i > 4) ? DACS_TimeManagement.Models.TaskStatus.Completed : DACS_TimeManagement.Models.TaskStatus.Todo,
-                        Progress = (i > 4) ? 100 : 0,
+                        Progress = (i > 4) ? 100 : (i * 15),
                         Position = i - 1,
                         ProjectId = proj.Id,
                         BoardListId = board.Id,
-                        UserId = admin.Id,
+                        UserId = proj.UserId,   // Project owner
                         AssigneeId = assignee.Id,
                         IsPrivate = (i == 3)
                     };
-
                     context.WorkTasks.Add(task);
                 }
 
-                // Add a sample PersonalGoal per project owner for demo
-                context.PersonalGoals.Add(new PersonalGoal
+                // Add a PersonalGoal for the project owner (each user gets at least one goal)
+                var existingGoal = await context.PersonalGoals.FirstOrDefaultAsync(g => g.UserId == proj.UserId);
+                if (existingGoal == null)
                 {
-                    GoalName = $"Mục tiêu cho {proj.Name}",
-                    TargetDate = DateTime.Now.AddDays(30),
-                    TargetValue = 100,
-                    CurrentValue = 10,
-                    UserId = admin.Id
-                });
+                    context.PersonalGoals.Add(new PersonalGoal
+                    {
+                        GoalName = $"Master {proj.Name}",
+                        TargetDate = DateTime.Now.AddDays(45),
+                        TargetValue = 100,
+                        CurrentValue = 10,
+                        UserId = proj.UserId
+                    });
+                }
 
                 await context.SaveChangesAsync();
             }
 
-            // Add a sample notification for admin
-            context.Notifications.Add(new Notification
+            // Add a sample notification for each user
+            foreach (var user in allUsers)
             {
-                Message = "Chào mừng bạn đã sử dụng TimeMaster - thông báo mẫu.",
-                TriggerTime = DateTime.Now,
-                IsRead = false,
-                UserId = admin.Id
-            });
+                if (!await context.Notifications.AnyAsync(n => n.UserId == user.Id))
+                {
+                    context.Notifications.Add(new Notification
+                    {
+                        Message = $"Welcome to TimeMaster! Start managing your time effectively.",
+                        TriggerTime = DateTime.Now,
+                        IsRead = false,
+                        UserId = user.Id
+                    });
+                }
+            }
 
             await context.SaveChangesAsync();
         }
@@ -130,7 +154,6 @@ namespace DACS_TimeManagement.Data
             var res = await userManager.CreateAsync(user, password);
             if (!res.Succeeded)
             {
-                // If creation failed, try to return existing user or throw
                 var existing = await userManager.FindByEmailAsync(email);
                 if (existing != null) return existing;
                 throw new Exception($"Failed to create user {email}: {string.Join(';', res.Errors.Select(e => e.Description))}");

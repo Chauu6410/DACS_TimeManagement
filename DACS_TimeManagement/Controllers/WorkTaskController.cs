@@ -56,10 +56,29 @@ namespace DACS_TimeManagement.Controllers
 
                 // 3. CHỈ LOAD DỮ LIỆU CỦA 1 PROJECT ĐANG CHỌN (Tăng tốc độ 500%)
                 var boardLists = await _context.BoardLists
-                    .AsNoTracking()
                     .Where(bl => bl.ProjectId == selectedId) // Lọc chặt chẽ theo ID
                     .OrderBy(bl => bl.Position)
                     .ToListAsync();
+
+                bool isDirty = false;
+                foreach (var list in boardLists)
+                {
+                    if (list.Name == "Cần làm") { list.Name = "To Do"; list.Position = 0; isDirty = true; }
+                    else if (list.Name == "Đang làm" || list.Name == "Doing") { list.Name = "In Progress"; list.Position = 1; isDirty = true; }
+                    else if (list.Name == "Hoàn tất" || list.Name == "Done" && list.Position != 3) { list.Name = "Done"; list.Position = 3; isDirty = true; }
+                }
+                if (!boardLists.Any(bl => bl.Name == "Testing"))
+                {
+                    var testingList = new BoardList { Name = "Testing", Position = 2, ProjectId = selectedId };
+                    _context.BoardLists.Add(testingList);
+                    boardLists.Add(testingList);
+                    isDirty = true;
+                }
+                if (isDirty)
+                {
+                    await _context.SaveChangesAsync();
+                    boardLists = boardLists.OrderBy(bl => bl.Position).ToList();
+                }
 
                 var tasks = await _context.WorkTasks
                     .AsNoTracking()
@@ -116,7 +135,7 @@ namespace DACS_TimeManagement.Controllers
 
                         var members = await _context.ProjectMembers
                             .Where(pm => pm.ProjectId == projectId.Value)
-                            .Select(pm => new { Id = pm.UserId, DisplayName = _context.Users.FirstOrDefault(u => u.Id == pm.UserId).Email })
+                            .Join(_context.Users, pm => pm.UserId, u => u.Id, (pm, u) => new { Id = u.Id, DisplayName = u.Email })
                             .ToListAsync();
                         
                         assignees.AddRange(members.Where(m => m.Id != owner.Id));
@@ -206,7 +225,7 @@ namespace DACS_TimeManagement.Controllers
 
                    var members = await _context.ProjectMembers
                        .Where(pm => pm.ProjectId == task.ProjectId.Value)
-                       .Select(pm => new { Id = pm.UserId, DisplayName = _context.Users.FirstOrDefault(u => u.Id == pm.UserId).Email })
+                       .Join(_context.Users, pm => pm.UserId, u => u.Id, (pm, u) => new { Id = u.Id, DisplayName = u.Email })
                        .ToListAsync();
                    assignees.AddRange(members.Where(m => m.Id != owner.Id));
                }
@@ -239,7 +258,7 @@ namespace DACS_TimeManagement.Controllers
 
                 var members = await _context.ProjectMembers
                     .Where(pm => pm.ProjectId == projectId)
-                    .Select(pm => new { Id = pm.UserId, DisplayName = _context.Users.FirstOrDefault(u => u.Id == pm.UserId).Email })
+                    .Join(_context.Users, pm => pm.UserId, u => u.Id, (pm, u) => new { Id = u.Id, DisplayName = u.Email })
                     .ToListAsync();
 
                 assignees.AddRange(members.Where(m => m.Id != owner.Id));

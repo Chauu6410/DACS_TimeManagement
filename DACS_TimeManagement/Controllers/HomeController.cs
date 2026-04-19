@@ -24,7 +24,19 @@ namespace DACS_TimeManagement.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        // 1. Trang giới thiệu(Landing Page) - Cho phép mọi người truy cập
+        [AllowAnonymous]
+        public IActionResult Index()
+        {
+            // Nếu người dùng đã đăng nhập rồi thì chuyển thẳng vào Dashboard luôn cho tiện
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Dashboard");
+            }
+            return View();
+        }
+
+        public async Task<IActionResult> Dashboard()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))

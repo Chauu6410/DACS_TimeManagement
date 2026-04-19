@@ -1,6 +1,346 @@
-/* Custom styles for Time Management System */
+/* ========================================
+   Time Management System - Main Stylesheet
+   Optimized & Refined
+   ======================================== */
 
-/* Timeline Styles */
+/* --- 1. Imports & CSS Variables --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Typography */
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+    --text-xs: 0.75rem; /* 12px */
+    --text-sm: 0.875rem; /* 14px */
+    --text-base: 1rem; /* 16px */
+    --text-lg: 1.125rem; /* 18px */
+    --text-xl: 1.25rem; /* 20px */
+    --text-2xl: 1.5rem; /* 24px */
+    --text-3xl: 1.875rem; /* 30px */
+    --text-4xl: 2.25rem; /* 36px */
+    --fw-normal: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+    /* Pastel Color Palette (Light Theme) */
+    --pastel-primary-bg: #c7d2fe;
+    --pastel-primary-text: #312e81;
+    --pastel-primary-hover: #a5b4fc;
+    --pastel-success-bg: #a7f3d0;
+    --pastel-success-text: #064e3b;
+    --pastel-success-hover: #6ee7b7;
+    --pastel-danger-bg: #fecaca;
+    --pastel-danger-text: #7f1d1d;
+    --pastel-danger-hover: #fca5a5;
+    --pastel-warning-bg: #fde68a;
+    --pastel-warning-text: #713f12;
+    --pastel-warning-hover: #fcd34d;
+    --pastel-info-bg: #bae6fd;
+    --pastel-info-text: #0c4a6e;
+    --pastel-info-hover: #7dd3fc;
+    --pastel-secondary-bg: #e2e8f0;
+    --pastel-secondary-text: #334155;
+    /* Neutral Colors */
+    --gray-100: #f8fafc;
+    --gray-200: #f1f5f9;
+    --gray-300: #e2e8f0;
+    --gray-400: #cbd5e1;
+    --gray-500: #94a3b8;
+    --gray-600: #64748b;
+    --gray-700: #475569;
+    --gray-800: #1e293b;
+    --gray-900: #0f172a;
+    /* Shadows & Effects */
+    --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 10px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 6px 15px rgba(0, 0, 0, 0.1);
+    --transition-base: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Dark Theme Variables */
+body.theme-dark {
+    --pastel-primary-bg: #3730a3;
+    --pastel-primary-text: #e0e7ff;
+    --pastel-primary-hover: #4f46e5;
+    --pastel-success-bg: #065f46;
+    --pastel-success-text: #a7f3d0;
+    --pastel-success-hover: #047857;
+    --pastel-danger-bg: #7f1d1d;
+    --pastel-danger-text: #fecaca;
+    --pastel-danger-hover: #991b1b;
+    --pastel-warning-bg: #713f12;
+    --pastel-warning-text: #fde68a;
+    --pastel-warning-hover: #854d0e;
+    --pastel-info-bg: #0c4a6e;
+    --pastel-info-text: #bae6fd;
+    --pastel-info-hover: #075985;
+    --pastel-secondary-bg: #334155;
+    --pastel-secondary-text: #cbd5e1;
+    --gray-100: #0f172a;
+    --gray-200: #1e293b;
+    --gray-300: #334155;
+    --gray-400: #475569;
+    --gray-500: #64748b;
+    --gray-600: #94a3b8;
+    --gray-700: #cbd5e1;
+    --gray-800: #e2e8f0;
+    --gray-900: #f8fafc;
+}
+
+/* --- 2. Base Styles --- */
+body {
+    font-family: var(--font-main);
+    font-size: var(--text-base);
+    font-weight: var(--fw-normal);
+    line-height: 1.5;
+    background-color: var(--gray-100);
+    color: var(--gray-800);
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.01em;
+}
+
+h1, .h1 {
+    font-size: var(--text-4xl);
+}
+
+h2, .h2 {
+    font-size: var(--text-3xl);
+}
+
+h3, .h3 {
+    font-size: var(--text-2xl);
+}
+
+h4, .h4 {
+    font-size: var(--text-xl);
+}
+
+h5, .h5 {
+    font-size: var(--text-lg);
+}
+
+h6, .h6 {
+    font-size: var(--text-base);
+}
+
+/* Form Elements */
+input, select, textarea {
+    font-family: var(--font-main);
+    font-size: var(--text-base);
+}
+
+/* Utility Text */
+.small, small {
+    font-size: var(--text-xs);
+}
+
+.text-muted {
+    color: var(--gray-500) !important;
+}
+
+/* --- 3. Component Styles (Pastel Overrides) --- */
+
+/* Buttons */
+.btn {
+    font-family: var(--font-main);
+    font-size: var(--text-sm);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.01em;
+    transition: var(--transition-base);
+    border-radius: 8px;
+    border: none;
+}
+
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+
+.btn-primary {
+    background: var(--pastel-primary-bg);
+    color: var(--pastel-primary-text);
+    box-shadow: var(--shadow-md);
+}
+
+    .btn-primary:hover {
+        background: var(--pastel-primary-hover);
+        box-shadow: var(--shadow-lg);
+    }
+
+.btn-success {
+    background: var(--pastel-success-bg);
+    color: var(--pastel-success-text);
+}
+
+    .btn-success:hover {
+        background: var(--pastel-success-hover);
+    }
+
+.btn-danger {
+    background: var(--pastel-danger-bg);
+    color: var(--pastel-danger-text);
+}
+
+    .btn-danger:hover {
+        background: var(--pastel-danger-hover);
+    }
+
+.btn-warning {
+    background: var(--pastel-warning-bg);
+    color: var(--pastel-warning-text);
+}
+
+    .btn-warning:hover {
+        background: var(--pastel-warning-hover);
+    }
+
+.btn-info {
+    background: var(--pastel-info-bg);
+    color: var(--pastel-info-text);
+}
+
+    .btn-info:hover {
+        background: var(--pastel-info-hover);
+    }
+
+.btn-outline-primary:hover,
+.btn-outline-info:hover,
+.btn-outline-danger:hover {
+    transform: translateY(-2px);
+}
+
+/* Badges */
+.badge {
+    font-family: var(--font-main);
+    font-size: var(--text-xs);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.03em;
+    padding: 0.55em 0.8em;
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+    .badge.bg-primary, .bg-primary {
+        background: var(--pastel-primary-bg) !important;
+        color: var(--pastel-primary-text) !important;
+    }
+
+    .badge.bg-success, .bg-success {
+        background: var(--pastel-success-bg) !important;
+        color: var(--pastel-success-text) !important;
+    }
+
+    .badge.bg-danger, .bg-danger {
+        background: var(--pastel-danger-bg) !important;
+        color: var(--pastel-danger-text) !important;
+    }
+
+    .badge.bg-warning, .bg-warning {
+        background: var(--pastel-warning-bg) !important;
+        color: var(--pastel-warning-text) !important;
+    }
+
+    .badge.bg-info, .bg-info {
+        background: var(--pastel-info-bg) !important;
+        color: var(--pastel-info-text) !important;
+    }
+
+    .badge.bg-secondary, .bg-secondary {
+        background: var(--pastel-secondary-bg) !important;
+        color: var(--pastel-secondary-text) !important;
+    }
+
+/* Tables */
+table {
+    font-family: var(--font-main);
+}
+
+thead th {
+    font-size: var(--text-xs);
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+tbody td {
+    font-size: var(--text-sm);
+    font-weight: var(--fw-normal);
+}
+
+.table-hover tbody tr {
+    transition: var(--transition-base);
+}
+
+    .table-hover tbody tr:hover {
+        background-color: var(--gray-200) !important;
+        transform: scale(1.005);
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        z-index: 10;
+    }
+
+/* Cards & Card Headers */
+.card-header.bg-primary {
+    background: var(--pastel-primary-bg) !important;
+    color: var(--pastel-primary-text) !important;
+    border-bottom: none;
+}
+
+.progress {
+    background-color: var(--gray-200);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.progress-bar {
+    background: var(--pastel-primary-bg) !important;
+    transition: width 1s ease-in-out;
+}
+
+    .progress-bar.bg-success {
+        background: var(--pastel-success-bg) !important;
+    }
+
+/* Sidebar Navigation */
+.nav-link {
+    font-family: var(--font-main);
+    font-size: var(--text-sm);
+    font-weight: var(--fw-medium);
+    transition: var(--transition-base);
+}
+
+    .nav-link.active {
+        background: var(--gray-200) !important;
+        border-left: 4px solid var(--pastel-primary-text);
+        color: var(--pastel-primary-text) !important;
+    }
+
+/* Task Cards */
+.task-card h6, .pastel-task-card h6 {
+    font-size: 0.95rem;
+    font-weight: var(--fw-bold);
+    line-height: 1.4;
+    margin-bottom: 0.4rem !important;
+}
+
+.task-card p, .pastel-task-card p {
+    font-size: 0.8rem;
+    font-weight: var(--fw-normal);
+    color: var(--gray-600);
+}
+
+.task-card .badge, .pastel-task-card .badge {
+    font-size: 0.75rem;
+    padding: 0.4em 0.6em !important;
+}
+
+/* --- 4. Specific Components --- */
+
+/* Timeline */
 .timeline {
     position: relative;
     padding-left: 30px;
@@ -20,7 +360,7 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: var(--primary-color);
+        background: var(--pastel-primary-bg);
     }
 
     .timeline-item::after {
@@ -30,7 +370,7 @@
         top: 15px;
         width: 2px;
         height: calc(100% - 10px);
-        background: #e0e0e0;
+        background: var(--gray-300);
     }
 
     .timeline-item:last-child::after {
@@ -39,11 +379,11 @@
 
 .timeline-time {
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(--pastel-primary-text);
     margin-bottom: 5px;
 }
 
-/* Task Checkbox Styles */
+/* Task Checkbox */
 .task-checkbox {
     width: 18px;
     height: 18px;
@@ -54,38 +394,6 @@
 .profile-avatar {
     position: relative;
     display: inline-block;
-}
-
-/* Responsive Tables */
-@media (max-width: 768px) {
-    .table-responsive {
-        font-size: 14px;
-    }
-
-    .btn-group {
-        flex-direction: column;
-    }
-
-        .btn-group .btn {
-            margin-bottom: 5px;
-        }
-}
-
-/* Print Styles */
-@media print {
-    .navbar, .footer, .btn, .no-print {
-        display: none !important;
-    }
-
-    body {
-        background: white;
-        padding: 20px;
-    }
-
-    .card {
-        box-shadow: none;
-        border: 1px solid #ddd;
-    }
 }
 
 /* Loading Spinner */
@@ -105,8 +413,8 @@
 .spinner {
     width: 50px;
     height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid var(--primary-color);
+    border: 5px solid var(--gray-300);
+    border-top: 5px solid var(--pastel-primary-bg);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -132,7 +440,7 @@
 .custom-toast {
     background: white;
     border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-lg);
     padding: 12px 20px;
     margin-bottom: 10px;
     animation: slideIn 0.3s ease;
@@ -150,193 +458,72 @@
     }
 }
 
-/* --- GLOBAL VIBRANT COLOR ENHANCEMENTS --- */
-
-/* --- GLOBAL PASTEL COLOR ENHANCEMENTS (UNIFIED UI) --- */
-/* Makes colors clearer while keeping them pastel */
-
-/* 1. Fix Opacity to make things clear ("rõ nét hơn") */
-.opacity-25 { opacity: 0.8 !important; }
-.opacity-50 { opacity: 0.9 !important; }
-.opacity-75, .opacity-90 { opacity: 1 !important; }
-
-/* 2. Background Opacity adjustments */
-.bg-opacity-20, .bg-opacity-25 { 
-    --bs-bg-opacity: 0.7 !important; 
-    background-color: rgba(255, 255, 255, 0.7) !important;
-}
-.bg-opacity-50 { 
-    --bs-bg-opacity: 0.9 !important; 
-    background-color: rgba(255, 255, 255, 0.9) !important;
-}
-
-/* 3. Global Pastel Overrides (Replaces Vibrant Gradients) */
-/* Primary */
-.bg-primary, .btn-primary, .bg-gradient-primary {
-    background: #c7d2fe !important; /* Clear pastel indigo */
-    border: none !important;
-    color: #312e81 !important; /* Sharp text */
-    box-shadow: 0 4px 10px rgba(165, 180, 252, 0.3) !important;
-}
-.btn-primary:hover {
-    background: #a5b4fc !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(165, 180, 252, 0.45) !important;
+/* --- 5. Utility Classes (Cleaned) --- */
+.bg-pastel-primary-soft {
+    background-color: var(--gray-200);
 }
 
 .text-primary, .text-pastel-primary {
-    color: #4f46e5 !important; 
+    color: var(--pastel-primary-text) !important;
 }
-
-/* Success */
-.bg-success, .btn-success, .badge.bg-success {
-    background: #a7f3d0 !important; /* Pastel green */
-    border: none !important;
-    color: #064e3b !important;
-}
-.btn-success:hover {
-    background: #6ee7b7 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(110, 231, 183, 0.4) !important;
-}
-
-/* Danger / Accent */
-.bg-danger, .btn-danger, .badge.bg-danger {
-    background: #fecaca !important; /* Pastel red */
-    border: none !important;
-    color: #7f1d1d !important;
-}
-.btn-danger:hover {
-    background: #fca5a5 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(252, 165, 165, 0.4) !important;
-}
-
-/* Warning */
-.bg-warning, .btn-warning, .badge.bg-warning {
-    background: #fde68a !important; /* Pastel yellow */
-    border: none !important;
-    color: #713f12 !important;
-}
-.btn-warning:hover {
-    background: #fcd34d !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(253, 211, 77, 0.4) !important;
-}
-
-/* Info */
-.bg-info, .btn-info, .badge.bg-info {
-    background: #bae6fd !important; /* Pastel blue */
-    border: none !important;
-    color: #0c4a6e !important;
-}
-.btn-info:hover {
-    background: #7dd3fc !important;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(125, 211, 252, 0.4) !important;
-}
-
-/* Secondary */
-.bg-secondary, .badge.bg-secondary {
-    background: #e2e8f0 !important;
-    color: #334155 !important;
-}
-
-/* Enhanced Badges */
-.badge {
-    padding: 0.55em 0.8em !important;
-    border-radius: 8px !important;
-    font-weight: 700;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    letter-spacing: 0.3px;
-}
-
-/* Buttons */
-.btn {
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border-radius: 8px;
-    font-weight: 600;
-}
-.btn-outline-primary:hover, .btn-outline-info:hover, .btn-outline-danger:hover {
-    transform: translateY(-2px);
-}
-
-/* Clear text overrides */
-.text-pastel-muted, .text-muted {
-    color: #64748b !important;
-    opacity: 1 !important;
-    font-weight: 500;
-}
-body.theme-dark .text-pastel-muted, body.theme-dark .text-muted {
-    color: #94a3b8 !important;
-}
-
-/* Fix large empty state pastel icons to be sharp */
+/* Icon opacity fixes */
 .fa-2x.opacity-25, .fa-2x.opacity-50,
 .fa-3x.opacity-25, .fa-3x.opacity-50,
 .fa-4x.opacity-25, .fa-4x.opacity-50 {
     opacity: 0.9 !important;
-    color: #c7d2fe !important; 
-}
-body.theme-dark .fa-2x.opacity-25, body.theme-dark .fa-2x.opacity-50,
-body.theme-dark .fa-3x.opacity-25, body.theme-dark .fa-3x.opacity-50,
-body.theme-dark .fa-4x.opacity-25, body.theme-dark .fa-4x.opacity-50 {
-    color: #475569 !important;
+    color: var(--pastel-primary-bg);
 }
 
-/* Dynamic Tables */
-.table-hover tbody tr {
-    transition: all 0.2s ease-in-out;
-}
-.table-hover tbody tr:hover {
-    background-color: #eef2ff !important;
-    transform: scale(1.005);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-    z-index: 10;
-    position: relative;
-    border-radius: 8px;
-}
-body.theme-dark .table-hover tbody tr:hover {
-    background-color: #1e293b !important;
+/* --- 6. Responsive --- */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 14px;
+    }
+
+    .btn-group {
+        flex-direction: column;
+    }
+
+        .btn-group .btn {
+            margin-bottom: 5px;
+        }
 }
 
-/* Progress Bars */
-.progress {
-    background-color: #f1f5f9;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
-}
-.progress-bar {
-    background: #818cf8 !important;
-    transition: width 1s ease-in-out;
-}
-.progress-bar.bg-success {
-    background: #34d399 !important;
+/* --- 7. Print Styles --- */
+@media print {
+    .navbar, .footer, .btn, .no-print {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+        padding: 20px;
+    }
+
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
 }
 
-/* Sidebar Nav active */
-.nav-link.active {
-    background: #eef2ff !important;
-    border-left: 4px solid #6366f1;
-    color: #4f46e5 !important;
-}
-body.theme-dark .nav-link.active {
-    background: #1e293b !important;
-    color: #a5b4fc !important;
+/* --- 8. Main Content Typography Refinements --- */
+/* Restrict massive headings in main body to balance with sidebar */
+main h1, main .h1, .main-content h1 { font-size: clamp(1.25rem, 5vw, var(--text-2xl)); font-weight: var(--fw-bold); color: var(--pastel-primary-text); }
+main h2, main .h2, .main-content h2 { font-size: var(--text-xl); font-weight: var(--fw-bold); color: var(--gray-800); }
+
+body.theme-dark main h2 { color: var(--gray-100); }
+
+/* Main layout spacing & height constraints */
+.kanban-page, .calendar-container, .projects-container, main {
+    line-height: 1.5;
 }
 
-/* Modern Card Headers */
-.card-header.bg-primary {
-    background: #c7d2fe !important;
-    color: #312e81 !important;
-    border-bottom: none;
+/* Kanban Columns Headers */
+.column-header .fs-5, .board-column .fs-5 {
+    font-size: var(--text-base) !important;
+    font-weight: var(--fw-semibold) !important;
+    color: var(--gray-800);
 }
-body.theme-dark .card-header.bg-primary {
-    background: #3730a3 !important;
-    color: #e0e7ff !important;
+body.theme-dark .column-header .fs-5, body.theme-dark .board-column .fs-5 {
+    color: var(--gray-200);
 }
-
-/* Additional utility overrides for crisp views */
-.bg-pastel-primary-soft { background-color: #e0e7ff !important; }
-body.theme-dark .bg-pastel-primary-soft { background-color: #312e81 !important; }
