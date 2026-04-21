@@ -317,7 +317,7 @@ namespace DACS_TimeManagement.Controllers
                     EndTime = end,
                     ThemeColor = color,
                     IsFullDay = false,
-                    Description = "🤖 Tự động xếp lịch - Mức độ: " + t.Difficulty
+                    Description = "🤖 Auto-scheduled - Difficulty: " + t.Difficulty
                 };
 
                 await _calendarRepo.AddAsync(evt);

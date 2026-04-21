@@ -122,25 +122,25 @@
         <div class="modal-content border-0 shadow-xl rounded-4">
             <div class="modal-header bg-gradient-pastel-primary text-white border-0 rounded-top-4">
                 <h5 class="modal-title fw-bold">
-                    🪄 Lên lịch tự động cho ngày mai
+                    🪄 Auto-schedule for tomorrow
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4 bg-pastel-indigo">
                 <p class="text-pastel-muted small mb-3">
-                    Hệ thống sẽ sắp xếp các việc <b>Khó</b> vào buổi sáng (8h30-11h30), nghỉ trưa, và các việc <b>Vừa/Dễ</b> vào buổi chiều theo phương pháp Pomodoro.
+                    The system will schedule <b>Hard</b> tasks in the morning (8:30-11:30), add a lunch break, and <b>Medium/Easy</b> tasks in the afternoon using the Pomodoro method.
                 </p>
                 <div id="autoTasksList">
                     <!-- Task Row template -->
                     <div class="row g-2 align-items-center mb-2 auto-task-row">
                         <div class="col-6">
-                            <input type="text" class="form-control rounded-3 task-title" placeholder="Tên công việc" required>
+                            <input type="text" class="form-control rounded-3 task-title" placeholder="Task name" required>
                         </div>
                         <div class="col-3">
                             <select class="form-select rounded-3 task-diff">
-                                <option value="Hard">Khó (Đỏ)</option>
-                                <option value="Medium" selected>Vừa (Vàng)</option>
-                                <option value="Easy">Dễ (Xanh lá)</option>
+                                <option value="Hard">Hard (Red)</option>
+                                <option value="Medium" selected>Medium (Yellow)</option>
+                                <option value="Easy">Easy (Green)</option>
                             </select>
                         </div>
                         <div class="col-2">
@@ -151,11 +151,11 @@
                         </div>
                     </div>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-pastel rounded-pill mt-2" onclick="addAutoTaskRow()">+ Thêm việc</button>
+                <button type="button" class="btn btn-sm btn-outline-pastel rounded-pill mt-2" onclick="addAutoTaskRow()">+ Add task</button>
             </div>
             <div class="modal-footer border-0 pb-4 pe-4 bg-pastel-indigo rounded-bottom-4">
-                <button type="button" class="btn btn-outline-pastel rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm" onclick="submitAutoPlan()">Bắt đầu tạo lịch</button>
+                <button type="button" class="btn btn-outline-pastel rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm" onclick="submitAutoPlan()">Start scheduling</button>
             </div>
         </div>
     </div>
@@ -319,13 +319,13 @@
             row.className = 'row g-2 align-items-center mb-2 auto-task-row';
             row.innerHTML = `
                 <div class="col-6">
-                    <input type="text" class="form-control rounded-3 task-title" placeholder="Tên công việc" required>
+                    <input type="text" class="form-control rounded-3 task-title" placeholder="Task name" required>
                 </div>
                 <div class="col-3">
                     <select class="form-select rounded-3 task-diff">
-                        <option value="Hard">Khó (Đỏ)</option>
-                        <option value="Medium" selected>Vừa (Vàng)</option>
-                        <option value="Easy">Dễ (Xanh lá)</option>
+                        <option value="Hard">Hard (Red)</option>
+                        <option value="Medium" selected>Medium (Yellow)</option>
+                        <option value="Easy">Easy (Green)</option>
                     </select>
                 </div>
                 <div class="col-2">
@@ -356,7 +356,7 @@
             });
 
             if (!isValid || tasks.length === 0) {
-                Swal.fire('Thiếu thông tin', 'Vui lòng nhập đầy đủ tên và số phút hợp lệ cho tất cả công việc.', 'warning');
+                Swal.fire('Missing Information', 'Please enter valid task names and duration for all tasks.', 'warning');
                 return;
             }
 
@@ -367,16 +367,16 @@
             })
             .then(async response => {
                 if (response.ok) {
-                    Swal.fire('Thành công!', 'Lịch ngày mai đã được tạo tự động.', 'success');
+                    Swal.fire('Success!', 'Tomorrow\\'s schedule has been created automatically.', 'success');
                     calendar.refetchEvents();
                     bootstrap.Modal.getInstance(document.getElementById('autoPlanModal')).hide();
                     document.getElementById('autoTasksList').innerHTML = '';
                     addAutoTaskRow(); // reset
                 } else {
-                    Swal.fire('Lỗi', 'Có lỗi xảy ra khi tạo lịch.', 'error');
+                    Swal.fire('Error', 'An error occurred while creating the schedule.', 'error');
                 }
             })
-            .catch(err => Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ.', 'error'));
+            .catch(err => Swal.fire('Error', 'Cannot connect to server.', 'error'));
         }
 
         // Cập nhật khi kéo thả/resize sự kiện
@@ -384,7 +384,7 @@
             const eventIdRaw = eventObj.id;
             if (!eventIdRaw || !eventIdRaw.toString().startsWith('evt_')) {
                 revertFunc();
-                Swal.fire('Oops', 'Bạn không thể thay đổi lịch của Task dự án từ đây!', 'warning');
+                Swal.fire('Oops', 'You cannot change project task schedule from here!', 'warning');
                 return;
             }
             
@@ -419,13 +419,13 @@
                     let msg = response.statusText;
                     try { const j = JSON.parse(text); if (j.message) msg = j.message; } catch(e){}
                     revertFunc();
-                    Swal.fire('Error', 'Không thể lưu thay đổi: ' + msg, 'error');
+                    Swal.fire('Error', 'Cannot save changes: ' + msg, 'error');
                 }
             })
             .catch(err => {
                 console.error(err);
                 revertFunc();
-                Swal.fire('Error', 'Đã xảy ra lỗi hệ thống.', 'error');
+                Swal.fire('Error', 'A system error occurred.', 'error');
             });
         }
 
@@ -474,7 +474,7 @@
                     const isEventOwner = (ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
                     if (!isEventOwner) {
                         info.revert();
-                        Swal.fire('Unauthorized', "Bạn không có quyền chỉnh sửa thời gian sự kiện này.", 'warning');
+                        Swal.fire('Unauthorized', "You don't have permission to edit this event's time.", 'warning');
                         return;
                     }
                     updateEventDates(info.event, info.revert);
@@ -484,7 +484,7 @@
                     const isEventOwner = (ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
                     if (!isEventOwner) {
                         info.revert();
-                        Swal.fire('Unauthorized', "Bạn không có quyền chỉnh sửa thời gian sự kiện này.", 'warning');
+                        Swal.fire('Unauthorized', "You don't have permission to edit this event's time.", 'warning');
                         return;
                     }
                     updateEventDates(info.event, info.revert);
@@ -530,12 +530,12 @@
                         // Dùng SweetAlert2 để hỏi cho chuyên nghiệp (giống trang Admin)
                         Swal.fire({
                             title: title,
-                            text: "Bạn muốn quản lý Task này?",
+                            text: "Do you want to manage this task?",
                             icon: 'info',
-                            showDenyButton: true, // Nút Xóa
+                            showDenyButton: true, // Xóa
                             showCancelButton: true,
-                            confirmButtonText: '<i class="fas fa-edit"></i> Chỉnh sửa',
-                            denyButtonText: `<i class="fas fa-trash"></i> Xóa`,
+                            confirmButtonText: '<i class="fas fa-edit"></i> Edit',
+                            denyButtonText: `<i class="fas fa-trash"></i> Delete`,
                             confirmButtonColor: '#6366f1',
                             denyButtonColor: '#f43f5e'
                         }).then((result) => {

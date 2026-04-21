@@ -495,14 +495,14 @@
         e.preventDefault();
         var form = this;
         Swal.fire({
-            title: 'Xác nhận thay đổi quyền?',
-            text: "Vai trò của người dùng này sẽ bị thay đổi ngay lập tức!",
+            title: 'Confirm role change?',
+            text: "This user's role will be changed immediately!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#6366f1',
             cancelButtonColor: '#64748b',
-            confirmButtonText: 'Đồng ý',
-            cancelButtonText: 'Hủy'
+            confirmButtonText: 'Confirm',
+            cancelButtonText: 'Cancel'
         }).then((result) => {
             if (result.isConfirmed) {
                 form.submit();

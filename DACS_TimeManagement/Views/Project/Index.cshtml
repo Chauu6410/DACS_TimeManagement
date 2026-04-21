@@ -44,14 +44,15 @@
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <h5 class="card-title fw-bold mb-0 text-truncate" title="@project.Name">@project.Name</h5>
                             <div class="dropdown">
-                                <button class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v text-muted"></i>
+                                <button class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-danger hover-scale" 
+                                        type="button" 
+                                        onclick="confirmDelete('@project.Id', '@project.Name')"
+                                        title="Delete Project">
+                                    <i class="fas fa-trash-alt"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
-                                    <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@project.Id"><i class="fas fa-edit me-2 text-pastel-primary"></i>Edit</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@project.Id"><i class="fas fa-trash-alt me-2"></i>Delete</a></li>
-                                </ul>
+                                <form id="delete-form-@project.Id" asp-action="Delete" asp-route-id="@project.Id" method="post" style="display:none;">
+                                    @Html.AntiForgeryToken()
+                                </form>
                             </div>
                         </div>
 
@@ -292,8 +293,25 @@
             padding: 1.25rem;
         }
     }
+    .hover-scale {
+        transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    .hover-scale:hover {
+        transform: scale(1.2);
+        background-color: #fee2e2 !important; /* Nền đỏ nhạt khi hover */
+        color: #dc2626 !important;
+    }
 </style>
 
 <script>
     if (typeof AOS !== 'undefined') AOS.refresh();
+    function confirmDelete(projectId, projectName) {
+        // Thông báo bằng tiếng Anh
+        const message = `Are you sure you want to delete the project "${projectName}"?\n\nThis action cannot be undone and all related tasks will be removed.`;
+    
+        if (confirm(message)) {
+            // Nếu người dùng chọn OK, tìm form tương ứng và submit
+            document.getElementById(`delete-form-${projectId}`).submit();
+        }
+    }
 </script>

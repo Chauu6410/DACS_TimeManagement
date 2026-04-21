@@ -305,6 +305,27 @@
         transform: translateY(-3px);
         box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     }
+    /* Tùy chỉnh Badge Visibility để có độ tương phản tốt hơn */
+    .badge-visibility {
+        font-weight: 600;
+        padding: 0.5rem 1rem !important;
+        letter-spacing: 0.3px;
+        transition: all 0.2s ease;
+    }
+
+    /* Light Mode: Chữ xanh đậm trên nền xanh cực nhạt */
+    .badge-visibility.bg-pastel-success-dark {
+        background-color: #dcfce7 !important; /* Xanh mint nhạt */
+        color: #16a34a !important;            /* Chữ xanh đậm */
+        border: 1px solid #bbf7d0;            /* Viền nhẹ để tách nền */
+    }
+
+    /* Dark Mode: Chữ xanh sáng trên nền xanh thẫm */
+    body.theme-dark .badge-visibility.bg-pastel-success-dark {
+        background-color: rgba(5, 150, 105, 0.2) !important;
+        color: #34d399 !important;
+        border: 1px solid rgba(52, 211, 153, 0.3);
+    }
 </style>
 
 <div class="project-details-container my-4" data-aos="fade-up">
@@ -340,16 +361,16 @@
                 </button>
             </div>
         </div>
-        <h1 class="fw-bold h4 mb-2 text-truncate" style="color: #1e3a8a;" title="@Model.Name">
+        <h3 class="fw-bold mb-2 text-white text-truncate" title="@Model.Name">
             <i class="fas fa-project-diagram me-2 opacity-75"></i>@Model.Name
-        </h1>
+        </h3>
         @if (!string.IsNullOrEmpty(Model.Description))
         {
-            <p class="mb-0 text-white opacity-90 small" style="max-width: 800px; line-height: 1.5;">@Model.Description</p>
+            <p class="mb-0 text-white opacity-90" style="max-width: 800px; line-height: 1.5; font-size: 1.05rem;">@Model.Description</p>
         }
         else
         {
-            <p class="mb-0 text-white opacity-90 fst-italic small">No description provided.</p>
+            <p class="mb-0 text-white opacity-90 fst-italic">No description provided.</p>
         }
     </div>
 
@@ -450,7 +471,7 @@
                                     <i class="fas fa-paperclip fs-6"></i>
                                     <input type="file" id="attachmentInput" class="d-none" accept="*/*">
                                 </label>
-                                <input type="text" class="form-control form-control-lg" id="commentContent" placeholder="Nhắn tin vào nhóm dự án..." autocomplete="off">
+                                <input type="text" class="form-control" id="commentContent" placeholder="Nhắn tin vào nhóm dự án..." autocomplete="off" style="font-size: 0.95rem;">
                                 <div class="d-flex position-absolute" style="right: 6px; top: 50%; transform: translateY(-50%);">
                                     <div class="dropdown d-inline-block dropup">
                                         <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" data-bs-toggle="dropdown" aria-expanded="false" title="Insert Emoji">
@@ -499,13 +520,13 @@
                                 <h6 class="mb-0 fw-semibold text-pastel-dark">Time</h6>
                             </div>
                             <span class="text-pastel-muted fw-medium">@Model.CreatedDate.ToString("hh:mm tt")</span>
-                        </li>
+                        </li>                       
                         <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="text-pastel-muted"><i class="fas fa-shield-alt fs-5"></i></div>
                                 <h6 class="mb-0 fw-semibold text-pastel-dark">Visibility</h6>
                             </div>
-                            <span class="badge bg-pastel-success-dark text-white rounded-pill shadow-sm">Private</span>
+                            <span class="badge bg-pastel-success-dark badge-visibility rounded-pill shadow-sm">Private</span>
                         </li>
                     </ul>
                 </div>
@@ -533,7 +554,7 @@
                                 </div>
                                 <div>
                                     <h6 class="fw-bold text-pastel-dark mb-0">@(Model.Owner?.UserName ?? "Owner")</h6>
-                                    <span class="badge bg-white rounded-pill px-2 py-1 mt-1 border shadow-sm" style="font-size: 0.70rem; color: var(--primary);">Project Owner</span>
+                                    <span class="badge bg-white rounded-pill px-2 py-1 mt-1 border shadow-sm" style="font-size: 0.8rem; color: var(--primary);">Project Owner</span>
                                 </div>
                             </div>
                         </div>
@@ -550,7 +571,7 @@
                                     </div>
                                     <div>
                                         <h6 class="fw-bold text-pastel-dark mb-0">@displayName</h6>
-                                        <span class="badge bg-light text-muted border rounded-pill px-2 py-1 mt-1" style="font-size: 0.70rem;">@m.Role</span>
+                                        <span class="badge bg-light text-muted border rounded-pill px-2 py-1 mt-1" style="font-size: 0.8rem;">@m.Role</span>
                                     </div>
                                 </div>
                             </div>
@@ -592,7 +613,7 @@
                     </div>
                     <div class="mb-4">
                         <label for="email" class="form-label fw-semibold text-pastel-dark small text-uppercase">Colleague's Email</label>
-                        <input type="email" class="form-control form-control-lg rounded-4 pastel-input fs-6 shadow-sm" id="email" name="email" placeholder="e.g. alex@company.com" required>
+                        <input type="email" class="form-control rounded-4 pastel-input shadow-sm py-2" id="email" name="email" placeholder="e.g. alex@company.com" required>
                         <div class="form-text text-pastel-muted mt-2"><i class="fas fa-info-circle me-1"></i> User must have a registered account.</div>
                     </div>
                 </div>
@@ -652,7 +673,7 @@
                                             </div>
                                             ${isMine ? `<button type="button" class="delete-message-btn" data-id="${c.id}" title="Delete message"><i class="fas fa-trash-alt"></i></button>` : ''}
                                         </div>
-                                        <div class="small fw-medium text-muted mt-1 ${isMine ? 'me-2' : 'ms-2'}" style="font-size: 0.7rem; opacity: 0.7;">
+                                        <div class="small fw-medium text-muted mt-1 ${isMine ? 'me-2' : 'ms-2'}" style="font-size: 0.75rem; opacity: 0.7;">
                                             ${new Date(c.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                                         </div>
                                     </div>

@@ -63,9 +63,9 @@ namespace DACS_TimeManagement.Controllers
                 bool isDirty = false;
                 foreach (var list in boardLists)
                 {
-                    if (list.Name == "Cần làm") { list.Name = "To Do"; list.Position = 0; isDirty = true; }
-                    else if (list.Name == "Đang làm" || list.Name == "Doing") { list.Name = "In Progress"; list.Position = 1; isDirty = true; }
-                    else if (list.Name == "Hoàn tất" || list.Name == "Done" && list.Position != 3) { list.Name = "Done"; list.Position = 3; isDirty = true; }
+                    if (list.Name == "To Do" || list.Name == "Cần làm") { list.Name = "To Do"; list.Position = 0; isDirty = true; }
+                    else if (list.Name == "In Progress" || list.Name == "Đang làm" || list.Name == "Doing") { list.Name = "In Progress"; list.Position = 1; isDirty = true; }
+                    else if (list.Name == "Done" || list.Name == "Hoàn tất" && list.Position != 3) { list.Name = "Done"; list.Position = 3; isDirty = true; }
                 }
                 if (!boardLists.Any(bl => bl.Name == "Testing"))
                 {
@@ -174,7 +174,7 @@ namespace DACS_TimeManagement.Controllers
 
             if (task.StartDate > task.EndDate)
             {
-                ModelState.AddModelError("EndDate", "Ngày kết thúc phải lớn hơn ngày bắt đầu.");
+                ModelState.AddModelError("EndDate", "End date must be greater than start date.");
             }
 
             if (ModelState.IsValid)
@@ -204,7 +204,7 @@ namespace DACS_TimeManagement.Controllers
                 if (task.AssigneeId != userId)
                 {
                     await _hubContext.Clients.User(task.AssigneeId)
-                        .SendAsync("ReceiveNotification", "Bạn được giao việc mới!", task.Title);
+                        .SendAsync("ReceiveNotification", "You have been assigned a new task!", task.Title);
                 }
 
                 return RedirectToAction(nameof(Index));
@@ -285,7 +285,7 @@ namespace DACS_TimeManagement.Controllers
                 .FirstOrDefaultAsync(t => t.Id == taskId && 
                     (t.UserId == userId || t.AssigneeId == userId || (t.Project != null && t.Project.UserId == userId)));
 
-            if (task == null) return Json(new { success = false, message = "Không tìm thấy công việc hoặc bạn không có quyền cập nhật" });
+            if (task == null) return Json(new { success = false, message = "Task not found or you do not have permission to update" });
 
             try
             {
@@ -408,7 +408,7 @@ namespace DACS_TimeManagement.Controllers
 
             if (taskForm.StartDate > taskForm.EndDate)
             {
-                ModelState.AddModelError("EndDate", "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.");
+                ModelState.AddModelError("EndDate", "End date must be greater than or equal to start date.");
             }
 
             if (ModelState.IsValid)
@@ -431,19 +431,19 @@ namespace DACS_TimeManagement.Controllers
                     if (!string.IsNullOrEmpty(taskForm.AssigneeId) && taskForm.AssigneeId != userId)
                     {
                         await _hubContext.Clients.User(taskForm.AssigneeId)
-                            .SendAsync("ReceiveNotification", "Một thẻ công việc của bạn vừa được cập nhật!", taskForm.Title);
+                            .SendAsync("ReceiveNotification", "One of your tasks has just been updated!", taskForm.Title);
                     }
 
-                    TempData["SuccessMessage"] = "Cập nhật nhiệm vụ thành công!";
+                    TempData["SuccessMessage"] = "Task updated successfully!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    ModelState.AddModelError(string.Empty, "Dữ liệu đã bị thay đổi bởi người khác. Vui lòng tải lại trang.");
+                    ModelState.AddModelError(string.Empty, "Data has been changed by someone else. Please reload the page.");
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi khi cập nhật: " + ex.Message);
+                    ModelState.AddModelError(string.Empty, "An error occurred during update: " + ex.Message);
                 }
             }
 
@@ -484,13 +484,13 @@ namespace DACS_TimeManagement.Controllers
                     return NotFound();
                 }
 
-                TempData["SuccessMessage"] = "Đã xóa nhiệm vụ thành công!";
+                TempData["SuccessMessage"] = "Task deleted successfully!";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 // CẢI THIỆN: Thay vì kẹt ở trang Delete, trả về Index và báo lỗi
-                TempData["ErrorMessage"] = "Không thể xóa nhiệm vụ này. Có thể nó đang chứa dữ liệu liên kết khác: " + ex.Message;
+                TempData["ErrorMessage"] = "Cannot delete this task. It may contain other linked data: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }

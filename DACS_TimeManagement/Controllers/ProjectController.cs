@@ -142,7 +142,7 @@ namespace DACS_TimeManagement.Controllers
                         }
                         else
                         {
-                            task.Description = "Mô tả công việc này đã được bảo mật (Private).";
+                            task.Description = "This task description is private.";
                         }
                     }
                 }
@@ -210,7 +210,7 @@ namespace DACS_TimeManagement.Controllers
             var project = await _projectRepo.GetByIdAsync(projectId, currentUserId ?? "");
             if (project == null)
             {
-                TempData["ErrorMessage"] = "Không tìm thấy dự án hoặc bạn không có quyền thêm thành viên.";
+                TempData["ErrorMessage"] = "Project not found or you do not have permission to add members.";
                 return RedirectToAction(nameof(Details), new { id = projectId });
             }
 
@@ -218,13 +218,13 @@ namespace DACS_TimeManagement.Controllers
             var targetUser = await _userManager.FindByEmailAsync(email);
             if (targetUser == null)
             {
-                TempData["ErrorMessage"] = $"Không tìm thấy người dùng với email: {email}";
+                TempData["ErrorMessage"] = $"User not found with email: {email}";
                 return RedirectToAction(nameof(Details), new { id = projectId });
             }
 
             if (targetUser.Id == currentUserId)
             {
-                TempData["ErrorMessage"] = "Bạn không thể mời chính mình.";
+                TempData["ErrorMessage"] = "You cannot invite yourself.";
                 return RedirectToAction(nameof(Details), new { id = projectId });
             }
 
@@ -232,7 +232,7 @@ namespace DACS_TimeManagement.Controllers
             var isAlreadyMember = await _context.ProjectMembers.AnyAsync(pm => pm.ProjectId == projectId && pm.UserId == targetUser.Id);
             if (isAlreadyMember)
             {
-                TempData["ErrorMessage"] = "Người dùng này đã nằm trong dự án.";
+                TempData["ErrorMessage"] = "This user is already in the project.";
                 return RedirectToAction(nameof(Details), new { id = projectId });
             }
 
@@ -250,9 +250,9 @@ namespace DACS_TimeManagement.Controllers
 
             // 5. Bắn thông báo Realtime SignalR cho người vừa được Invite
             await _hubContext.Clients.User(targetUser.Id)
-                .SendAsync("ReceiveNotification", $"Bạn vừa được thêm vào dự án: {project.Name}!", "System");
+                .SendAsync("ReceiveNotification", $"You have been added to the project: {project.Name}!", "System");
 
-            TempData["SuccessMessage"] = $"Đã mời {email} tham gia dự án thành công!";
+            TempData["SuccessMessage"] = $"Successfully invited {email} to the project!";
             return RedirectToAction(nameof(Details), new { id = projectId });
         }
         public async Task<IActionResult> Kanban(int id)

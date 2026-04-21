@@ -12,22 +12,22 @@ namespace DACS_TimeManagement.Models
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Tiêu đề không được để trống")]
-        [StringLength(100, ErrorMessage = "Tiêu đề không được vượt quá 100 ký tự")]
+        [Required(ErrorMessage = "Title is required")]
+        [StringLength(100, ErrorMessage = "Title cannot exceed 100 characters")]
         public string Title { get; set; }
 
         public string? Description { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn ngày bắt đầu")]
+        [Required(ErrorMessage = "Start date is required")]
         public DateTime StartDate { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn ngày kết thúc")]
+        [Required(ErrorMessage = "End date is required")]
         public DateTime EndDate { get; set; }
 
         public Priority Priority { get; set; }
         public TaskStatus Status { get; set; }
 
-        [Range(0, 100, ErrorMessage = "Tiến độ phải từ 0 đến 100")]
+        [Range(0, 100, ErrorMessage = "Progress must be between 0 and 100")]
         public int Progress { get; set; } // % hoàn thành (0-100)
 
         public int? ProjectId { get; set; }

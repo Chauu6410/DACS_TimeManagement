@@ -56,7 +56,7 @@ namespace DACS_TimeManagement.Controllers
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null || user.Email == "admin@gmail.com")
-                return Json(new { success = false, message = "Không thể thay đổi quyền của user này." });
+                return Json(new { success = false, message = "Cannot change the role of this user." });
 
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
@@ -67,12 +67,12 @@ namespace DACS_TimeManagement.Controllers
                 {
                     await _userManager.AddToRoleAsync(user, "User");
                 }
-                return Json(new { success = true, message = $"Đã hạ cấp {user.Email} xuống Member.", isAdmin = false });
+                return Json(new { success = true, message = $"Demoted {user.Email} to Member.", isAdmin = false });
             }
             else
             {
                 await _userManager.AddToRoleAsync(user, "Admin");
-                return Json(new { success = true, message = $"Đã cấp quyền Admin cho {user.Email}.", isAdmin = true });
+                return Json(new { success = true, message = $"Promoted {user.Email} to Admin.", isAdmin = true });
             }
         }
 
@@ -81,18 +81,18 @@ namespace DACS_TimeManagement.Controllers
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null || user.Email == "admin@gmail.com")
-                return Json(new { success = false, message = "Không thể khóa/mở khóa user này." });
+                return Json(new { success = false, message = "Cannot lock/unlock this user." });
 
             var isLocked = await _userManager.IsLockedOutAsync(user);
             if (isLocked)
             {
                 await _userManager.SetLockoutEndDateAsync(user, null);
-                return Json(new { success = true, message = $"Đã mở khóa tài khoản {user.Email}.", isLocked = false });
+                return Json(new { success = true, message = $"Unlocked account {user.Email}.", isLocked = false });
             }
             else
             {
                 await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
-                return Json(new { success = true, message = $"Đã khóa tài khoản {user.Email}.", isLocked = true });
+                return Json(new { success = true, message = $"Locked account {user.Email}.", isLocked = true });
             }
         }
     }
