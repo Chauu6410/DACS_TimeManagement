@@ -4,22 +4,64 @@
 }
 
 <div class="calendar-container" data-aos="fade-up">
+    <div class="row g-4">
+        <!-- Sidebar: Danh sách tất cả Task -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-pastel-indigo h-100">
+                <h5 class="fw-bold mb-3"><i class="fas fa-tasks me-2"></i>My Tasks</h5>
+                <div id="task-list" style="max-height: 70vh; overflow-y: auto;">
+                    @if (ViewBag.UserTasks != null && ((IEnumerable<dynamic>)ViewBag.UserTasks).Any())
+                    {
+                        foreach (var task in ViewBag.UserTasks)
+                        {
+                            var taskName = task.Title ?? "Unnamed Task";
+                            var projectName = task.Project?.Name ?? "No Project";
+                            var endDate = task.EndDate as DateTime?;
+                            <div class="p-2 mb-2 rounded-3 bg-white shadow-xs border-start border-4 border-primary">
+                                <small class="fw-bold d-block">
+                                    @taskName
+                                    <span class="text-muted" style="font-size: 0.7rem;">(@projectName)</span>
+                                </small>
+                                <span class="text-muted" style="font-size: 0.7rem;">
+                                    <i class="far fa-clock me-1"></i>Due: 
+                                    @(endDate.HasValue ? endDate.Value.ToString("dd/MM") : "No deadline")
+                                </span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-muted text-center py-3">No tasks found</div>
+                    }
+                </div>
+                <hr />
+                <a asp-controller="WorkTask" asp-action="Create" class="btn btn-sm btn-primary-soft w-100 rounded-pill mb-2">
+                    + Add Task
+                </a>
+                <button type="button" class="btn btn-sm btn-outline-pastel w-100 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#autoPlanModal">
+                    🪄 Tối ưu lịch ngày mai
+                </button>
+            </div>
+        </div>
 
-    <!-- Calendar Card -->
-    <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
-        <div class="card-body p-3 p-md-4">
-            <div id="calendar"></div>
+        <!-- Main Calendar -->
+        <div class="col-md-9">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
+                <div class="card-body p-3 p-md-4">
+                    <div id="calendar"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Add/Edit Event Modal (Pastel) -->
+<!-- Add/Edit Event Modal -->
 <div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-xl rounded-4">
             <div class="modal-header bg-gradient-pastel-primary text-white border-0 rounded-top-4">
                 <h5 class="modal-title fw-bold" id="addEventModalLabel">
-                    <i class="fas fa-calendar-plus me-2"></i>Add New Event
+                    <i class="fas fa-calendar-plus me-2"></i>Add/Edit Event
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -28,6 +70,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold text-pastel-dark">Event Title *</label>
                         <input type="text" id="eventTitle" class="form-control rounded-3" required placeholder="e.g., Team Meeting">
+                        <div id="eventProject" class="mt-2 small text-pastel-muted" style="display:none;"></div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold text-pastel-dark">Description</label>
@@ -45,20 +88,74 @@
                     </div>
                     <div class="mt-3">
                         <label class="form-label fw-semibold text-pastel-dark">Color</label>
-                        <select id="eventColor" class="form-select rounded-3">
-                            <option value="#6366f1">Indigo (Default)</option>
-                            <option value="#06b6d4">Cyan</option>
-                            <option value="#f59e0b">Amber</option>
-                            <option value="#ec4899">Pink</option>
-                            <option value="#10b981">Emerald</option>
-                            <option value="#ef4444">Red</option>
-                        </select>
+                        <div class="d-flex gap-2 align-items-center">
+                            <select id="eventColor" class="form-select rounded-3 flex-grow-1">
+                                <option value="#6366f1">Indigo (Default)</option>
+                                <option value="#06b6d4">Cyan</option>
+                                <option value="#f59e0b">Amber</option>
+                                <option value="#ec4899">Pink</option>
+                                <option value="#10b981">Emerald</option>
+                                <option value="#ef4444">Red</option>
+                                <option value="#8b5cf6">Violet</option>
+                                <option value="#f97316">Orange</option>
+                                <option value="#14b8a6">Teal</option>
+                                <option value="#d946ef">Fuchsia</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-pastel rounded-pill px-3" onclick="randomColor()">
+                                <i class="fas fa-random"></i> Random
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer border-0 pb-4 pe-4">
+                <button type="button" class="btn btn-danger rounded-pill px-4" onclick="deleteCurrentEvent()">Delete</button>
                 <button type="button" class="btn btn-outline-pastel rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm" onclick="saveEvent()">Save Event</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Auto-Plan Modal -->
+<div class="modal fade" id="autoPlanModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-xl rounded-4">
+            <div class="modal-header bg-gradient-pastel-primary text-white border-0 rounded-top-4">
+                <h5 class="modal-title fw-bold">
+                    🪄 Lên lịch tự động cho ngày mai
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-pastel-indigo">
+                <p class="text-pastel-muted small mb-3">
+                    Hệ thống sẽ sắp xếp các việc <b>Khó</b> vào buổi sáng (8h30-11h30), nghỉ trưa, và các việc <b>Vừa/Dễ</b> vào buổi chiều theo phương pháp Pomodoro.
+                </p>
+                <div id="autoTasksList">
+                    <!-- Task Row template -->
+                    <div class="row g-2 align-items-center mb-2 auto-task-row">
+                        <div class="col-6">
+                            <input type="text" class="form-control rounded-3 task-title" placeholder="Tên công việc" required>
+                        </div>
+                        <div class="col-3">
+                            <select class="form-select rounded-3 task-diff">
+                                <option value="Hard">Khó (Đỏ)</option>
+                                <option value="Medium" selected>Vừa (Vàng)</option>
+                                <option value="Easy">Dễ (Xanh lá)</option>
+                            </select>
+                        </div>
+                        <div class="col-2">
+                            <input type="number" class="form-control rounded-3 task-duration" placeholder="Phút" value="30" min="5" step="5" required>
+                        </div>
+                        <div class="col-1 text-end">
+                            <button type="button" class="btn btn-danger btn-sm rounded-circle px-2 disabled remove-row-btn" onclick="this.closest('.auto-task-row').remove()"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-pastel rounded-pill mt-2" onclick="addAutoTaskRow()">+ Thêm việc</button>
+            </div>
+            <div class="modal-footer border-0 pb-4 pe-4 bg-pastel-indigo rounded-bottom-4">
+                <button type="button" class="btn btn-outline-pastel rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm" onclick="submitAutoPlan()">Bắt đầu tạo lịch</button>
             </div>
         </div>
     </div>
@@ -67,25 +164,299 @@
 @section Scripts {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Event visual fixes: rounded 8px, pastel, wrap text */
+        .fc .fc-event, .fc .fc-daygrid-event, .fc .fc-timegrid-event {
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 6px 8px !important;
+            white-space: normal !important;
+            overflow: visible !important;
+        }
+        .fc .fc-event.evt-event { background: #eef2ff !important; color: #0f172a !important; }
+        .fc .fc-event.prj-event { background: #fff1f2 !important; color: #7f1d1d !important; }
+        .fc .fc-event:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(2,6,23,0.08); }
+    </style>
     <script>
+        // Khởi tạo biến toàn cục
         let calendar;
+        let currentEventId = null; // Lưu id sự kiện đang chọn (dạng "evt_123")
+        let isOwner = false; // nếu event thuộc về user đang đăng nhập
+        // currentUserId được cung cấp từ server (ViewBag.CurrentUserId)
+        const currentUserId = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CurrentUserId ?? ""));
 
+        // Mảng màu pastel
+        const pastelColors = [
+            "#6366f1", "#06b6d4", "#f59e0b", "#ec4899", "#10b981", "#ef4444",
+            "#8b5cf6", "#f97316", "#14b8a6", "#d946ef", "#6b7280", "#3b82f6"
+        ];
+
+        function getRandomPastelColor() {
+            return pastelColors[Math.floor(Math.random() * pastelColors.length)];
+        }
+
+        function randomColor() {
+            document.getElementById('eventColor').value = getRandomPastelColor();
+        }
+
+        // Hàm lưu sự kiện (tạo mới hoặc cập nhật)
+        function saveEvent() {
+            const title = document.getElementById('eventTitle').value.trim();
+            const description = document.getElementById('eventDescription').value;
+            const start = document.getElementById('eventStart').value;
+            const end = document.getElementById('eventEnd').value;
+            let color = document.getElementById('eventColor').value;
+            
+            // Cắt bỏ hậu tố độ trong suốt (nếu có) để Server chỉ nhận mã màu thuần 7 ký tự
+            if (color && color.length > 7) color = color.substring(0, 7);
+
+            if (!title || !start || !end) {
+                alert('Please fill in all required fields (Title, Start, End).');
+                return;
+            }
+
+            // Sử dụng định dạng local ISO (yyyy-MM-ddTHH:mm) để tránh lệch múi giờ khi truyền tải
+            const startIso = start;
+            const endIso = end;
+
+            // Gửi đi phải khớp 100% với tên thuộc tính trong class CalendarEvent
+            const eventData = {
+                Id: currentEventId ? parseInt(currentEventId.toString().replace('evt_', '')) : 0,
+                Subject: title,
+                Description: description,
+                StartTime: startIso,
+                EndTime: endIso,
+                ThemeColor: color,
+                IsFullDay: false
+            };
+
+            // Nếu user không phải owner và đang chỉnh màu, gọi endpoint cập nhật màu riêng
+            if (currentEventId && !isOwner && currentEventId.toString().startsWith('evt_')) {
+                const id = currentEventId.toString().replace('evt_', '');
+                fetch(`/Calendar/UpdateEventColor/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ themeColor: color })
+                })
+                .then(r => {
+                    if (r.ok) {
+                        calendar.refetchEvents();
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('addEventModal'));
+                        modal.hide();
+                        document.getElementById('eventForm').reset();
+                        currentEventId = null;
+                        isOwner = false;
+                    } else {
+                        r.json().then(j => alert('Error updating color: ' + (j?.message || r.statusText)));
+                    }
+                })
+                .catch(e => { console.error(e); alert('Error: ' + e); });
+                return;
+            }
+
+            let url = '/Calendar/SaveEvent';
+            let method = 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            })
+            .then(async response => {
+                const text = await response.text();
+                let json = {};
+                try { json = text ? JSON.parse(text) : {}; } catch(e) { }
+                if (response.ok) {
+                    calendar.refetchEvents(); // Tải lại lịch
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addEventModal'));
+                    modal.hide();
+                    document.getElementById('eventForm').reset();
+                    currentEventId = null;
+                    isOwner = false;
+                } else {
+                    alert('Error saving event: ' + (json?.message || response.statusText));
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('An error occurred.');
+            });
+        }
+
+        // Hàm xóa sự kiện
+        function deleteCurrentEvent() {
+            if (!currentEventId || !currentEventId.toString().startsWith('evt_')) {
+                alert('No event selected for deletion.');
+                return;
+            }
+            if (!isOwner) {
+                alert('Only the owner can delete this event.');
+                return;
+            }
+            const id = currentEventId.toString().replace('evt_', '');
+            if (confirm('Are you sure you want to delete this event?')) {
+                fetch(`/Calendar/DeleteEvent/${id}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        calendar.refetchEvents();
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('addEventModal'));
+                        modal.hide();
+                        currentEventId = null;
+                        isOwner = false;
+                    } else {
+                        alert('Delete failed.');
+                    }
+                })
+                .catch(err => alert('Error: ' + err));
+            }
+        }
+
+        // --- HÀM CHO AUTO PLAN ---
+        function addAutoTaskRow() {
+            const row = document.createElement('div');
+            row.className = 'row g-2 align-items-center mb-2 auto-task-row';
+            row.innerHTML = `
+                <div class="col-6">
+                    <input type="text" class="form-control rounded-3 task-title" placeholder="Tên công việc" required>
+                </div>
+                <div class="col-3">
+                    <select class="form-select rounded-3 task-diff">
+                        <option value="Hard">Khó (Đỏ)</option>
+                        <option value="Medium" selected>Vừa (Vàng)</option>
+                        <option value="Easy">Dễ (Xanh lá)</option>
+                    </select>
+                </div>
+                <div class="col-2">
+                    <input type="number" class="form-control rounded-3 task-duration" placeholder="Phút" value="30" min="5" step="5" required>
+                </div>
+                <div class="col-1 text-end">
+                    <button type="button" class="btn btn-danger btn-sm rounded-circle px-2" onclick="this.closest('.auto-task-row').remove()"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+            document.getElementById('autoTasksList').appendChild(row);
+        }
+
+        function submitAutoPlan() {
+            const rows = document.querySelectorAll('.auto-task-row');
+            const tasks = [];
+            let isValid = true;
+
+            rows.forEach(row => {
+                const title = row.querySelector('.task-title').value.trim();
+                const diff = row.querySelector('.task-diff').value;
+                const duration = parseInt(row.querySelector('.task-duration').value);
+
+                if (!title || !duration || duration < 5) {
+                    isValid = false;
+                } else {
+                    tasks.push({ Title: title, Difficulty: diff, DurationMinutes: duration });
+                }
+            });
+
+            if (!isValid || tasks.length === 0) {
+                Swal.fire('Thiếu thông tin', 'Vui lòng nhập đầy đủ tên và số phút hợp lệ cho tất cả công việc.', 'warning');
+                return;
+            }
+
+            fetch('/Calendar/AutoPlanTomorrow', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tasks)
+            })
+            .then(async response => {
+                if (response.ok) {
+                    Swal.fire('Thành công!', 'Lịch ngày mai đã được tạo tự động.', 'success');
+                    calendar.refetchEvents();
+                    bootstrap.Modal.getInstance(document.getElementById('autoPlanModal')).hide();
+                    document.getElementById('autoTasksList').innerHTML = '';
+                    addAutoTaskRow(); // reset
+                } else {
+                    Swal.fire('Lỗi', 'Có lỗi xảy ra khi tạo lịch.', 'error');
+                }
+            })
+            .catch(err => Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ.', 'error'));
+        }
+
+        // Cập nhật khi kéo thả/resize sự kiện
+        function updateEventDates(eventObj, revertFunc) {
+            const eventIdRaw = eventObj.id;
+            if (!eventIdRaw || !eventIdRaw.toString().startsWith('evt_')) {
+                revertFunc();
+                Swal.fire('Oops', 'Bạn không thể thay đổi lịch của Task dự án từ đây!', 'warning');
+                return;
+            }
+            
+            const realId = parseInt(eventIdRaw.replace('evt_', ''));
+            const newStart = eventObj.start ? new Date(eventObj.start.getTime() - eventObj.start.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : null;
+            const newEnd = eventObj.end ? new Date(eventObj.end.getTime() - eventObj.end.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : newStart;
+            
+            let title = eventObj.title || '';
+            if (title.startsWith('📅 ')) title = title.replace('📅 ', '');
+
+            const color = eventObj.extendedProps?.rawColor || '#6366f1';
+            const hexColor = color.length > 7 ? color.substring(0, 7) : color;
+
+            const eventData = {
+                Id: realId,
+                Subject: title,
+                Description: eventObj.extendedProps?.description || '',
+                StartTime: newStart,
+                EndTime: newEnd,
+                ThemeColor: hexColor,
+                IsFullDay: eventObj.allDay || false
+            };
+
+            fetch('/Calendar/SaveEvent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData)
+            })
+            .then(async response => {
+                if (!response.ok) {
+                    const text = await response.text();
+                    let msg = response.statusText;
+                    try { const j = JSON.parse(text); if (j.message) msg = j.message; } catch(e){}
+                    revertFunc();
+                    Swal.fire('Error', 'Không thể lưu thay đổi: ' + msg, 'error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                revertFunc();
+                Swal.fire('Error', 'Đã xảy ra lỗi hệ thống.', 'error');
+            });
+        }
+
+        // Khởi tạo FullCalendar khi DOM sẵn sàng
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) {
+                console.error('Calendar element not found');
+                return;
+            }
+
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
                 customButtons: {
                     addEvent: {
                         text: '+ Add Event',
                         click: function() {
-                            const now = new Date();
-                            const tzOffset = now.getTimezoneOffset() * 60000;
-                            const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().slice(0, 16);
-                            document.getElementById('eventStart').value = localISOTime;
-                            document.getElementById('eventEnd').value = localISOTime;
+                            // Reset form cho sự kiện mới
                             document.getElementById('eventTitle').value = '';
                             document.getElementById('eventDescription').value = '';
+                            const now = new Date();
+                            const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                            document.getElementById('eventStart').value = localISOTime;
+                            document.getElementById('eventEnd').value = localISOTime;
                             document.getElementById('eventColor').value = '#6366f1';
+                            currentEventId = null;
+                            document.getElementById('eventTitle').readOnly = false;
+                            document.getElementById('eventDescription').readOnly = false;
+                            document.getElementById('eventStart').readOnly = false;
+                            document.getElementById('eventEnd').readOnly = false;
+                            document.querySelector('#addEventModal .btn-danger').style.display = 'none';
                             new bootstrap.Modal(document.getElementById('addEventModal')).show();
                         }
                     }
@@ -98,68 +469,229 @@
                 events: '/Calendar/GetEvents',
                 editable: true,
                 selectable: true,
+                eventDrop: function(info) {
+                    const ownerId = (info.event.extendedProps && (info.event.extendedProps.ownerId || info.event.extendedProps.ownerid || info.event.extendedProps.userId)) || '';
+                    const isEventOwner = (ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
+                    if (!isEventOwner) {
+                        info.revert();
+                        Swal.fire('Unauthorized', "Bạn không có quyền chỉnh sửa thời gian sự kiện này.", 'warning');
+                        return;
+                    }
+                    updateEventDates(info.event, info.revert);
+                },
+                eventResize: function(info) {
+                    const ownerId = (info.event.extendedProps && (info.event.extendedProps.ownerId || info.event.extendedProps.ownerid || info.event.extendedProps.userId)) || '';
+                    const isEventOwner = (ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
+                    if (!isEventOwner) {
+                        info.revert();
+                        Swal.fire('Unauthorized', "Bạn không có quyền chỉnh sửa thời gian sự kiện này.", 'warning');
+                        return;
+                    }
+                    updateEventDates(info.event, info.revert);
+                },
+                eventDidMount: function(info) {
+                    let tooltipText = info.event.title;
+                    if (info.event.extendedProps && info.event.extendedProps.description) {
+                        tooltipText += '\n' + info.event.extendedProps.description;
+                    }
+                    info.el.setAttribute('title', tooltipText);
+                },
                 select: function(info) {
-                    // Format datetime-local value
-                    const startStr = info.start.toISOString().slice(0, 16);
-                    const endStr = info.end.toISOString().slice(0, 16);
-                    document.getElementById('eventStart').value = startStr;
-                    document.getElementById('eventEnd').value = endStr;
+                    // Khi kéo chọn khoảng thời gian
                     document.getElementById('eventTitle').value = '';
                     document.getElementById('eventDescription').value = '';
+                    document.getElementById('eventTitle').readOnly = false;
+                    document.getElementById('eventDescription').readOnly = false;
+                    document.getElementById('eventStart').readOnly = false;
+                    document.getElementById('eventEnd').readOnly = false;
+                    
+                    const localStart = new Date(info.start.getTime() - info.start.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                    const localEnd = new Date(info.end.getTime() - info.end.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                    
+                    document.getElementById('eventStart').value = localStart;
+                    document.getElementById('eventEnd').value = localEnd;
+                    document.getElementById('eventColor').value = getRandomPastelColor();
+                    currentEventId = null;
+                    isOwner = true; // since it's anew event, current user is owner
+                    document.querySelector('#addEventModal .btn-danger').style.display = 'none';
+                    document.querySelector('#addEventModal .btn-pastel-primary').style.display = 'inline-block';
                     new bootstrap.Modal(document.getElementById('addEventModal')).show();
                 },
                 eventClick: function(info) {
-                    if (confirm('Delete this event?')) {
-                        fetch(`/Calendar/DeleteEvent/${info.event.id}`, { method: 'POST' })
-                            .then(() => calendar.refetchEvents());
+                    info.jsEvent.preventDefault();
+                    const rawId = info.event.id;
+                    const eventId = rawId !== undefined && rawId !== null ? rawId.toString() : '';
+                    let title = info.event.title || '';
+
+                    // TRƯỜNG HỢP 1: NẾU LÀ PROJECT (Vùng màu đỏ có ID bắt đầu bằng prj_)
+                    if (eventId && eventId.startsWith('prj_')) {
+                        const realProjectId = eventId.replace('prj_', '');
+
+                        // Dùng SweetAlert2 để hỏi cho chuyên nghiệp (giống trang Admin)
+                        Swal.fire({
+                            title: title,
+                            text: "Bạn muốn quản lý Task này?",
+                            icon: 'info',
+                            showDenyButton: true, // Nút Xóa
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="fas fa-edit"></i> Chỉnh sửa',
+                            denyButtonText: `<i class="fas fa-trash"></i> Xóa`,
+                            confirmButtonColor: '#6366f1',
+                            denyButtonColor: '#f43f5e'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Chuyển hướng sang trang Edit Task
+                                window.location.href = '/WorkTask/Edit/' + realProjectId;
+                            }
+                        });
+                        return; // Thoát hàm, không chạy đoạn code mở Modal bên dưới
                     }
+
+                    // TRƯỜNG HỢP 2: NẾU LÀ EVENT BÌNH THƯỜNG
+                    // Cắt emoji khỏi title (độ dài emoji "📅 " là 3 characters unicode)
+                    if (title.startsWith('📅 ')) title = title.replace('📅 ', '');
+
+                    // Lấy ownerId từ extendedProps
+                    const ownerId = (info.event.extendedProps && (info.event.extendedProps.ownerId || info.event.extendedProps.ownerid || info.event.extendedProps.userId)) || '';
+                    isOwner = (ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
+
+                    document.getElementById('eventTitle').value = title;
+                    document.getElementById('eventDescription').value = info.event.extendedProps?.description || '';
+                    // show project name when available
+                    const projName = info.event.extendedProps?.projectName || '';
+                    const projElem = document.getElementById('eventProject');
+                    if (projName) { projElem.style.display = 'block'; projElem.textContent = 'Project: ' + projName; } else { projElem.style.display = 'none'; projElem.textContent = ''; }
+                    
+                    // Chuyển đổi timestamp sang local string để hiển thị trên input (bỏ phần z và timezone offset)
+                    const formStart = info.event.start ? new Date(info.event.start.getTime() - info.event.start.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
+                    const formEnd = info.event.end ? new Date(info.event.end.getTime() - info.event.end.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
+                    
+                    document.getElementById('eventStart').value = formStart;
+                    document.getElementById('eventEnd').value = formEnd;
+
+                    const color = info.event.extendedProps?.rawColor || info.event.backgroundColor || info.event.color || '#6366f1';
+                    // Đảm bảo lấy đúng 7 ký tự Hex (#RRGGBB) để khớp chính xác giá trị của thẻ <select>
+                    const hexColor = color.length > 7 ? color.substring(0, 7).toLowerCase() : color.toLowerCase();
+                    document.getElementById('eventColor').value = hexColor;
+
+                    // Nếu không phải owner -> chỉ cho phép chỉnh màu (readonly)
+                    document.getElementById('eventTitle').readOnly = !isOwner;
+                    document.getElementById('eventDescription').readOnly = !isOwner;
+                    document.getElementById('eventStart').readOnly = !isOwner;
+                    document.getElementById('eventEnd').readOnly = !isOwner;
+                    // Ẩn/hiện nút Delete
+                    document.querySelector('#addEventModal .btn-danger').style.display = isOwner ? 'inline-block' : 'none';
+
+                    currentEventId = eventId;
+                    const modal = new bootstrap.Modal(document.getElementById('addEventModal'));
+                    modal.show();
                 },
-                // Pastel theme customization
-                eventBackgroundColor: '#6366f1',
-                eventBorderColor: '#6366f1',
-                eventTextColor: '#ffffff',
+                eventDataTransform: function(eventData) {
+                    let rawColor = eventData.color || eventData.backgroundColor || '#6366f1';
+                    
+                    // Lưu lại mã màu nguyên bản để khi click vào Edit sẽ chọn đúng trong Dropdown màu
+                    eventData.extendedProps = eventData.extendedProps || {};
+                    eventData.extendedProps.rawColor = rawColor;
+
+                    // Nếu là Project Task, bỏ qua vì class prj-event đã xử lý màu CSS cứng
+                    if (eventData.className && eventData.className.includes('prj-event')) {
+                         return eventData;
+                    }
+
+                    // ThemeColor sang Phong cách Pastel (Thêm alpha Hex ~20% vào background)
+                    if (rawColor.length === 7 && rawColor.startsWith('#')) {
+                        eventData.backgroundColor = rawColor + '33'; // Opacity 20%
+                        eventData.borderColor = 'transparent';
+                        eventData.textColor = '#1e293b'; // Slate 800 - Text đậm dễ đọc
+                        delete eventData.color; // Bỏ mặc định để áp filter mới
+                    }
+                    
+                    return eventData;
+                },
                 nowIndicator: true,
                 height: 'auto'
             });
+            
             calendar.render();
         });
-
-        function saveEvent() {
-            const eventData = {
-                subject: document.getElementById('eventTitle').value,
-                description: document.getElementById('eventDescription').value,
-                startTime: document.getElementById('eventStart').value,
-                endTime: document.getElementById('eventEnd').value,
-                themeColor: document.getElementById('eventColor').value
-            };
-            if (!eventData.subject || !eventData.startTime || !eventData.endTime) {
-                alert('Please fill in all required fields (Title, Start, End).');
-                return;
-            }
-
-            fetch('/Calendar/CreateEvent', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(eventData)
-            }).then(response => {
-                if (response.ok) {
-                    calendar.refetchEvents();
-                    bootstrap.Modal.getInstance(document.getElementById('addEventModal')).hide();
-                    document.getElementById('eventForm').reset();
-                } else {
-                    alert('Error saving event. Please try again.');
-                }
-            }).catch(err => console.error('Error:', err));
-        }
     </script>
 }
 
+<!-
+
 <style>
+    /* FullCalendar event visuals: pastel rounded cards with hover */
+    .fc .fc-event, .fc .fc-daygrid-event, .fc .fc-timegrid-event {
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 6px 8px !important;
+        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+        white-space: normal !important; /* allow wrapping to avoid rotated text */
+        overflow: visible !important;
+    }
+
+    /* Specific pastel colors for types */
+    .fc .fc-event.evt-event, .fc .fc-event.evt-event .fc-event-title {
+        color: #1e293b !important;
+        /* Loại bỏ background: #eef2ff !important; để dùng ThemeColor DB tự động sinh ở dạng Pastel */
+    }
+    .fc .fc-event.prj-event, .fc .fc-event.prj-event .fc-event-title {
+        background: #fff1f2 !important; /* pastel pink */
+        color: #7f1d1d !important;
+    }
+
+    /* Hover effect */
+    .fc .fc-event:hover, .fc .fc-daygrid-event:hover, .fc .fc-timegrid-event:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 14px 30px rgba(2,6,23,0.12);
+        filter: brightness(1.02);
+        z-index: 9999;
+    }
+
+    /* Ensure event title wraps nicely */
+    .fc-event .fc-event-title, .fc-event .fc-event-main { 
+        white-space: normal !important; 
+        line-height: 1.2 !important;
+    }
+
     /* Calendar Pastel Styles - đồng bộ với toàn bộ hệ thống */
     .calendar-container {
         max-width: 1600px;
-        margin: -1rem auto 0; /* Add slight negative margin to pull closer to top-bar */
-        padding: 0;
+        margin: -1rem auto 0;
+        padding: 0 1rem;
+    }
+
+    /* Sidebar pastel indigo */
+    .bg-pastel-indigo {
+        background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+        border: 1px solid rgba(99, 102, 241, 0.15);
+    }
+    body.theme-dark .bg-pastel-indigo {
+        background: linear-gradient(145deg, #1e293b, #0f172a);
+        border-color: rgba(129, 140, 248, 0.2);
+    }
+    .shadow-xs {
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 1px 1px rgba(0,0,0,0.02);
+    }
+    .btn-primary-soft {
+        background-color: rgba(99, 102, 241, 0.12);
+        color: #4f46e5;
+        border: none;
+        transition: all 0.2s;
+    }
+    .btn-primary-soft:hover {
+        background-color: #6366f1;
+        color: white;
+        transform: translateY(-1px);
+    }
+    body.theme-dark .btn-primary-soft {
+        background-color: rgba(129, 140, 248, 0.2);
+        color: #a5b4fc;
+    }
+    body.theme-dark .btn-primary-soft:hover {
+        background-color: #818cf8;
+        color: #0f172a;
     }
 
     .bg-gradient-primary {
@@ -233,7 +765,7 @@
         color: var(--pastel-muted, #64748b);
     }
 
-    /* FullCalendar Pastel Overrides */
+    /* FullCalendar Pastel Overrides - không ghi đè màu event */
     .fc {
         --fc-border-color: var(--pastel-border, #e2e8f0);
         --fc-button-bg-color: var(--pastel-primary, #a5b4fc);
@@ -243,8 +775,6 @@
         --fc-button-active-bg-color: var(--pastel-primary-dark, #818cf8);
         --fc-button-active-border-color: var(--pastel-primary-dark, #818cf8);
         --fc-today-bg-color: rgba(99, 102, 241, 0.08);
-        --fc-event-bg-color: #6366f1;
-        --fc-event-border-color: #6366f1;
         --fc-page-bg-color: var(--pastel-card-bg, #ffffff);
     }
     .fc .fc-button-primary {
@@ -269,6 +799,29 @@
     }
     .fc .fc-daygrid-day.fc-day-today {
         background-color: var(--pastel-primary-soft, #e0e7ff);
+    }
+
+    /* Fix hiển thị sự kiện bị cắt ngang - cho phép xuống dòng */
+    .fc-event {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .fc-event-title {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        line-height: 1.3 !important;
+    }
+
+    .fc-daygrid-event {
+        min-height: 2.5em !important;
+    }
+
+    .fc-timegrid-event .fc-event-main {
+        white-space: normal !important;
+        word-wrap: break-word !important;
     }
 
     /* Dark Mode */
@@ -317,6 +870,12 @@
         .fc .fc-toolbar {
             flex-direction: column;
             gap: 0.5rem;
+        }
+        .row.g-4 {
+            --bs-gutter-y: 1rem;
+        }
+        #task-list {
+            max-height: 50vh !important;
         }
     }
 </style>

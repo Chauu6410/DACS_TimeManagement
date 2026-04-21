@@ -354,7 +354,7 @@ namespace DACS_TimeManagement.Controllers
                 }
                 else
                 {
-                    task.Description = "Mô tả công việc này đã được bảo mật (Private).";
+                        task.Description = "This task description is private.";
                 }
             }
 

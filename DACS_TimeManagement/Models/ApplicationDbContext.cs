@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
+using DACS_TimeManagement.Models;
 
 namespace DACS_TimeManagement.Models
 {
@@ -79,7 +81,21 @@ namespace DACS_TimeManagement.Models
             builder.Entity<WorkTask>()
                 .Property(t => t.Status)
                 .HasConversion<string>();
+            // Cấu hình mối quan hệ giữa Project và User (Owner)
+            builder.Entity<Project>()
+                .HasOne(p => p.Owner)
+                .WithMany() // Hoặc .WithMany(u => u.OwnedProjects) nếu bạn có đặt tên
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict); // THAY ĐỔI Ở ĐÂY: Chuyển từ Cascade sang Restrict
+
+            // Cấu hình cho ProjectMember (nếu cần)
+            builder.Entity<ProjectMember>()
+                .HasOne(pm => pm.User)
+                .WithMany()
+                .HasForeignKey(pm => pm.UserId)
+                .OnDelete(DeleteBehavior.Cascade); // Cái này có thể giữ Cascade
         }
+        public DbSet<DACS_TimeManagement.Models.ProjectDiscussion> ProjectDiscussion { get; set; } = default!;
     }
 }
 

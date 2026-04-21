@@ -1,266 +1,18 @@
 @model DACS_TimeManagement.Models.Project
 @{
-    ViewData["Title"] = Model?.Name ?? "Project Details";
+    ViewData["Title"] = Model.Name + " - Details";
     var completedTasks = Model.Tasks?.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed) ?? 0;
     var totalTasks = Model.Tasks?.Count() ?? 0;
     var progressPct = totalTasks == 0 ? 0 : (int)((double)completedTasks / totalTasks * 100);
-}
-
-<div class="project-details-container" data-aos="fade-up">
-    <!-- Alert Messages -->
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-pastel-danger alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-pastel-success alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-
-    <div class="row g-4">
-        <!-- Left Column: Project Info Card (Pastel) -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-xl rounded-4 overflow-hidden hover-lift">
-                <!-- Gradient Header Pastel -->
-                <div class="bg-gradient-pastel-primary text-white p-4 text-center">
-                    <div class="icon-circle bg-white bg-opacity-20 mx-auto mb-3">
-                        <i class="fas fa-project-diagram fs-3"></i>
-                    </div>
-                    <h3 class="fw-bold mb-1">@Model.Name</h3>
-                    <p class="small opacity-75 mb-0">
-                        <i class="far fa-calendar-alt me-1"></i>Created @Model.CreatedDate.ToString("MMM dd, yyyy")
-                    </p>
-                </div>
-
-                <div class="card-body p-4 text-center">
-                    <!-- Progress Ring Pastel -->
-                    <div class="position-relative d-inline-block mb-4">
-                        <svg width="130" height="130">
-                            <circle cx="65" cy="65" r="55" fill="none" stroke="var(--pastel-border)" stroke-width="8"></circle>
-                            <circle cx="65" cy="65" r="55" fill="none" stroke="var(--pastel-primary-dark)" stroke-width="8" 
-                                    stroke-dasharray="345.575" stroke-dashoffset="@(345.575 - (345.575 * progressPct / 100))" 
-                                    style="transition: stroke-dashoffset 1s ease; transform: rotate(-90deg); transform-origin: 50% 50%;"></circle>
-                        </svg>
-                        <div class="position-absolute top-50 start-50 translate-middle text-center">
-                            <span class="fs-2 fw-bold text-pastel-primary">@progressPct%</span>
-                        </div>
-                    </div>
-
-                    <!-- Stats -->
-                    <div class="row text-center mb-4">
-                        <div class="col-6 border-end border-pastel">
-                            <h3 class="mb-0 fw-bold text-pastel-dark">@totalTasks</h3>
-                            <small class="text-pastel-muted text-uppercase">Total Tasks</small>
-                        </div>
-                        <div class="col-6">
-                            <h3 class="mb-0 fw-bold text-pastel-success">@completedTasks</h3>
-                            <small class="text-pastel-muted text-uppercase">Completed</small>
-                        </div>
-                    </div>
-
-                    <!-- Team Members -->
-                    @if (ViewBag.Members != null && ((List<DACS_TimeManagement.Models.ProjectMember>)ViewBag.Members).Any())
-                    {
-                        <div class="mb-4">
-                            <span class="text-pastel-muted small text-uppercase fw-semibold">Team</span>
-                            <div class="d-flex flex-wrap justify-content-center gap-1 mt-2">
-                                @foreach (var member in (List<DACS_TimeManagement.Models.ProjectMember>)ViewBag.Members)
-                                {
-                                    <span class="badge bg-pastel-secondary-soft text-pastel-dark rounded-pill px-3 py-1">
-                                        <i class="fas fa-user-circle me-1"></i>@member.Role
-                                    </span>
-                                }
-                            </div>
-                        </div>
-                    }
-
-                    <!-- Action Buttons Pastel -->
-                    <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-outline-pastel rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
-                            <i class="fas fa-user-plus me-2"></i>Invite Member
-                        </button>
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light-pastel border rounded-pill fw-semibold">
-                            <i class="fas fa-edit text-pastel-primary me-2"></i>Edit Project
-                        </a>
-                        <a asp-controller="WorkTask" asp-action="Create" asp-route-projectId="@Model.Id" class="btn btn-pastel-primary rounded-pill fw-semibold shadow-sm">
-                            <i class="fas fa-plus me-2"></i>Add Task
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column: Kanban Board (Pastel) -->
-        <div class="col-lg-8">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold mb-0"><i class="fas fa-columns text-pastel-primary me-2"></i>Kanban Board</h5>
-                <a asp-controller="WorkTask" asp-action="Create" asp-route-projectId="@Model.Id" class="btn btn-pastel-primary rounded-pill btn-sm">
-                    <i class="fas fa-plus me-1"></i>New Task
-                </a>
-            </div>
-
-            <div class="kanban-scroll-wrapper overflow-auto pb-2" style="min-height: 550px;">
-                <div class="d-flex align-items-start" style="gap: 1.25rem;">
-                    @if (Model.BoardLists != null && Model.BoardLists.Any())
-                    {
-                        foreach (var board in Model.BoardLists.OrderBy(b => b.Position))
-                        {
-                            <div class="kanban-column pastel-column rounded-4 p-3 shadow-sm">
-                                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-pastel">
-                                    <h6 class="fw-bold mb-0 text-pastel-dark">@board.Name</h6>
-                                    <span class="badge bg-pastel-primary-soft text-pastel-primary rounded-pill px-3 py-1 task-count">@(Model.Tasks?.Count(t => t.BoardListId == board.Id) ?? 0)</span>
-                                </div>
-
-                                <div class="task-list" data-list-id="@board.Id" style="min-height: 200px;">
-                                    @if (Model.Tasks != null)
-                                    {
-                                        foreach (var task in Model.Tasks.Where(t => t.BoardListId == board.Id).OrderBy(t => t.Position))
-                                        {
-                                            <div class="card pastel-task-card mb-3 border-0 shadow-sm rounded-3" data-task-id="@task.Id">
-                                                <div class="card-body p-3">
-                                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                                        <h6 class="fw-bold mb-0">
-                                                            <a asp-controller="WorkTask" asp-action="Details" asp-route-id="@task.Id" class="text-decoration-none text-pastel-dark">@task.Title</a>
-                                                        </h6>
-                                                        <div class="dropdown">
-                                                            <button class="btn btn-sm text-pastel-muted p-0" data-bs-toggle="dropdown">
-                                                                <i class="fas fa-ellipsis-v"></i>
-                                                            </button>
-                                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                                                                <li><a class="dropdown-item" asp-controller="WorkTask" asp-action="Edit" asp-route-id="@task.Id"><i class="fas fa-edit me-2"></i>Edit</a></li>
-                                                                <li><a class="dropdown-item text-danger" asp-controller="WorkTask" asp-action="Delete" asp-route-id="@task.Id"><i class="fas fa-trash me-2"></i>Delete</a></li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    @if (!string.IsNullOrEmpty(task.Description))
-                                                    {
-                                                        <p class="small text-pastel-muted mb-2 text-truncate">@task.Description</p>
-                                                    }
-                                                    <div class="d-flex justify-content-between align-items-center mt-2">
-                                                        @{
-                                                            string priorityClass = task.Priority switch
-                                                            {
-                                                                DACS_TimeManagement.Models.Priority.Urgent => "pastel-danger",
-                                                                DACS_TimeManagement.Models.Priority.High => "pastel-danger",
-                                                                DACS_TimeManagement.Models.Priority.Medium => "pastel-warning",
-                                                                _ => "pastel-info"
-                                                            };
-                                                        }
-                                                        <span class="badge @priorityClass rounded-pill">@task.Priority</span>
-                                                        <small class="text-pastel-muted"><i class="far fa-calendar-alt me-1"></i>@task.EndDate.ToString("MMM dd")</small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        }
-                                    }
-                                </div>
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <div class="empty-state text-center w-100 py-5">
-                            <i class="fas fa-clipboard-list fa-4x text-pastel-muted opacity-50 mb-3"></i>
-                            <h6 class="fw-semibold text-pastel-dark">No board columns</h6>
-                            <p class="small text-pastel-muted">Add columns in project settings to start organizing tasks.</p>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Invite Member (Pastel) -->
-<div class="modal fade" id="inviteMemberModal" tabindex="-1" aria-labelledby="inviteMemberModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-xl rounded-4">
-            <div class="modal-header bg-gradient-pastel-primary text-white border-0 rounded-top-4">
-                <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-2"></i>Invite Teammate</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form asp-action="AddMember" method="post">
-                <div class="modal-body p-4">
-                    <input type="hidden" name="projectId" value="@Model.Id" />
-                    <div class="mb-3">
-                        <label for="email" class="form-label fw-semibold text-pastel-dark">User Email</label>
-                        <input type="email" class="form-control form-control-lg rounded-3 pastel-input" id="email" name="email" placeholder="colleague@example.com" required>
-                        <div class="form-text text-pastel-muted">User must have an existing account.</div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 pb-4 pe-4">
-                    <button type="button" class="btn btn-light-pastel rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm">Send Invite</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const taskLists = document.querySelectorAll('.task-list');
-            taskLists.forEach(list => {
-                new Sortable(list, {
-                    group: 'kanban',
-                    animation: 200,
-                    ghostClass: 'sortable-ghost',
-                    chosenClass: 'sortable-chosen',
-                    dragClass: 'dragging',
-                    onEnd: function (evt) {
-                        const taskId = evt.item.getAttribute('data-task-id');
-                        const newListId = evt.to.getAttribute('data-list-id');
-                        const newPosition = evt.newIndex;
-                        if (!taskId || !newListId) return;
-
-                        const params = new URLSearchParams();
-                        params.append('taskId', taskId);
-                        params.append('newListId', newListId);
-                        params.append('newPosition', newPosition);
-
-                        fetch('/WorkTask/UpdateTaskPosition', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                            },
-                            body: params
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (!data.success) {
-                                console.error('Update failed:', data.message);
-                                alert('Failed to update task position. Please refresh.');
-                            } else {
-                                updateTaskCounts();
-                            }
-                        })
-                        .catch(err => console.error('Network error:', err));
-                    }
-                });
-            });
-
-            function updateTaskCounts() {
-                document.querySelectorAll('.kanban-column').forEach(col => {
-                    const countSpan = col.querySelector('.task-count');
-                    const tasks = col.querySelectorAll('.task-card').length;
-                    if (countSpan) countSpan.innerText = tasks;
-                });
-            }
-        });
-    </script>
+    var members = (List<DACS_TimeManagement.Models.ProjectMember>)ViewBag.Members ?? new List<DACS_TimeManagement.Models.ProjectMember>();
+    var memberList = members.Where(m => m.UserId != Model.UserId).ToList();
 }
 
 <style>
-    /* ---------- PASTEL COLOR SYSTEM (giống Kanban) ---------- */
+    /* Ẩn tiêu đề layout mặc định */
+    .page-title, .content-header h1 { display: none !important; }
+
+    /* ========== PASTEL COLOR SYSTEM ========== */
     :root {
         --pastel-primary: #a5b4fc;
         --pastel-primary-dark: #818cf8;
@@ -268,14 +20,21 @@
         --pastel-secondary: #c4b5fd;
         --pastel-secondary-soft: #ede9fe;
         --pastel-success: #a7f3d0;
+        --pastel-success-dark: #34d399;
         --pastel-danger: #fecaca;
+        --pastel-danger-dark: #f87171;
         --pastel-warning: #fde68a;
+        --pastel-warning-dark: #fbbf24;
         --pastel-info: #bfdbfe;
+        --pastel-info-dark: #60a5fa;
         --pastel-dark: #334155;
         --pastel-muted: #64748b;
         --pastel-border: #e2e8f0;
         --pastel-card-bg: #ffffff;
         --pastel-column-bg: #f8fafc;
+        
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
     }
 
     body.theme-dark {
@@ -284,9 +43,13 @@
         --pastel-primary-soft: #1e293b;
         --pastel-secondary-soft: #2d2a4a;
         --pastel-success: #065f46;
+        --pastel-success-dark: #059669;
         --pastel-danger: #7f1d1d;
+        --pastel-danger-dark: #dc2626;
         --pastel-warning: #854d0e;
+        --pastel-warning-dark: #d97706;
         --pastel-info: #1e3a8a;
+        --pastel-info-dark: #2563eb;
         --pastel-dark: #e2e8f0;
         --pastel-muted: #94a3b8;
         --pastel-border: #334155;
@@ -294,184 +57,771 @@
         --pastel-column-bg: #0f172a;
     }
 
-    .project-details-container {
-        max-width: 1600px;
-        margin: 0 auto;
-        padding: 0 1rem;
-    }
-
-    .bg-gradient-pastel-primary {
-        background: linear-gradient(135deg, var(--pastel-primary), var(--pastel-primary-dark));
-    }
-
-    .icon-circle {
-        width: 64px;
-        height: 64px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 60px;
-        background: rgba(255,255,255,0.2);
-        backdrop-filter: blur(4px);
-    }
+    /* Utility */
+    .bg-pastel-card { background-color: var(--pastel-card-bg); }
+    .border-pastel { border-color: var(--pastel-border) !important; }
+    .text-pastel-dark { color: var(--pastel-dark); }
+    .text-pastel-muted { color: var(--pastel-muted); }
+    .text-pastel-primary { color: var(--pastel-primary-dark); }
 
     .hover-lift {
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
     }
     .hover-lift:hover {
         transform: translateY(-5px);
-        box-shadow: 0 20px 30px -12px rgba(0,0,0,0.15) !important;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.06) !important;
     }
 
-    /* Text & Border Pastel */
-    .text-pastel-primary { color: var(--pastel-primary-dark); }
-    .text-pastel-dark { color: var(--pastel-dark); }
-    .text-pastel-muted { color: var(--pastel-muted); }
-    .text-pastel-success { color: #059669; }
-    .border-pastel { border-color: var(--pastel-border) !important; }
+    /* Gradient Backgrounds */
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    }
 
-    /* Buttons Pastel */
+    /* Buttons */
     .btn-pastel-primary {
-        background: var(--pastel-primary);
-        color: #1e293b;
+        background: var(--primary);
+        color: white;
         border: none;
         transition: all 0.2s;
         font-weight: 500;
     }
     .btn-pastel-primary:hover {
-        background: var(--pastel-primary-dark);
-        color: white;
+        background: var(--primary-dark);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
     }
-    .btn-outline-pastel {
-        border: 1px solid var(--pastel-primary-dark);
-        color: var(--pastel-primary-dark);
+    .btn-outline-light-custom {
+        border: 2px solid rgba(255,255,255,0.5);
+        color: white;
         background: transparent;
-        transition: all 0.2s;
     }
-    .btn-outline-pastel:hover {
-        background: var(--pastel-primary-dark);
+    .btn-outline-light-custom:hover {
+        background: rgba(255,255,255,0.2);
+        border-color: white;
         color: white;
     }
-    .btn-light-pastel {
-        background: var(--pastel-card-bg);
-        border: 1px solid var(--pastel-border);
-        color: var(--pastel-dark);
-        transition: all 0.2s;
+
+    /* Stats Cards Pastel */
+    .stats-card-pastel {
+        border-radius: 20px;
+        padding: 1.25rem;
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: default;
     }
-    .btn-light-pastel:hover {
-        background: var(--pastel-primary-soft);
-        border-color: var(--pastel-primary);
+    .stats-card-pastel:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 20px rgba(0,0,0,0.08);
+    }
+    .pastel-blue {
+        background: #e0f2fe;
+        border-left: 4px solid #38bdf8;
+    }
+    .pastel-green {
+        background: #dcfce7;
+        border-left: 4px solid #4ade80;
+    }
+    .pastel-yellow {
+        background: #fef9c3;
+        border-left: 4px solid #facc15;
+    }
+    .stats-icon i {
+        color: #334155;
+    }
+    .stats-number {
+        color: #0f172a;
+    }
+    body.theme-dark .pastel-blue {
+        background: #1e293b;
+        border-left-color: #38bdf8;
+    }
+    body.theme-dark .pastel-green {
+        background: #1e293b;
+        border-left-color: #4ade80;
+    }
+    body.theme-dark .pastel-yellow {
+        background: #1e293b;
+        border-left-color: #facc15;
+    }
+    body.theme-dark .stats-icon i,
+    body.theme-dark .stats-number {
+        color: #f1f5f9;
     }
 
-    /* Badges Pastel */
-    .bg-pastel-primary-soft {
-        background: var(--pastel-primary-soft);
-        color: var(--pastel-primary-dark);
-    }
-    .bg-pastel-secondary-soft {
-        background: var(--pastel-secondary-soft);
-        color: var(--pastel-dark);
-    }
-    .pastel-danger {
-        background: var(--pastel-danger);
-        color: #991b1b;
-    }
-    .pastel-warning {
-        background: var(--pastel-warning);
-        color: #854d0e;
-    }
-    .pastel-info {
-        background: var(--pastel-info);
-        color: #1e3a8a;
-    }
-    body.theme-dark .pastel-danger { color: #fecaca; }
-    body.theme-dark .pastel-warning { color: #fde68a; }
-    body.theme-dark .pastel-info { color: #bfdbfe; }
-
-    /* Alerts Pastel */
-    .alert-pastel-danger {
-        background: var(--pastel-danger);
-        color: #991b1b;
-        border-left: 4px solid #ef4444;
-    }
-    .alert-pastel-success {
-        background: var(--pastel-success);
-        color: #065f46;
-        border-left: 4px solid #22c55e;
-    }
-    body.theme-dark .alert-pastel-danger { color: #fecaca; }
-    body.theme-dark .alert-pastel-success { color: #bbf7d0; }
-
-    /* Kanban Column & Task Card Pastel */
-    .pastel-column {
-        background: var(--pastel-column-bg);
-        border: 1px solid var(--pastel-border);
-        transition: all 0.2s ease;
-    }
-    .pastel-column:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-    }
-    .pastel-task-card {
-        background: var(--pastel-card-bg);
-        border-left: 3px solid var(--pastel-primary-dark);
-        cursor: grab;
-        transition: all 0.2s ease;
-    }
-    .pastel-task-card:active {
-        cursor: grabbing;
-    }
-    .pastel-task-card:hover {
-        transform: translateX(4px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    /* Form Input Pastel */
+    /* Form Inputs */
     .pastel-input {
         background-color: var(--pastel-card-bg);
         border: 1px solid var(--pastel-border);
         color: var(--pastel-dark);
     }
     .pastel-input:focus {
-        border-color: var(--pastel-primary-dark);
-        box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.3);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
         outline: none;
     }
 
-    /* SortableJS ghost */
-    .sortable-ghost {
-        opacity: 0.4;
-        background: var(--pastel-primary);
-        border: 1px dashed white;
+    .list-group-flush-pastel .list-group-item {
+        background-color: transparent;
+        border-color: var(--pastel-border);
+        color: var(--pastel-dark);
     }
 
-    /* Scrollbar */
-    .kanban-scroll-wrapper::-webkit-scrollbar {
-        height: 8px;
-    }
-    .kanban-scroll-wrapper::-webkit-scrollbar-track {
-        background: var(--pastel-border);
-        border-radius: 10px;
-    }
-    .kanban-scroll-wrapper::-webkit-scrollbar-thumb {
-        background: var(--pastel-primary-dark);
-        border-radius: 10px;
+    /* Icon circle */
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 30px;
+        background: rgba(99, 102, 241, 0.12);
     }
 
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .project-details-container {
-            padding: 0 0.5rem;
-        }
-        .kanban-column {
-            min-width: 260px !important;
-            width: 260px !important;
-        }
-        .icon-circle {
-            width: 50px;
-            height: 50px;
-        }
+    /* Chat bubble styles (căn trái/phải + hover xóa) */
+    .chat-message {
+        align-items: flex-end; /* Căn đáy để làm đuôi bong bóng */
+        transition: opacity 0.2s ease-out; margin-bottom: 1rem;
+    }
+    .message-bubble {
+        padding: 12px 18px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+        max-width: 100%;
+        word-break: break-word;
+    }
+    .message-bubble.theirs {
+        background-color: #f1f5f9;
+        border: 1px solid var(--pastel-border);
+        border-radius: 20px 20px 20px 4px !important;
+        color: var(--pastel-dark);
+    }
+    .message-bubble.mine {
+        background-color: var(--primary);
+        color: white;
+        border-radius: 20px 20px 4px 20px !important;
+        border: none;
+    }
+    .message-bubble.mine .text-pastel-dark { color: white !important; }
+    .message-bubble.mine .text-pastel-muted { color: rgba(255,255,255,0.8) !important; }
+
+    /* Delete button on hover */
+    .message-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    .delete-message-btn {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        transform: scale(0.8);
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 10;
+        box-shadow: 0 4px 6px rgba(239,68,68,0.3);
+    }
+    .message-wrapper:hover .delete-message-btn {
+        opacity: 1;
+        transform: scale(1);
+    }
+    .delete-message-btn:hover {
+        background: #dc2626;
+        transform: scale(1.1) !important;
+    }
+
+    /* Messenger Input Box Customization */
+    .chat-input-wrapper {
+        position: relative;
+        flex-grow: 1;
+    }
+    .chat-input-wrapper input {
+        padding-left: 48px !important;
+        padding-right: 90px !important;
+        border-radius: 24px !important;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+    }
+    .chat-input-wrapper input:focus {
+        background: #ffffff;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+    .chat-media-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .chat-media-btn:hover {
+        background: #e2e8f0;
+        color: var(--primary);
+    }
+    .btn-btn-send {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: var(--pastel-column-bg); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--pastel-border); border-radius: 10px; }
+
+    .alert-pastel-danger { background: var(--pastel-danger); color: #991b1b; border-left: 4px solid #ef4444; }
+    .alert-pastel-success { background: var(--pastel-success); color: #065f46; border-left: 4px solid #22c55e; }
+
+    /* Kanban Outline Card */
+    .kanban-outline-card {
+        border: 1px solid var(--pastel-info-dark);
+        background: transparent;
+        transition: all 0.2s;
+    }
+    .kanban-outline-card:hover {
+        background: rgba(96, 165, 250, 0.05);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     }
 </style>
+
+<div class="project-details-container my-4" data-aos="fade-up">
+    <!-- Alert messages -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-pastel-danger alert-dismissible fade show rounded-4 border-0 shadow-xl mb-4">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-pastel-success alert-dismissible fade show rounded-4 border-0 shadow-xl mb-4">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Compact Hero banner -->
+    <div class="card border-0 shadow-sm rounded-4 bg-gradient-primary mb-4 p-3 p-md-4 text-white">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-3">
+            <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold shadow-sm">
+                <span class="spinner-grow spinner-grow-sm me-2 text-pastel-primary" style="width: 0.5rem; height: 0.5rem;"></span>
+                Active Project
+            </span>
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light rounded-pill px-4 shadow-sm btn-sm fw-semibold" style="color: var(--primary);">
+                    <i class="fas fa-pencil-alt me-2"></i>Edit
+                </a>
+                <button type="button" class="btn btn-outline-light-custom rounded-pill px-4 shadow-sm btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
+                    <i class="fas fa-user-plus me-2"></i>Invite
+                </button>
+            </div>
+        </div>
+        <h1 class="fw-bold h4 mb-2 text-truncate" style="color: #1e3a8a;" title="@Model.Name">
+            <i class="fas fa-project-diagram me-2 opacity-75"></i>@Model.Name
+        </h1>
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p class="mb-0 text-white opacity-90 small" style="max-width: 800px; line-height: 1.5;">@Model.Description</p>
+        }
+        else
+        {
+            <p class="mb-0 text-white opacity-90 fst-italic small">No description provided.</p>
+        }
+    </div>
+
+    <!-- Quick Stats Row (giữ nguyên) -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stats-card-pastel pastel-blue h-100 shadow-xl">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-icon mb-2"><i class="fas fa-tasks fa-2x"></i></div>
+                        <div class="stats-number display-6 fw-bold">@totalTasks</div>
+                        <div class="stats-label text-muted small fw-semibold">Total Tasks</div>
+                    </div>
+                    <i class="fas fa-clipboard-list fa-3x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card-pastel pastel-green h-100 shadow-xl">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-icon mb-2"><i class="fas fa-check-circle fa-2x"></i></div>
+                        <div class="stats-number display-6 fw-bold">@completedTasks</div>
+                        <div class="stats-label text-muted small fw-semibold">Completed</div>
+                    </div>
+                    <i class="fas fa-check-double fa-3x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card-pastel pastel-yellow h-100 shadow-xl">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stats-icon mb-2"><i class="fas fa-chart-pie fa-2x"></i></div>
+                        <div class="stats-number display-6 fw-bold">@progressPct%</div>
+                        <div class="stats-label text-muted small fw-semibold">Overall Progress</div>
+                    </div>
+                    <i class="fas fa-percent fa-3x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="row g-4">
+        <!-- Left column: Kanban CTA (Outline), Discussion -->
+        <div class="col-lg-8 d-flex flex-column gap-4">
+            <!-- Kanban Outline Card -->
+            <div class="card border-0 shadow-sm rounded-4 kanban-outline-card">
+                <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-circle" style="background: rgba(96, 165, 250, 0.15);">
+                            <i class="fas fa-chalkboard-user fs-4 text-pastel-info-dark"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1 text-pastel-dark">Project Kanban Board</h5>
+                            <p class="small text-pastel-muted mb-0">Manage tasks, track progress, and organize your workflow.</p>
+                        </div>
+                    </div>
+                    <a asp-controller="WorkTask" asp-action="Index" asp-route-projectId="@Model.Id" class="btn btn-pastel-primary rounded-pill px-4 py-2 shadow-sm">
+                        Go to Kanban Board <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Discussion section (Messenger style + Delete) -->
+            <div class="card border-0 shadow-xl rounded-4 bg-pastel-card d-flex flex-column mb-4" style="height: 550px;">
+                <div class="card-header bg-transparent border-pastel p-4 pb-0 pt-4 pb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="icon-circle"><i class="fas fa-comments text-pastel-primary"></i></div>
+                            <h5 class="fw-bold mb-0 text-pastel-dark">Discussion</h5>
+                        </div>
+                        <span class="badge rounded-pill px-3 py-2 fw-semibold" style="background: rgba(99, 102, 241, 0.12); color: var(--primary);">
+                            <span id="commentCount">0</span> messages
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body p-0 d-flex flex-column h-100 overflow-hidden">
+                    <div id="chatMessages" class="p-4 flex-grow-1 custom-scrollbar" style="overflow-y: auto; background-color: var(--pastel-column-bg);">
+                        <div class="d-flex h-100 justify-content-center align-items-center">
+                            <div class="text-center text-pastel-muted" id="loadingComments">
+                                <i class="fas fa-circle-notch fa-spin fs-3 mb-2 text-pastel-primary"></i>
+                                <div>Loading conversation...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 border-top border-pastel bg-white position-relative">
+                        <div id="attachmentPreview" class="d-none position-absolute" style="top: -45px; left: 1rem; background: #f8fafc; padding: 6px 14px; border: 1px solid var(--pastel-border); border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); z-index: 10; font-size: 0.85rem;">
+                            <i class="fas fa-file-alt text-pastel-primary me-2"></i>
+                            <span id="attachmentName" class="text-pastel-dark fw-medium">filename.pdf</span>
+                            <button type="button" class="btn-close ms-3" style="font-size: 0.5rem;" onclick="removeAttachment()"></button>
+                        </div>
+                        <form id="commentForm" class="d-flex gap-2 align-items-end">
+                            <input type="hidden" name="projectId" value="@Model.Id" />
+                            <div class="chat-input-wrapper">
+                                <label class="chat-media-btn mb-0" style="left: 6px;" title="Attach File">
+                                    <i class="fas fa-paperclip fs-6"></i>
+                                    <input type="file" id="attachmentInput" class="d-none" accept="*/*">
+                                </label>
+                                <input type="text" class="form-control form-control-lg" id="commentContent" placeholder="Nhắn tin vào nhóm dự án..." autocomplete="off">
+                                <div class="d-flex position-absolute" style="right: 6px; top: 50%; transform: translateY(-50%);">
+                                    <div class="dropdown d-inline-block dropup">
+                                        <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" data-bs-toggle="dropdown" aria-expanded="false" title="Insert Emoji">
+                                            <i class="far fa-smile fs-6"></i>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end p-2 shadow-sm rounded-4 border-0" style="width: 260px; margin-bottom: 10px; background: var(--pastel-card-bg);">
+                                            <div class="d-flex flex-wrap gap-1 justify-content-center" id="emojiPickerContent"></div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" title="Send Voice" onclick="alert('Chức năng ghi âm Voice Message đang thử nghiệm!')">
+                                        <i class="fas fa-microphone fs-6"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-pastel-primary btn-btn-send shadow-sm">
+                                <i class="fas fa-paper-plane fs-5"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: Details & Members (giữ nguyên) -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            <!-- Project metadata -->
+            <div class="card border-0 shadow-xl rounded-4 bg-pastel-card">
+                <div class="card-header bg-transparent border-pastel p-4 pb-0 pt-4 pb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="icon-circle"><i class="fas fa-info-circle text-pastel-primary"></i></div>
+                        <h5 class="fw-bold mb-0 text-pastel-dark">Details</h5>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush list-group-flush-pastel">
+                        <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="text-pastel-muted"><i class="far fa-calendar-alt fs-5"></i></div>
+                                <h6 class="mb-0 fw-semibold text-pastel-dark">Created Date</h6>
+                            </div>
+                            <span class="text-pastel-muted fw-medium">@Model.CreatedDate.ToString("MMM dd, yyyy")</span>
+                        </li>
+                        <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="text-pastel-muted"><i class="far fa-clock fs-5"></i></div>
+                                <h6 class="mb-0 fw-semibold text-pastel-dark">Time</h6>
+                            </div>
+                            <span class="text-pastel-muted fw-medium">@Model.CreatedDate.ToString("hh:mm tt")</span>
+                        </li>
+                        <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="text-pastel-muted"><i class="fas fa-shield-alt fs-5"></i></div>
+                                <h6 class="mb-0 fw-semibold text-pastel-dark">Visibility</h6>
+                            </div>
+                            <span class="badge bg-pastel-success-dark text-white rounded-pill shadow-sm">Private</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Team members -->
+            <div class="card border-0 shadow-xl rounded-4 bg-pastel-card flex-grow-1">
+                <div class="card-header bg-transparent border-pastel p-4 pb-0 pt-4 pb-3 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="icon-circle"><i class="fas fa-users text-pastel-primary"></i></div>
+                        <h5 class="fw-bold mb-0 text-pastel-dark">Team</h5>
+                    </div>
+                    <span class="badge rounded-pill" style="background: rgba(99, 102, 241, 0.12); color: var(--primary);">@(memberList.Count + 1) members</span>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex flex-column gap-3">
+                        <!-- Owner -->
+                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 border border-pastel hover-lift bg-pastel-column-bg">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="position-relative">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm" style="width: 44px; height: 44px; background: var(--primary);">
+                                        <i class="fas fa-crown"></i>
+                                    </div>
+                                    <span class="position-absolute bottom-0 end-0 p-1 bg-pastel-success-dark border border-white rounded-circle"></span>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-pastel-dark mb-0">@(Model.Owner?.UserName ?? "Owner")</h6>
+                                    <span class="badge bg-white rounded-pill px-2 py-1 mt-1 border shadow-sm" style="font-size: 0.70rem; color: var(--primary);">Project Owner</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Members -->
+                        @foreach (var m in memberList)
+                        {
+                            var user = m.User;
+                            var displayName = user?.UserName ?? user?.Email ?? "Unknown";
+                            var initials = displayName.Length > 0 ? displayName.Substring(0, 1).ToUpper() : "U";
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded-3 border border-pastel hover-lift">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-pastel-secondary-soft text-pastel-primary fw-bold d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px;">
+                                        @initials
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-pastel-dark mb-0">@displayName</h6>
+                                        <span class="badge bg-light text-muted border rounded-pill px-2 py-1 mt-1" style="font-size: 0.70rem;">@m.Role</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (!memberList.Any())
+                        {
+                            <div class="text-center p-4 border border-dashed border-pastel rounded-3 mt-2 bg-pastel-column-bg">
+                                <div class="text-pastel-muted mb-2"><i class="fas fa-user-friends fs-3"></i></div>
+                                <p class="text-pastel-muted small mb-3">No members have joined yet.</p>
+                                <button type="button" class="btn btn-outline-pastel rounded-pill btn-sm px-3 shadow-sm bg-white" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
+                                    <i class="fas fa-plus me-1"></i> Invite Now
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invite Member Modal (giữ nguyên) -->
+<div class="modal fade" id="inviteMemberModal" tabindex="-1" aria-labelledby="inviteMemberModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-gradient-primary text-white border-0 p-4">
+                <h5 class="modal-title fw-bold"><i class="fas fa-user-plus me-2"></i>Add Team Member</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="AddMember" method="post">
+                <div class="modal-body p-4 p-md-5 bg-pastel-card">
+                    <input type="hidden" name="projectId" value="@Model.Id" />
+                    <div class="text-center mb-4">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" style="width: 72px; height: 72px; background: rgba(99, 102, 241, 0.12); color: var(--primary);">
+                            <i class="fas fa-envelope-open-text fs-2"></i>
+                        </div>
+                        <h6 class="fw-bold text-pastel-dark">Invite colleagues to collaborate</h6>
+                        <p class="text-pastel-muted small">They will instantly gain access to the project board and tasks.</p>
+                    </div>
+                    <div class="mb-4">
+                        <label for="email" class="form-label fw-semibold text-pastel-dark small text-uppercase">Colleague's Email</label>
+                        <input type="email" class="form-control form-control-lg rounded-4 pastel-input fs-6 shadow-sm" id="email" name="email" placeholder="e.g. alex@company.com" required>
+                        <div class="form-text text-pastel-muted mt-2"><i class="fas fa-info-circle me-1"></i> User must have a registered account.</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-pastel p-4 bg-pastel-column-bg">
+                    <button type="button" class="btn btn-light rounded-pill px-4 shadow-sm border border-pastel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-pastel-primary rounded-pill px-5 shadow-sm fw-bold">Send Invite</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let isLoadingComments = false;
+        let currentUserId = null; // sẽ được gán từ server
+
+        // Lấy userId hiện tại (có thể gán từ ViewBag hoặc từ API)
+        @{
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        }
+        currentUserId = "@currentUserId";
+
+        function loadComments() {
+            if (isLoadingComments) return;
+            isLoadingComments = true;
+            const projectId = @Model.Id;
+            fetch(`/ProjectDiscussions/GetComments?projectId=${projectId}`)
+                .then(response => response.ok ? response.json() : Promise.reject('HTTP error'))
+                .then(data => {
+                    const container = document.getElementById('chatMessages');
+                    const countSpan = document.getElementById('commentCount');
+                    if (data.success && data.comments && data.comments.length) {
+                        countSpan.innerText = data.comments.length;
+                        container.innerHTML = data.comments.map(c => {
+                            const isMine = (c.userId === currentUserId);
+                            return `
+                                <div class="chat-message d-flex gap-3 ${isMine ? 'justify-content-end' : ''}" data-comment-id="${c.id}">
+                                    ${!isMine ? `
+                                    <div class="avatar-chat rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm border border-white mt-auto" style="width: 34px; height: 34px; background: rgba(99, 102, 241, 0.12); margin-bottom: 22px;">
+                                        <span class="fw-bold" style="color: var(--primary); font-size: 0.8rem;">${c.userName ? c.userName.charAt(0).toUpperCase() : 'U'}</span>
+                                    </div>
+                                    ` : ''}
+                                    <div class="d-flex flex-column ${isMine ? 'align-items-end' : 'align-items-start'}" style="max-width: 75%;">
+                                        ${!isMine ? `<div class="fw-bold text-pastel-muted mb-1 ms-2" style="font-size: 0.75rem;">${escapeHtml(c.userName || 'Unknown')}</div>` : ''}
+                                        <div class="message-wrapper">
+                                            <div class="message-bubble ${isMine ? 'mine' : 'theirs'}">
+                                                <div class="${isMine ? 'text-white' : 'text-pastel-dark'}">${escapeHtml(c.content)}</div>
+                                                ${c.attachmentFileName ? `
+                                                    <div class="mt-2 p-2 rounded-3" style="background: rgba(0,0,0,0.1);">
+                                                        <a href="/uploads/project_discussions/${c.attachmentFileName}" target="_blank" class="text-decoration-none ${isMine ? 'text-white' : 'text-primary'} d-flex align-items-center gap-2">
+                                                            <i class="fas fa-paperclip"></i>
+                                                            <span class="small fw-medium">${escapeHtml(c.attachmentOriginalName)}</span>
+                                                        </a>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                            ${isMine ? `<button type="button" class="delete-message-btn" data-id="${c.id}" title="Delete message"><i class="fas fa-trash-alt"></i></button>` : ''}
+                                        </div>
+                                        <div class="small fw-medium text-muted mt-1 ${isMine ? 'me-2' : 'ms-2'}" style="font-size: 0.7rem; opacity: 0.7;">
+                                            ${new Date(c.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                        // Gắn sự kiện xóa cho các nút mới
+                        document.querySelectorAll('.delete-message-btn').forEach(btn => {
+                            btn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                const commentId = this.dataset.id;
+                                deleteComment(commentId, this);
+                            });
+                        });
+                    } else {
+                        container.innerHTML = `
+                        <div class="d-flex h-100 justify-content-center align-items-center">
+                            <div class="text-center text-pastel-muted w-100">
+                                <div class="mb-3 opacity-25"><i class="fas fa-comment-slash" style="font-size: 4rem;"></i></div>
+                                <h6 class="fw-semibold">No messages yet</h6>
+                                <p class="small mb-0">Be the first to start a conversation.</p>
+                            </div>
+                        </div>`;
+                        countSpan.innerText = '0';
+                    }
+                    // Auto scroll to bottom
+                    container.scrollTop = container.scrollHeight;
+                })
+                .catch(err => {
+                    console.error('Failed to load comments:', err);
+                    document.getElementById('chatMessages').innerHTML = '<div class="alert alert-pastel-danger m-3 border-0 rounded-3 shadow-sm"><i class="fas fa-exclamation-triangle me-2"></i>Failed to load messages.</div>';
+                })
+                .finally(() => isLoadingComments = false);
+        }
+
+        function deleteComment(commentId, btnElement) {
+            if (!confirm('Are you sure you want to delete this message?')) return;
+            const messageDiv = btnElement.closest('.chat-message');
+            // Hiệu ứng fade out
+            messageDiv.style.transition = 'opacity 0.2s ease-out';
+            messageDiv.style.opacity = '0';
+            const formData = new FormData();
+            const token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if(token) formData.append('__RequestVerificationToken', token.value);
+            
+            fetch(`/ProjectDiscussions/DeleteComment/${commentId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Xóa khỏi DOM
+                    messageDiv.remove();
+                    // Cập nhật số lượng tin nhắn
+                    const countSpan = document.getElementById('commentCount');
+                    let currentCount = parseInt(countSpan.innerText);
+                    if (!isNaN(currentCount) && currentCount > 0) {
+                        countSpan.innerText = currentCount - 1;
+                    }
+                    // Nếu không còn tin nhắn nào, hiển thị empty state
+                    const container = document.getElementById('chatMessages');
+                    if (container.children.length === 0) {
+                        container.innerHTML = `
+                        <div class="d-flex h-100 justify-content-center align-items-center">
+                            <div class="text-center text-pastel-muted w-100">
+                                <div class="mb-3 opacity-25"><i class="fas fa-comment-slash" style="font-size: 4rem;"></i></div>
+                                <h6 class="fw-semibold">No messages yet</h6>
+                                <p class="small mb-0">Be the first to start a conversation.</p>
+                            </div>
+                        </div>`;
+                    }
+                } else {
+                    alert(data.message || 'Failed to delete message.');
+                    messageDiv.style.opacity = '1'; // khôi phục nếu lỗi
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error deleting message.');
+                messageDiv.style.opacity = '1';
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Submit comment
+        const form = document.getElementById('commentForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const contentInput = document.getElementById('commentContent');
+                const content = contentInput.value.trim();
+                if (!content) return;
+
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+
+                const formData = new FormData();
+                formData.append('projectId', @Model.Id);
+                formData.append('content', content);
+                if (currentAttachment) {
+                    formData.append('attachment', currentAttachment);
+                }
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                if(token) formData.append('__RequestVerificationToken', token.value);
+
+                fetch('/ProjectDiscussions/AddComment', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        contentInput.value = '';
+                        removeAttachment();
+                        loadComments();
+                    } else {
+                        alert(data.message || 'Failed to post comment.');
+                    }
+                })
+                .catch(err => alert('Error: ' + err.message))
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadComments();
+            setInterval(loadComments, 10000);
+        });
+
+        // Initialize Emojis
+        const emojis = ["😀","😁","😂","🤣","😊","😇","😉","😍","😘","😋","😎","😢","😭","😡","👍","👎","👏","🙏","🔥","❤️","🎉","✅","❌","🚀","👀","💯"];
+        const emojiPicker = document.getElementById('emojiPickerContent');
+        if(emojiPicker) {
+            emojiPicker.innerHTML = emojis.map(e => `<button type="button" class="btn btn-light btn-sm rounded-circle p-1 hover-lift" style="width: 36px; height: 36px; font-size: 1.25rem; line-height: 1;" onclick="insertEmoji('${e}')">${e}</button>`).join('');
+        }
+        function insertEmoji(emoji) {
+            const input = document.getElementById('commentContent');
+            input.value += emoji;
+            input.focus();
+        }
+
+        // Initialize Attachment Logic
+        let currentAttachment = null;
+        document.getElementById('attachmentInput')?.addEventListener('change', function(e) {
+            if(this.files && this.files[0]) {
+                currentAttachment = this.files[0];
+                document.getElementById('attachmentName').textContent = currentAttachment.name;
+                document.getElementById('attachmentPreview').classList.remove('d-none');
+            }
+        });
+        function removeAttachment() {
+            currentAttachment = null;
+            const input = document.getElementById('attachmentInput');
+            if (input) input.value = '';
+            document.getElementById('attachmentPreview')?.classList.add('d-none');
+        }
+    </script>
+}

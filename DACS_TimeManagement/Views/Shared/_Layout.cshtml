@@ -564,6 +564,14 @@
                                 <i class="fas fa-bell"></i>
                                 <span class="notification-badge" id="notifBadge" style="display: none;">0</span>
                             </div>
+                                @* Show current project title next to bell when provided *@
+                                @if (ViewData["ProjectTitle"] != null)
+                                {
+                                    <!-- Project title shown near notification bell (styled like page titles) -->
+                                    <div class="ms-2 d-none d-md-flex align-items-center">
+                                        <span class="page-title mb-0" style="font-size:1rem; background: linear-gradient(135deg, var(--text-dark), var(--text-muted)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">@ViewData["ProjectTitle"]</span>
+                                    </div>
+                                }
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 20px; min-width: 300px;">
                                 <li><h6 class="dropdown-header fw-bold py-3">Notifications</h6></li>
                                 <div id="notifList" style="max-height: 300px; overflow-y: auto;">

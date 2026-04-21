@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 
 namespace DACS_TimeManagement.Models
 {
@@ -11,6 +13,8 @@ namespace DACS_TimeManagement.Models
 
         // Liên kết với Identity User sau này
         public string UserId { get; set; }
+        [ForeignKey("UserId")]
+        public virtual IdentityUser? Owner { get; set; }
         public ICollection<WorkTask> Tasks { get; set; }
 
         // Board lists (columns) for this project (e.g., To Do, Doing, Done)

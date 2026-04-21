@@ -81,11 +81,12 @@ namespace DACS_TimeManagement.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
             
-            // Lấy Project kèm theo Tasks và BoardLists
+            // Lấy Project kèm theo Tasks, BoardLists và Owner
             var projects = await _projectRepo.FindAsync(
                 p => p.Id == id && p.UserId == userId, 
                 p => p.Tasks, 
-                p => p.BoardLists);
+                p => p.BoardLists,
+                p => p.Owner);
             
             var project = projects.FirstOrDefault();
             
@@ -95,6 +96,7 @@ namespace DACS_TimeManagement.Controllers
                 var targetProject = await _context.Projects
                     .Include(p => p.Tasks)
                     .Include(p => p.BoardLists)
+                    .Include(p => p.Owner)
                     .FirstOrDefaultAsync(p => p.Id == id);
                 if (targetProject != null)
                 {
@@ -107,6 +109,7 @@ namespace DACS_TimeManagement.Controllers
 
             // Load danh sách Members để mang ra View
             ViewBag.Members = await _context.ProjectMembers
+                 .Include(pm => pm.User)
                  .Where(pm => pm.ProjectId == id)
                  .ToListAsync();
 
@@ -251,6 +254,15 @@ namespace DACS_TimeManagement.Controllers
 
             TempData["SuccessMessage"] = $"Đã mời {email} tham gia dự án thành công!";
             return RedirectToAction(nameof(Details), new { id = projectId });
+        }
+        public async Task<IActionResult> Kanban(int id)
+        {
+            var project = await _context.Projects
+                .Include(p => p.BoardLists)
+                .Include(p => p.Tasks)
+                    .ThenInclude(t => t.Assignee)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            return View(project);
         }
     }
 }

@@ -1,5 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 
 namespace DACS_TimeManagement.Models
 {
@@ -13,6 +15,9 @@ namespace DACS_TimeManagement.Models
 
         [Required]
         public string UserId { get; set; } // Liên kết đến AspNetUsers (IdentityUser)
+
+        [ForeignKey("UserId")]
+        public virtual IdentityUser? User { get; set; }
 
         public string Role { get; set; } = "Member"; // Ví dụ: "Owner", "Admin", "Member"
         
