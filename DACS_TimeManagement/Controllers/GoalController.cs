@@ -68,7 +68,7 @@ namespace DACS_TimeManagement.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateProgress(int id, int value)
+        public async Task<IActionResult> UpdateProgress(int id, double value)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var goal = await _goalRepo.GetByIdAsync(id, userId);
@@ -76,11 +76,70 @@ namespace DACS_TimeManagement.Controllers
             {
                 goal.CurrentValue = value;
                 
+                UpdateStreak(goal);
+                
                 _goalRepo.Update(goal);
                 await _goalRepo.SaveAsync();
-                return Json(new { success = true });
+                
+                var forecast = ForecastGoal(goal);
+                return Json(new { success = true, forecastStatus = forecast, streak = goal.CurrentStreak });
             }
             return Json(new { success = false });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CompletePomodoroSession(int id, double progressValue = 1)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var goal = await _goalRepo.GetByIdAsync(id, userId);
+            if (goal != null)
+            {
+                goal.CurrentValue += progressValue;
+                if (goal.CurrentValue > goal.TargetValue) goal.CurrentValue = goal.TargetValue;
+                
+                UpdateStreak(goal);
+
+                _goalRepo.Update(goal);
+                await _goalRepo.SaveAsync();
+                
+                var forecast = ForecastGoal(goal);
+                return Json(new { success = true, newValue = goal.CurrentValue, forecastStatus = forecast, streak = goal.CurrentStreak });
+            }
+            return Json(new { success = false, message = "Goal not found" });
+        }
+
+        private void UpdateStreak(PersonalGoal goal)
+        {
+            var today = DateTime.Now.Date;
+            if (goal.LastUpdated.HasValue)
+            {
+                var lastDate = goal.LastUpdated.Value.Date;
+                if (lastDate == today.AddDays(-1))
+                {
+                    goal.CurrentStreak++;
+                }
+                else if (lastDate < today.AddDays(-1))
+                {
+                    goal.CurrentStreak = 0;
+                }
+            }
+            goal.LastUpdated = DateTime.Now;
+        }
+
+        private string ForecastGoal(PersonalGoal goal)
+        {
+            if (goal.CurrentValue >= goal.TargetValue) return "Achieved";
+            
+            var daysPassed = (DateTime.Now - goal.StartDate).TotalDays;
+            if (daysPassed < 1) return "On Track"; // Chưa đủ dữ liệu
+            
+            double velocity = goal.CurrentValue / daysPassed;
+            if (velocity <= 0) return "At Risk"; 
+            
+            var daysRemaining = (goal.TargetValue - goal.CurrentValue) / velocity;
+            var estimatedFinishDate = DateTime.Now.AddDays(daysRemaining);
+            
+            return estimatedFinishDate > goal.TargetDate ? "At Risk" : "On Track";
         }
 
         public async Task<IActionResult> Delete(int id)

@@ -35,6 +35,15 @@
                                 <span asp-validation-for="GoalName" class="text-danger small"></span>
                             </div>
 
+                            <!-- Description -->
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label fw-semibold mb-2">
+                                    <i class="fas fa-align-left text-pastel-primary me-1"></i> Description
+                                </label>
+                                <textarea asp-for="Description" class="form-control rounded-3" rows="3" placeholder="Briefly describe why this goal is important..."></textarea>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
+
                             <!-- Target & Current Value -->
                             <div class="col-md-6">
                                 <label asp-for="TargetValue" class="form-label fw-semibold mb-2">

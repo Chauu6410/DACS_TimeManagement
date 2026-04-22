@@ -1,203 +1,428 @@
 @model IEnumerable<DACS_TimeManagement.Models.PersonalGoal>
 @{
     ViewData["Title"] = "Personal Goals";
+    var totalGoals = Model.Count();
+    var completedGoals = Model.Count(g => g.CurrentValue >= g.TargetValue);
+    var overallProgress = totalGoals == 0 ? 0 : (completedGoals * 100 / totalGoals);
 }
 
-<div class="container goals-container" data-aos="fade-up">
-    <!-- Actions -->
-    <div class="d-flex justify-content-end mb-3">
-        <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift">
+<div class="container goals-container py-4" data-aos="fade-up">
+    <!-- Header thống kê nhanh (giữ nguyên) -->
+    <div class="row g-3 mb-5">
+        <div class="col-md-3 col-6">
+            <div class="stat-card bg-pastel-soft rounded-4 p-3 text-center shadow-sm">
+                <i class="fas fa-flag-checkered fa-2x text-pastel-primary"></i>
+                <h3 class="fw-bold mt-2 mb-0 text-pastel-dark">@completedGoals / @totalGoals</h3>
+                <small class="text-pastel-muted">Goals achieved</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card bg-pastel-soft rounded-4 p-3 text-center shadow-sm">
+                <i class="fas fa-fire fa-2x text-danger"></i>
+                <h3 class="fw-bold mt-2 mb-0 text-pastel-dark" id="globalStreak">@(ViewBag.GlobalStreak ?? 0)</h3>
+                <small class="text-pastel-muted">Day streak 🔥</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card bg-pastel-soft rounded-4 p-3 text-center shadow-sm">
+                <i class="fas fa-chart-line fa-2x text-pastel-primary"></i>
+                <h3 class="fw-bold mt-2 mb-0 text-pastel-dark">@overallProgress%</h3>
+                <small class="text-pastel-muted">Overall progress</small>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card bg-pastel-soft rounded-4 p-3 text-center shadow-sm">
+                <i class="fas fa-hourglass-half fa-2x text-warning"></i>
+                <h3 class="fw-bold mt-2 mb-0 text-pastel-dark" id="atRiskCount">0</h3>
+                <small class="text-pastel-muted">At risk goals</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 py-2 shadow-sm fw-semibold">
             <i class="fas fa-plus me-2"></i>Set New Goal
         </a>
+        <button class="btn btn-outline-pastel rounded-pill px-4 py-2" id="refreshBtn">
+            <i class="fas fa-sync-alt me-2"></i>Sync Now
+        </button>
     </div>
 
     <!-- Goals Grid -->
-    <div class="row g-4">
+    <div class="row g-4" id="goalsGrid">
         @if (!Model.Any())
         {
             <div class="col-12">
                 <div class="empty-state-card card border-0 shadow-lg rounded-4 p-5 text-center">
-                    <i class="fas fa-trophy fa-4x text-pastel-muted opacity-50 mb-3"></i>
+                    <i class="fas fa-bullseye fa-4x text-pastel-muted opacity-50 mb-3"></i>
                     <h4 class="fw-semibold text-pastel-dark">No goals set yet!</h4>
-                    <p class="text-pastel-muted mb-4">Setting goals helps you track long-term achievements and stay motivated.</p>
+                    <p class="text-pastel-muted mb-4">Define your first goal and let the smart engine help you achieve it.</p>
                     <a asp-action="Create" class="btn btn-pastel-primary rounded-pill mx-auto px-4">Set First Goal</a>
                 </div>
             </div>
         }
-
-        @foreach (var goal in Model)
+        else
         {
-            var isAchieved = goal.CurrentValue >= goal.TargetValue;
-            var statusText = isAchieved ? "Achieved" : "In Progress";
-            var statusClass = isAchieved ? "pastel-success" : "pastel-primary";
-            var progressPercent = goal.TargetValue == 0 ? 0 : (int)Math.Min(100, (double)goal.CurrentValue / goal.TargetValue * 100);
-            var ringColor = isAchieved ? "var(--pastel-success-dark)" : "var(--pastel-primary-dark)";
-            
-            <div class="col-md-6 col-lg-4">
-                <div class="goal-card card border-0 shadow-md rounded-4 overflow-hidden hover-lift">
-                    <!-- Card Header -->
-                    <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
-                        <span class="badge @statusClass rounded-pill px-3 py-1 fw-semibold">@statusText</span>
-                        <div class="dropdown">
-                            <button class="btn btn-sm rounded-circle border-0 bg-pastel-soft" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-ellipsis-v text-pastel-muted"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
-                                <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@goal.Id"><i class="fas fa-edit me-2 text-pastel-primary"></i>Edit</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@goal.Id"><i class="fas fa-trash-alt me-2"></i>Delete</a></li>
-                            </ul>
+            @foreach (var goal in Model)
+            {
+                var isAchieved = goal.CurrentValue >= goal.TargetValue;
+                var progressPercent = goal.TargetValue == 0 ? 0 : (int)Math.Min(100, (double)goal.CurrentValue / goal.TargetValue * 100);
+                var daysLeft = (goal.TargetDate - DateTime.Now).Days;
+                <div class="col-md-6 col-lg-4 goal-card-wrapper" data-goal-id="@goal.Id">
+                    <div class="goal-card card border-0 shadow-md rounded-4 overflow-hidden hover-lift" id="goal-card-@goal.Id"
+                         data-id="@goal.Id"
+                         data-target="@goal.TargetValue"
+                         data-current="@goal.CurrentValue"
+                         data-start="@goal.StartDate.ToString("o")"
+                         data-deadline="@goal.TargetDate.ToString("o")"
+                         data-streak="@goal.CurrentStreak">
+                        
+                        <!-- Card Header với icon sửa/xóa -->
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-start">
+                            <div class="d-flex flex-wrap gap-2">
+                                @if (!isAchieved)
+                                {
+                                    <span class="badge risk-badge bg-danger text-white rounded-pill px-3 py-1" id="risk-badge-@goal.Id" style="display: none;">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>At Risk
+                                    </span>
+                                }
+                                @if (isAchieved)
+                                {
+                                    <span class="badge pastel-success rounded-pill px-3 py-1">
+                                        <i class="fas fa-check-circle me-1"></i>Completed
+                                    </span>
+                                }
+                            </div>
+                            <div class="d-flex gap-2">
+                                <!-- Edit icon -->
+                                <a asp-action="Edit" asp-route-id="@goal.Id" class="btn-icon-action" title="Edit goal">
+                                    <i class="fas fa-pencil-alt text-pastel-primary"></i>
+                                </a>
+                                <!-- Delete icon (AJAX) -->
+                                <button type="button" class="btn-icon-action delete-goal-btn" data-id="@goal.Id" data-name="@goal.GoalName" title="Delete goal">
+                                    <i class="fas fa-trash-alt text-danger"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body p-4 text-center">
+                            <h5 class="fw-bold text-pastel-dark mb-1 text-truncate" title="@goal.GoalName">@goal.GoalName</h5>
+                            <p class="text-pastel-muted small mb-4">
+                                <i class="far fa-calendar-alt me-1"></i>Due: @goal.TargetDate.ToString("MMM dd, yyyy")
+                            </p>
+
+                            <!-- Progress Ring + Hover days -->
+                            <div class="position-relative d-inline-block mb-3 hover-show-days" data-id="@goal.Id">
+                                <svg width="120" height="120">
+                                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pastel-border)" stroke-width="8"></circle>
+                                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pastel-primary-dark)" stroke-width="8" id="goal-ring-@goal.Id"
+                                            stroke-dasharray="314.16" stroke-dashoffset="@(314.16 - (314.16 * progressPercent / 100))" 
+                                            style="transition: stroke-dashoffset 0.6s ease; transform: rotate(-90deg); transform-origin: 50% 50%;"></circle>
+                                </svg>
+                                <div class="position-absolute top-50 start-50 translate-middle text-center w-100">
+                                    <span class="fs-2 fw-bold text-pastel-primary" id="goal-pct-@goal.Id">@progressPercent%</span>
+                                    <div class="text-pastel-muted small fw-bold" id="goal-days-@goal.Id" style="display: none;">
+                                        @(daysLeft >= 0 ? $"{daysLeft} days left" : $"{-daysLeft} overdue")
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats: Current / Target + Streak -->
+                            <div class="stats-pill d-flex justify-content-center align-items-center gap-2 bg-pastel-soft rounded-3 p-2 mx-auto flex-wrap">
+                                <div class="text-center px-2">
+                                    <span class="d-block fs-5 fw-bold text-pastel-primary" id="goal-curr-@goal.Id">@goal.CurrentValue</span>
+                                    <small class="text-pastel-muted">Current</small>
+                                </div>
+                                <div class="text-pastel-muted fw-bold">/</div>
+                                <div class="text-center px-2">
+                                    <span class="d-block fs-5 fw-bold text-pastel-dark">@goal.TargetValue</span>
+                                    <small class="text-pastel-muted">Target</small>
+                                </div>
+                                <div class="vr d-none d-md-block"></div>
+                                <div class="text-center px-2 @(goal.CurrentStreak > 0 ? "text-danger" : "text-pastel-muted")" id="streak-container-@goal.Id">
+                                    <span class="d-block fs-5 fw-bold">
+                                        <i class="fas fa-fire @(goal.CurrentStreak > 0 ? "streak-fire" : "")"></i>
+                                        <span id="streak-@goal.Id">@goal.CurrentStreak</span>
+                                    </span>
+                                    <small class="text-uppercase">Streak</small>
+                                </div>
+                            </div>
+
+                            <!-- Smart Estimation: ETA / Risk info -->
+                            <div class="mt-3 small text-pastel-muted" id="eta-info-@goal.Id">
+                                <i class="fas fa-chart-simple"></i> Estimated completion: <span class="fw-semibold text-pastel-dark" id="eta-date-@goal.Id">--</span>
+                            </div>
+
+                            <!-- Action Buttons (Pomodoro & Task Sync) -->
+                            <div class="d-flex justify-content-center gap-2 mt-3">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill pomo-trigger" data-id="@goal.Id">
+                                    <i class="fas fa-stopwatch me-1"></i>🍅 Pomodoro
+                                </button>
+                                <button class="btn btn-sm btn-outline-success rounded-pill task-trigger" data-id="@goal.Id">
+                                    <i class="fas fa-check-circle me-1"></i>Task Done
+                                </button>
+                            </div>
+                            <small class="text-pastel-muted d-block mt-2">
+                                <i class="fas fa-shield-alt me-1"></i>Verified actions only
+                            </small>
                         </div>
                     </div>
-
-                    <!-- Card Body -->
-                    <div class="card-body p-4 text-center">
-                        <h5 class="fw-bold text-pastel-dark mb-1 text-truncate" title="@goal.GoalName">@goal.GoalName</h5>
-                        <p class="text-pastel-muted small mb-4">
-                            <i class="far fa-calendar-alt me-1"></i>Due: @goal.TargetDate.ToString("MMM dd, yyyy")
-                        </p>
-
-                        <!-- Progress Ring Pastel -->
-                        <div class="position-relative d-inline-block mb-4">
-                            <svg width="120" height="120">
-                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--pastel-border)" stroke-width="8"></circle>
-                                <circle cx="60" cy="60" r="50" fill="none" stroke="@ringColor" stroke-width="8" 
-                                        stroke-dasharray="314.16" stroke-dashoffset="@(314.16 - (314.16 * progressPercent / 100))" 
-                                        style="transition: stroke-dashoffset 0.6s ease; transform: rotate(-90deg); transform-origin: 50% 50%;"></circle>
-                            </svg>
-                            <div class="position-absolute top-50 start-50 translate-middle text-center">
-                                <span class="fs-2 fw-bold text-pastel-primary">@progressPercent%</span>
-                            </div>
-                        </div>
-
-                        <!-- Current / Target Stats -->
-                        <div class="stats-pill d-flex justify-content-center align-items-center gap-3 bg-pastel-soft rounded-3 p-2 mx-auto" style="max-width: 85%;">
-                            <div class="text-end" style="min-width: 60px;">
-                                <span class="d-block fs-4 fw-bold text-pastel-primary">@goal.CurrentValue</span>
-                                <small class="text-pastel-muted text-uppercase fw-semibold" style="font-size: 0.65rem;">Current</small>
-                            </div>
-                            <div class="text-pastel-muted fw-bold">/</div>
-                            <div class="text-start" style="min-width: 60px;">
-                                <span class="d-block fs-4 fw-bold text-pastel-dark">@goal.TargetValue</span>
-                                <small class="text-pastel-muted text-uppercase fw-semibold" style="font-size: 0.65rem;">Target</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Update Footer (if not achieved) -->
-                    @if (!isAchieved)
-                    {
-                        <div class="card-footer bg-transparent border-top border-pastel p-3">
-                            <label class="form-label small fw-semibold text-pastel-muted mb-1">
-                                <i class="fas fa-sliders-h me-1"></i>Quick Update
-                            </label>
-                            <div class="d-flex align-items-center gap-3">
-                                <input type="range" class="form-range pastel-range flex-grow-1" 
-                                       min="0" max="@goal.TargetValue" value="@goal.CurrentValue" 
-                                       id="slider-@goal.Id" onchange="updateGoalProgress(@goal.Id, this.value)">
-                                <span class="badge bg-pastel-soft text-pastel-dark rounded-pill px-3 py-1" id="val-@goal.Id" style="min-width: 55px;">@goal.CurrentValue</span>
-                            </div>
-                        </div>
-                    }
                 </div>
-            </div>
+            }
         }
     </div>
 </div>
 
+<!-- Anti-forgery token -->
+@Html.AntiForgeryToken()
+
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <script>
-        function updateGoalProgress(id, value) {
-            const badge = document.getElementById('val-'+id);
-            if (badge) badge.innerText = value;
-            
-            fetch('/Goal/UpdateProgress?id=' + id + '&value=' + value, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Reload to update progress ring and status
-                    location.reload();
-                } else {
-                    alert('Error updating progress: ' + (data.message || 'Unknown error'));
-                }
-            })
-            .catch(err => console.error('Error:', err));
+        // ======================= GLOBAL =======================
+        const getToken = () => document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        let pollInterval = null;
+
+        // Toast thông báo
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed bottom-0 end-0 m-3 p-3 rounded-3 shadow-lg animate__animated animate__fadeInUp';
+            toast.style.background = type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : '#ef4444';
+            toast.style.color = 'white';
+            toast.style.zIndex = 9999;
+            toast.style.minWidth = '250px';
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
         }
+
+        // Cập nhật UI cho một goal
+        function updateGoalUI(goalData) {
+            const id = goalData.id;
+            const card = document.getElementById(`goal-card-${id}`);
+            if (!card) return;
+            const target = parseFloat(card.getAttribute('data-target'));
+            const current = goalData.currentValue;
+            const percent = target === 0 ? 0 : Math.min(100, Math.floor((current / target) * 100));
+            const isAchieved = current >= target;
+
+            // Cập nhật số
+            const currSpan = document.getElementById(`goal-curr-${id}`);
+            if (currSpan) currSpan.innerText = current;
+            const pctSpan = document.getElementById(`goal-pct-${id}`);
+            if (pctSpan) pctSpan.innerText = percent + '%';
+            const ring = document.getElementById(`goal-ring-${id}`);
+            if (ring) {
+                const circumference = 314.16;
+                ring.style.strokeDashoffset = circumference - (circumference * percent / 100);
+                if (isAchieved) ring.setAttribute('stroke', 'var(--pastel-success-dark)');
+                else if (goalData.isAtRisk) ring.setAttribute('stroke', '#ef4444');
+                else ring.setAttribute('stroke', 'var(--pastel-primary-dark)');
+            }
+
+            // Streak
+            const streakSpan = document.getElementById(`streak-${id}`);
+            const streakContainer = document.getElementById(`streak-container-${id}`);
+            if (streakSpan) streakSpan.innerText = goalData.streak;
+            if (streakContainer) {
+                if (goalData.streak > 0) {
+                    streakContainer.classList.remove('text-pastel-muted');
+                    streakContainer.classList.add('text-danger');
+                    const fireIcon = streakContainer.querySelector('.fa-fire');
+                    if (fireIcon) fireIcon.classList.add('streak-fire');
+                } else {
+                    streakContainer.classList.add('text-pastel-muted');
+                    streakContainer.classList.remove('text-danger');
+                    const fireIcon = streakContainer.querySelector('.fa-fire');
+                    if (fireIcon) fireIcon.classList.remove('streak-fire');
+                }
+            }
+
+            // Risk badge
+            const riskBadge = document.getElementById(`risk-badge-${id}`);
+            if (riskBadge) {
+                if (goalData.isAtRisk && !isAchieved) riskBadge.style.display = 'inline-block';
+                else riskBadge.style.display = 'none';
+            }
+
+            // ETA
+            const etaSpan = document.getElementById(`eta-date-${id}`);
+            if (etaSpan && goalData.estimatedCompletionDate) {
+                const etaDate = new Date(goalData.estimatedCompletionDate);
+                etaSpan.innerText = etaDate.toLocaleDateString();
+            } else if (etaSpan) etaSpan.innerText = '--';
+
+            // Confetti khi đạt 100%
+            const oldPercent = parseFloat(card.getAttribute('data-old-pct') || '0');
+            if (percent === 100 && oldPercent < 100) {
+                canvasConfetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#fbbf24'] });
+                showToast(`🎉 Goal "${goalData.goalName}" achieved! Great job!`, 'success');
+            }
+            card.setAttribute('data-old-pct', percent);
+        }
+
+        // Sync tất cả goals
+        async function syncAllGoals() {
+            try {
+                const response = await fetch('/Goal/GetAllGoalsStatus', {
+                    headers: { 'RequestVerificationToken': getToken() }
+                });
+                if (!response.ok) throw new Error('Sync failed');
+                const goals = await response.json();
+                let atRiskCount = 0;
+                for (const g of goals) {
+                    updateGoalUI(g);
+                    if (g.isAtRisk && g.currentValue < g.targetValue) atRiskCount++;
+                }
+                const riskCounter = document.getElementById('atRiskCount');
+                if (riskCounter) riskCounter.innerText = atRiskCount;
+                // Global streak
+                const streakResp = await fetch('/Goal/GetGlobalStreak');
+                if (streakResp.ok) {
+                    const streakData = await streakResp.json();
+                    const globalSpan = document.getElementById('globalStreak');
+                    if (globalSpan) globalSpan.innerText = streakData.streak;
+                }
+            } catch (err) {
+                console.warn('Sync error:', err);
+            }
+        }
+
+        // Ghi nhận hành động (Pomodoro / Task)
+        async function recordAction(goalId, actionType) {
+            try {
+                const response = await fetch('/Goal/RecordProgressAction', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': getToken()
+                    },
+                    body: JSON.stringify({ goalId: goalId, action: actionType })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast(`✅ ${actionType === 'pomodoro' ? 'Pomodoro session' : 'Task completion'} recorded! +${data.incrementValue} progress`, 'success');
+                    updateGoalUI(data.updatedGoal);
+                    const streakSpan = document.getElementById(`streak-${goalId}`);
+                    if (streakSpan) streakSpan.innerText = data.updatedGoal.streak;
+                } else {
+                    showToast(data.message || 'Action rejected: verification failed', 'error');
+                }
+            } catch (err) {
+                showToast('Network error', 'error');
+            }
+        }
+
+        // Xóa goal bằng AJAX (SweetAlert confirm)
+        async function deleteGoal(goalId, goalName) {
+            const result = await Swal.fire({
+                title: 'Delete Goal',
+                text: `Are you sure you want to delete "${goalName}"? This action cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            });
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/Goal/Delete/${goalId}`, {
+                        method: 'POST',
+                        headers: { 'RequestVerificationToken': getToken() }
+                    });
+                    if (response.ok) {
+                        const card = document.getElementById(`goal-card-${goalId}`);
+                        if (card) card.closest('.goal-card-wrapper')?.remove();
+                        showToast('Goal deleted successfully', 'success');
+                        // Cập nhật lại số lượng goals
+                        const remaining = document.querySelectorAll('.goal-card-wrapper').length;
+                        const totalSpan = document.querySelector('.stat-card .fw-bold');
+                        if (totalSpan && remaining !== undefined) {
+                            const completed = document.querySelectorAll('.goal-card .badge.pastel-success').length;
+                            totalSpan.innerText = `${completed} / ${remaining}`;
+                        }
+                    } else {
+                        showToast('Delete failed', 'error');
+                    }
+                } catch (err) {
+                    showToast('Error deleting goal', 'error');
+                }
+            }
+        }
+
+        // Hover hiển thị ngày còn lại
+        document.querySelectorAll('.hover-show-days').forEach(el => {
+            const id = el.getAttribute('data-id');
+            const pctDiv = document.getElementById(`goal-pct-${id}`);
+            const daysDiv = document.getElementById(`goal-days-${id}`);
+            if (!pctDiv || !daysDiv) return;
+            el.addEventListener('mouseenter', () => { pctDiv.style.display = 'none'; daysDiv.style.display = 'block'; });
+            el.addEventListener('mouseleave', () => { pctDiv.style.display = 'block'; daysDiv.style.display = 'none'; });
+        });
+
+        // Gắn sự kiện cho các nút Pomodoro, Task
+        document.querySelectorAll('.pomo-trigger').forEach(btn => {
+            btn.addEventListener('click', () => recordAction(btn.getAttribute('data-id'), 'pomodoro'));
+        });
+        document.querySelectorAll('.task-trigger').forEach(btn => {
+            btn.addEventListener('click', () => recordAction(btn.getAttribute('data-id'), 'task'));
+        });
+
+        // Gắn sự kiện xóa
+        document.querySelectorAll('.delete-goal-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const id = btn.getAttribute('data-id');
+                const name = btn.getAttribute('data-name');
+                deleteGoal(id, name);
+            });
+        });
+
+        // Nút refresh
+        document.getElementById('refreshBtn')?.addEventListener('click', () => {
+            syncAllGoals();
+            showToast('Syncing goals...', 'success');
+        });
+
+        // Khởi tạo polling
+        syncAllGoals();
+        pollInterval = setInterval(syncAllGoals, 30000);
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) clearInterval(pollInterval);
+        });
     </script>
 }
 
 <style>
-    /* Pastel Goals Styles - đồng bộ với toàn bộ hệ thống */
+    /* ========== ĐỒNG BỘ STYLE CŨ + CẢI TIẾN ========== */
     .goals-container {
         max-width: 1400px;
-        margin: -1rem auto 0;
-        padding: 0;
+        margin: 0 auto;
+        padding: 0 1rem;
     }
-
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--pastel-primary-dark, #6366f1), #4f46e5);
+    .stat-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: var(--pastel-card-bg, #ffffff);
+        border: 1px solid var(--pastel-border, #e2e8f0);
     }
-
-    .icon-circle {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 30px;
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
     }
-    .bg-pastel-primary-soft {
-        background: rgba(99, 102, 241, 0.12);
-    }
-    .text-pastel-primary {
+    .btn-outline-pastel {
+        border: 1px solid var(--pastel-primary-dark, #818cf8);
         color: var(--pastel-primary-dark, #818cf8);
-    }
-    .text-pastel-dark {
-        color: var(--pastel-dark, #1e293b);
-    }
-    .text-pastel-muted {
-        color: var(--pastel-muted, #64748b);
-    }
-    .bg-pastel-soft {
-        background: var(--pastel-soft, #f1f5f9);
-    }
-    .border-pastel {
-        border-color: var(--pastel-border, #e2e8f0) !important;
-    }
-
-    /* Buttons & Badges Pastel */
-    .btn-pastel-primary {
-        background: var(--pastel-primary, #a5b4fc);
-        color: #1e293b;
-        border: none;
+        background: transparent;
         transition: all 0.2s;
-        font-weight: 500;
     }
-    .btn-pastel-primary:hover {
+    .btn-outline-pastel:hover {
         background: var(--pastel-primary-dark, #818cf8);
         color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
     }
-    .badge.pastel-primary {
-        background: #e0e7ff;
-        color: #4f46e5;
-    }
-    .badge.pastel-success {
-        background: #dcfce7;
-        color: #16a34a;
-    }
-    .pastel-success-dark {
-        color: #22c55e;
-    }
-
-    /* Goal Card */
     .goal-card {
         background: var(--pastel-card-bg, #ffffff);
         border: 1px solid var(--pastel-border, #e5e7eb);
@@ -207,83 +432,66 @@
         transform: translateY(-5px);
         box-shadow: 0 15px 30px -12px rgba(0, 0, 0, 0.1);
     }
-
-    .stats-pill {
-        background: var(--pastel-soft, #f8fafc);
-    }
-
-    /* Range Slider Pastel */
-    .pastel-range {
-        height: 6px;
-        border-radius: 10px;
-        background: var(--pastel-border, #e2e8f0);
-    }
-    .pastel-range::-webkit-slider-thumb {
-        background: var(--pastel-primary-dark, #818cf8);
-        width: 16px;
-        height: 16px;
+    .btn-icon-action {
+        background: none;
+        border: none;
+        padding: 0.25rem 0.5rem;
         border-radius: 50%;
+        transition: all 0.2s;
         cursor: pointer;
-        transition: transform 0.1s;
+        font-size: 1.1rem;
+        line-height: 1;
     }
-    .pastel-range::-webkit-slider-thumb:hover {
-        transform: scale(1.2);
+    .btn-icon-action:hover {
+        background: rgba(0,0,0,0.05);
+        transform: scale(1.1);
     }
-
-    /* Empty State */
-    .empty-state-card {
-        background: var(--pastel-card-bg, #ffffff);
-        border: 1px solid var(--pastel-border, #e5e7eb);
+    .streak-fire {
+        animation: burn 1.5s infinite alternate;
+        text-shadow: 0 0 5px rgba(239,68,68,0.5);
     }
-
-    /* Dark Mode Variables */
-    body.theme-dark {
-        --pastel-primary: #818cf8;
-        --pastel-primary-dark: #6366f1;
-        --pastel-primary-soft: #1e293b;
-        --pastel-success-dark: #4ade80;
-        --pastel-border: #334155;
-        --pastel-card-bg: #1e293b;
-        --pastel-dark: #f1f5f9;
-        --pastel-muted: #94a3b8;
-        --pastel-soft: #0f172a;
+    @@keyframes burn {
+        0% { transform: scale(1); opacity: 0.8; }
+        100% { transform: scale(1.2); opacity: 1; color: #f97316; }
     }
-    body.theme-dark .badge.pastel-primary {
-        background: #1e293b;
-        color: #a5b4fc;
+    .risk-badge {
+        animation: pulseWarning 2s infinite;
+    }
+    @@keyframes pulseWarning {
+        0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+        100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    }
+    .bg-pastel-soft {
+        background-color: var(--pastel-soft, #f8fafc);
+    }
+    body.theme-dark .bg-pastel-soft {
+        background-color: #1e293b;
+    }
+    /* Đảm bảo tương phản chữ */
+    .text-pastel-dark {
+        color: var(--pastel-dark, #1e293b);
+    }
+    body.theme-dark .text-pastel-dark {
+        color: #f1f5f9;
+    }
+    .text-pastel-muted {
+        color: var(--pastel-muted, #64748b);
+    }
+    body.theme-dark .text-pastel-muted {
+        color: #94a3b8;
+    }
+    .badge.pastel-success {
+        background: #dcfce7;
+        color: #166534;
     }
     body.theme-dark .badge.pastel-success {
         background: #14532d;
         color: #bbf7d0;
     }
-    body.theme-dark .stats-pill {
-        background: #0f172a;
-    }
-    body.theme-dark .pastel-range {
-        background: #334155;
-    }
-
     /* Responsive */
     @@media (max-width: 768px) {
-        .goals-container {
-            padding: 0 0.5rem;
-        }
-        .icon-circle {
-            width: 40px;
-            height: 40px;
-        }
-        .goal-card .card-body {
-            padding: 1.25rem;
-        }
-        svg {
-            width: 100px;
-            height: 100px;
-        }
-        .stats-pill {
-            gap: 1rem !important;
-        }
-        .stats-pill .fs-4 {
-            font-size: 1.3rem;
-        }
+        .stats-pill .vr { display: none; }
+        .btn-icon-action { padding: 0.2rem 0.4rem; }
     }
 </style>
