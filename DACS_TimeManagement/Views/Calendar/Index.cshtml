@@ -38,8 +38,8 @@
                 <a asp-controller="WorkTask" asp-action="Create" class="btn btn-sm btn-primary-soft w-100 rounded-pill mb-2">
                     + Add Task
                 </a>
-                <button type="button" class="btn btn-sm btn-outline-pastel w-100 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#autoPlanModal">
-                    🪄 Tối ưu lịch ngày mai
+                <button class="btn btn-pastel-primary w-100" data-bs-toggle="modal" data-bs-target="#autoPlanModal">
+                    🪄 Auto-Plan Tomorrow
                 </button>
             </div>
         </div>
@@ -48,20 +48,22 @@
         <div class="col-md-9">
             <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
                 <div class="card-body p-3 p-md-4">
-                    <div id="calendar"></div>
+                    <div id="calendar" style="min-height: 600px;"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Add/Edit Event Modal -->
+<!-- ========================================= -->
+<!-- MODAL: Add / Edit Event (đã được đưa ra ngoài container có overflow) -->
+<!-- ========================================= -->
 <div class="modal fade" id="addEventModal" tabindex="-1" aria-labelledby="addEventModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-xl rounded-4">
             <div class="modal-header bg-gradient-pastel-primary text-white border-0 rounded-top-4">
                 <h5 class="modal-title fw-bold" id="addEventModalLabel">
-                    <i class="fas fa-calendar-plus me-2"></i>Add/Edit Event
+                    <i class="fas fa-calendar-plus me-2"></i>Add / Edit Event
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -115,14 +117,17 @@
             </div>
         </div>
     </div>
+</div>
 
-<!-- Auto-Plan Modal -->
+<!-- ========================================= -->
+<!-- MODAL: Auto-Plan Tomorrow (đã được đưa ra ngoài container có overflow) -->
+<!-- ========================================= -->
 <div class="modal fade" id="autoPlanModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-xl rounded-4">
             <div class="modal-header bg-gradient-pastel-primary text-white border-0 rounded-top-4">
                 <h5 class="modal-title fw-bold">
-                    🪄 Auto-schedule for tomorrow
+                    🪄 Auto-schedule for Tomorrow
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -131,7 +136,7 @@
                     The system will schedule <b>Hard</b> tasks in the morning (8:30-11:30), add a lunch break, and <b>Medium/Easy</b> tasks in the afternoon using the Pomodoro method.
                 </p>
                 <div id="autoTasksList">
-                    <!-- Task Row template -->
+                    <!-- Mẫu một dòng task (sẽ clone khi add) -->
                     <div class="row g-2 align-items-center mb-2 auto-task-row">
                         <div class="col-6">
                             <input type="text" class="form-control rounded-3 task-title" placeholder="Task name" required>
@@ -144,18 +149,18 @@
                             </select>
                         </div>
                         <div class="col-2">
-                            <input type="number" class="form-control rounded-3 task-duration" placeholder="Phút" value="30" min="5" step="5" required>
+                            <input type="number" class="form-control rounded-3 task-duration" placeholder="Minutes" value="30" min="5" step="5" required>
                         </div>
                         <div class="col-1 text-end">
-                            <button type="button" class="btn btn-danger btn-sm rounded-circle px-2 disabled remove-row-btn" onclick="this.closest('.auto-task-row').remove()"><i class="fas fa-times"></i></button>
+                            <button type="button" class="btn btn-danger btn-sm rounded-circle px-2 remove-row-btn" onclick="this.closest('.auto-task-row').remove()"><i class="fas fa-times"></i></button>
                         </div>
                     </div>
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-pastel rounded-pill mt-2" onclick="addAutoTaskRow()">+ Add task</button>
+                <button type="button" class="btn btn-sm btn-outline-pastel rounded-pill mt-2" onclick="addAutoTaskRow()">+ Add Task</button>
             </div>
             <div class="modal-footer border-0 pb-4 pe-4 bg-pastel-indigo rounded-bottom-4">
                 <button type="button" class="btn btn-outline-pastel rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm" onclick="submitAutoPlan()">Start scheduling</button>
+                <button type="button" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm" onclick="submitAutoPlan()">Start Scheduling</button>
             </div>
         </div>
     </div>
@@ -178,15 +183,299 @@
         .fc .fc-event.prj-event { background: #fff1f2 !important; color: #7f1d1d !important; }
         .fc .fc-event:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(2,6,23,0.08); }
     </style>
+    <style>
+        /* FullCalendar event visuals: pastel rounded cards with hover */
+        .fc .fc-event, .fc .fc-daygrid-event, .fc .fc-timegrid-event {
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 6px 8px !important;
+            box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+            white-space: normal !important;
+            overflow: visible !important;
+        }
+
+        /* Specific pastel colors for types */
+        .fc .fc-event.evt-event, .fc .fc-event.evt-event .fc-event-title {
+            color: #1e293b !important;
+        }
+        .fc .fc-event.prj-event, .fc .fc-event.prj-event .fc-event-title {
+            background: #fff1f2 !important;
+            color: #7f1d1d !important;
+        }
+
+        /* Hover effect */
+        .fc .fc-event:hover, .fc .fc-daygrid-event:hover, .fc .fc-timegrid-event:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 14px 30px rgba(2,6,23,0.12);
+            filter: brightness(1.02);
+            z-index: 9999;
+        }
+
+        /* Ensure event title wraps nicely */
+        .fc-event .fc-event-title, .fc-event .fc-event-main { 
+            white-space: normal !important; 
+            line-height: 1.2 !important;
+        }
+
+        /* Calendar Pastel Styles */
+        .calendar-container {
+            max-width: 1600px;
+            margin: -1rem auto 0;
+            padding: 0 1rem;
+        }
+
+        .bg-pastel-indigo {
+            background: linear-gradient(145deg, #f8fafc, #f1f5f9);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+        body.theme-dark .bg-pastel-indigo {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border-color: rgba(129, 140, 248, 0.2);
+        }
+        .shadow-xs {
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 1px 1px rgba(0,0,0,0.02);
+        }
+        .btn-primary-soft {
+            background-color: rgba(99, 102, 241, 0.12);
+            color: #4f46e5;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-primary-soft:hover {
+            background-color: #6366f1;
+            color: white;
+            transform: translateY(-1px);
+        }
+        body.theme-dark .btn-primary-soft {
+            background-color: rgba(129, 140, 248, 0.2);
+            color: #a5b4fc;
+        }
+        body.theme-dark .btn-primary-soft:hover {
+            background-color: #818cf8;
+            color: #0f172a;
+        }
+
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, var(--pastel-primary-dark, #6366f1), #4f46e5);
+        }
+
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 30px;
+        }
+        .bg-pastel-primary-soft {
+            background: rgba(99, 102, 241, 0.12);
+        }
+        .text-pastel-primary {
+            color: var(--pastel-primary-dark, #818cf8);
+        }
+        .text-pastel-dark {
+            color: var(--pastel-dark, #1e293b);
+        }
+        .text-pastel-muted {
+            color: var(--pastel-muted, #64748b);
+        }
+
+        .btn-pastel-primary {
+            background: var(--pastel-primary, #a5b4fc);
+            color: #1e293b;
+            border: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .btn-pastel-primary:hover {
+            background: var(--pastel-primary-dark, #818cf8);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+        }
+        .btn-outline-pastel {
+            border: 1px solid var(--pastel-primary-dark, #818cf8);
+            color: var(--pastel-primary-dark, #818cf8);
+            background: transparent;
+            transition: all 0.2s;
+        }
+        .btn-outline-pastel:hover {
+            background: var(--pastel-primary-dark, #818cf8);
+            color: white;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid var(--pastel-border, #e2e8f0);
+            background-color: var(--pastel-card-bg, #ffffff);
+            color: var(--pastel-dark, #0f172a);
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+            padding: 0.6rem 1rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--pastel-primary-dark, #818cf8);
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
+            outline: none;
+        }
+        .form-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--pastel-muted, #64748b);
+        }
+
+        .fc {
+            --fc-border-color: var(--pastel-border, #e2e8f0);
+            --fc-button-bg-color: var(--pastel-primary, #a5b4fc);
+            --fc-button-border-color: var(--pastel-primary, #a5b4fc);
+            --fc-button-hover-bg-color: var(--pastel-primary-dark, #818cf8);
+            --fc-button-hover-border-color: var(--pastel-primary-dark, #818cf8);
+            --fc-button-active-bg-color: var(--pastel-primary-dark, #818cf8);
+            --fc-button-active-border-color: var(--pastel-primary-dark, #818cf8);
+            --fc-today-bg-color: rgba(99, 102, 241, 0.08);
+            --fc-page-bg-color: var(--pastel-card-bg, #ffffff);
+        }
+        .fc .fc-button-primary {
+            font-weight: 500;
+            text-transform: capitalize;
+            border-radius: 40px;
+            padding: 0.4rem 1rem;
+        }
+        .fc .fc-button-primary:not(:disabled):active,
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+            background: var(--pastel-primary-dark, #818cf8);
+            border-color: var(--pastel-primary-dark, #818cf8);
+        }
+        .fc-theme-standard .fc-scrollgrid,
+        .fc-theme-standard td, 
+        .fc-theme-standard th {
+            border-color: var(--pastel-border, #e2e8f0);
+        }
+        .fc .fc-col-header-cell-cushion,
+        .fc .fc-daygrid-day-number {
+            color: var(--pastel-dark, #0f172a);
+        }
+        .fc .fc-daygrid-day.fc-day-today {
+            background-color: var(--pastel-primary-soft, #e0e7ff);
+        }
+
+        .fc-event {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+
+        .fc-event-title {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            line-height: 1.3 !important;
+        }
+
+        .fc-daygrid-event {
+            min-height: 2.5em !important;
+        }
+
+        .fc-timegrid-event .fc-event-main {
+            white-space: normal !important;
+            word-wrap: break-word !important;
+        }
+
+        body.theme-dark {
+            --pastel-primary: #818cf8;
+            --pastel-primary-dark: #6366f1;
+            --pastel-primary-soft: #1e293b;
+            --pastel-border: #334155;
+            --pastel-card-bg: #1e293b;
+            --pastel-dark: #f1f5f9;
+            --pastel-muted: #94a3b8;
+        }
+        body.theme-dark .fc {
+            --fc-page-bg-color: #1e293b;
+            --fc-border-color: #334155;
+            --fc-today-bg-color: rgba(99, 102, 241, 0.15);
+        }
+        body.theme-dark .fc .fc-col-header-cell-cushion,
+        body.theme-dark .fc .fc-daygrid-day-number {
+            color: #f1f5f9;
+        }
+        body.theme-dark .form-control,
+        body.theme-dark .form-select {
+            background-color: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+        body.theme-dark .btn-outline-pastel {
+            border-color: #818cf8;
+            color: #a5b4fc;
+        }
+        body.theme-dark .btn-outline-pastel:hover {
+            background: #818cf8;
+            color: #1e293b;
+        }
+
+        @@media (max-width: 768px) {
+            .calendar-container {
+                padding: 0 0.5rem;
+            }
+            .icon-circle {
+                width: 40px;
+                height: 40px;
+            }
+            .fc .fc-toolbar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .row.g-4 {
+                --bs-gutter-y: 1rem;
+            }
+            #task-list {
+                max-height: 50vh !important;
+            }
+        }
+        /* Đảm bảo chữ trong modal header Auto-Plan luôn trắng, nổi bật */
+        #autoPlanModal .modal-header.bg-gradient-pastel-primary,
+        #autoPlanModal .modal-header {
+            background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+            color: white !important;
+        }
+        #autoPlanModal .modal-header .modal-title {
+            color: white !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Nút Auto-Plan Tomorrow ở sidebar – tăng độ tương phản */
+        .btn-pastel-primary {
+            background: #6366f1 !important;
+            color: white !important;
+            border: none;
+        }
+        .btn-pastel-primary:hover {
+            background: #4f46e5 !important;
+            color: white !important;
+        }
+        /* Nếu vẫn bị trùng trong dark mode, ép màu chữ trắng */
+        body.theme-dark .btn-pastel-primary {
+            background: #818cf8 !important;
+            color: #0f172a !important; /* chữ đậm trên nền sáng */
+        }
+        body.theme-dark .btn-pastel-primary:hover {
+            background: #a5b4fc !important;
+            color: #0f172a !important;
+        }
+        #autoPlanModal .modal-title i, 
+        #autoPlanModal .modal-title {
+            filter: drop-shadow(0 1px 1px rgba(0,0,0,0.3));
+        }
+    </style>
     <script>
         // Khởi tạo biến toàn cục
         let calendar;
-        let currentEventId = null; // Lưu id sự kiện đang chọn (dạng "evt_123")
-        let isOwner = false; // nếu event thuộc về user đang đăng nhập
-        // currentUserId được cung cấp từ server (ViewBag.CurrentUserId)
+        let currentEventId = null;
+        let isOwner = false;
         const currentUserId = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.CurrentUserId ?? ""));
 
-        // Mảng màu pastel
         const pastelColors = [
             "#6366f1", "#06b6d4", "#f59e0b", "#ec4899", "#10b981", "#ef4444",
             "#8b5cf6", "#f97316", "#14b8a6", "#d946ef", "#6b7280", "#3b82f6"
@@ -200,7 +489,7 @@
             document.getElementById('eventColor').value = getRandomPastelColor();
         }
 
-        // Hàm lưu sự kiện (tạo mới hoặc cập nhật)
+        // Lưu sự kiện (tạo mới hoặc cập nhật)
         function saveEvent() {
             const title = document.getElementById('eventTitle').value.trim();
             const description = document.getElementById('eventDescription').value;
@@ -208,30 +497,23 @@
             const end = document.getElementById('eventEnd').value;
             let color = document.getElementById('eventColor').value;
             
-            // Cắt bỏ hậu tố độ trong suốt (nếu có) để Server chỉ nhận mã màu thuần 7 ký tự
             if (color && color.length > 7) color = color.substring(0, 7);
-
             if (!title || !start || !end) {
                 alert('Please fill in all required fields (Title, Start, End).');
                 return;
             }
 
-            // Sử dụng định dạng local ISO (yyyy-MM-ddTHH:mm) để tránh lệch múi giờ khi truyền tải
-            const startIso = start;
-            const endIso = end;
-
-            // Gửi đi phải khớp 100% với tên thuộc tính trong class CalendarEvent
             const eventData = {
                 Id: currentEventId ? parseInt(currentEventId.toString().replace('evt_', '')) : 0,
                 Subject: title,
                 Description: description,
-                StartTime: startIso,
-                EndTime: endIso,
+                StartTime: start,
+                EndTime: end,
                 ThemeColor: color,
                 IsFullDay: false
             };
 
-            // Nếu user không phải owner và đang chỉnh màu, gọi endpoint cập nhật màu riêng
+            // Nếu không phải owner và chỉ sửa màu
             if (currentEventId && !isOwner && currentEventId.toString().startsWith('evt_')) {
                 const id = currentEventId.toString().replace('evt_', '');
                 fetch(`/Calendar/UpdateEventColor/${id}`, {
@@ -242,8 +524,7 @@
                 .then(r => {
                     if (r.ok) {
                         calendar.refetchEvents();
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('addEventModal'));
-                        modal.hide();
+                        bootstrap.Modal.getInstance(document.getElementById('addEventModal')).hide();
                         document.getElementById('eventForm').reset();
                         currentEventId = null;
                         isOwner = false;
@@ -251,40 +532,31 @@
                         r.json().then(j => alert('Error updating color: ' + (j?.message || r.statusText)));
                     }
                 })
-                .catch(e => { console.error(e); alert('Error: ' + e); });
+                .catch(e => console.error(e));
                 return;
             }
 
-            let url = '/Calendar/SaveEvent';
-            let method = 'POST';
-
-            fetch(url, {
-                method: method,
+            fetch('/Calendar/SaveEvent', {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(eventData)
             })
             .then(async response => {
-                const text = await response.text();
-                let json = {};
-                try { json = text ? JSON.parse(text) : {}; } catch(e) { }
                 if (response.ok) {
-                    calendar.refetchEvents(); // Tải lại lịch
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addEventModal'));
-                    modal.hide();
+                    calendar.refetchEvents();
+                    bootstrap.Modal.getInstance(document.getElementById('addEventModal')).hide();
                     document.getElementById('eventForm').reset();
                     currentEventId = null;
                     isOwner = false;
                 } else {
-                    alert('Error saving event: ' + (json?.message || response.statusText));
+                    const text = await response.text();
+                    alert('Error saving event: ' + text);
                 }
             })
-            .catch(err => {
-                console.error('Error:', err);
-                alert('An error occurred.');
-            });
+            .catch(err => alert('An error occurred: ' + err));
         }
 
-        // Hàm xóa sự kiện
+        // Xóa sự kiện
         function deleteCurrentEvent() {
             if (!currentEventId || !currentEventId.toString().startsWith('evt_')) {
                 alert('No event selected for deletion.');
@@ -301,8 +573,7 @@
                 .then(data => {
                     if (data.success) {
                         calendar.refetchEvents();
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('addEventModal'));
-                        modal.hide();
+                        bootstrap.Modal.getInstance(document.getElementById('addEventModal')).hide();
                         currentEventId = null;
                         isOwner = false;
                     } else {
@@ -313,73 +584,7 @@
             }
         }
 
-        // --- HÀM CHO AUTO PLAN ---
-        function addAutoTaskRow() {
-            const row = document.createElement('div');
-            row.className = 'row g-2 align-items-center mb-2 auto-task-row';
-            row.innerHTML = `
-                <div class="col-6">
-                    <input type="text" class="form-control rounded-3 task-title" placeholder="Task name" required>
-                </div>
-                <div class="col-3">
-                    <select class="form-select rounded-3 task-diff">
-                        <option value="Hard">Hard (Red)</option>
-                        <option value="Medium" selected>Medium (Yellow)</option>
-                        <option value="Easy">Easy (Green)</option>
-                    </select>
-                </div>
-                <div class="col-2">
-                    <input type="number" class="form-control rounded-3 task-duration" placeholder="Phút" value="30" min="5" step="5" required>
-                </div>
-                <div class="col-1 text-end">
-                    <button type="button" class="btn btn-danger btn-sm rounded-circle px-2" onclick="this.closest('.auto-task-row').remove()"><i class="fas fa-times"></i></button>
-                </div>
-            `;
-            document.getElementById('autoTasksList').appendChild(row);
-        }
-
-        function submitAutoPlan() {
-            const rows = document.querySelectorAll('.auto-task-row');
-            const tasks = [];
-            let isValid = true;
-
-            rows.forEach(row => {
-                const title = row.querySelector('.task-title').value.trim();
-                const diff = row.querySelector('.task-diff').value;
-                const duration = parseInt(row.querySelector('.task-duration').value);
-
-                if (!title || !duration || duration < 5) {
-                    isValid = false;
-                } else {
-                    tasks.push({ Title: title, Difficulty: diff, DurationMinutes: duration });
-                }
-            });
-
-            if (!isValid || tasks.length === 0) {
-                Swal.fire('Missing Information', 'Please enter valid task names and duration for all tasks.', 'warning');
-                return;
-            }
-
-            fetch('/Calendar/AutoPlanTomorrow', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(tasks)
-            })
-            .then(async response => {
-                if (response.ok) {
-                    Swal.fire('Success!', 'Tomorrow\\'s schedule has been created automatically.', 'success');
-                    calendar.refetchEvents();
-                    bootstrap.Modal.getInstance(document.getElementById('autoPlanModal')).hide();
-                    document.getElementById('autoTasksList').innerHTML = '';
-                    addAutoTaskRow(); // reset
-                } else {
-                    Swal.fire('Error', 'An error occurred while creating the schedule.', 'error');
-                }
-            })
-            .catch(err => Swal.fire('Error', 'Cannot connect to server.', 'error'));
-        }
-
-        // Cập nhật khi kéo thả/resize sự kiện
+        // Cập nhật khi kéo thả / resize
         function updateEventDates(eventObj, revertFunc) {
             const eventIdRaw = eventObj.id;
             if (!eventIdRaw || !eventIdRaw.toString().startsWith('evt_')) {
@@ -394,7 +599,6 @@
             
             let title = eventObj.title || '';
             if (title.startsWith('📅 ')) title = title.replace('📅 ', '');
-
             const color = eventObj.extendedProps?.rawColor || '#6366f1';
             const hexColor = color.length > 7 ? color.substring(0, 7) : color;
 
@@ -416,20 +620,101 @@
             .then(async response => {
                 if (!response.ok) {
                     const text = await response.text();
-                    let msg = response.statusText;
-                    try { const j = JSON.parse(text); if (j.message) msg = j.message; } catch(e){}
                     revertFunc();
-                    Swal.fire('Error', 'Cannot save changes: ' + msg, 'error');
+                    Swal.fire('Error', 'Cannot save changes: ' + text, 'error');
                 }
             })
             .catch(err => {
-                console.error(err);
                 revertFunc();
                 Swal.fire('Error', 'A system error occurred.', 'error');
             });
         }
 
-        // Khởi tạo FullCalendar khi DOM sẵn sàng
+        // Hàm thêm dòng task cho modal Auto-Plan
+        function addAutoTaskRow() {
+            const container = document.getElementById('autoTasksList');
+            const template = container.querySelector('.auto-task-row').cloneNode(true);
+            template.querySelector('.task-title').value = '';
+            template.querySelector('.task-diff').value = 'Medium';
+            template.querySelector('.task-duration').value = '30';
+            const removeBtn = template.querySelector('.remove-row-btn');
+            if (removeBtn) removeBtn.onclick = function() { this.closest('.auto-task-row').remove(); };
+            container.appendChild(template);
+        }
+
+        // Gửi yêu cầu Auto-Plan (đã fix async)
+        async function submitAutoPlan() {
+            const rows = document.querySelectorAll('#autoTasksList .auto-task-row');
+            const tasks = [];
+            let isValid = true;
+
+            rows.forEach(row => {
+                const title = row.querySelector('.task-title').value.trim();
+                const diff = row.querySelector('.task-diff').value;
+                const duration = parseInt(row.querySelector('.task-duration').value);
+                if (!title || !duration || duration < 5) {
+                    isValid = false;
+                } else {
+                    tasks.push({ Title: title, Difficulty: diff, DurationMinutes: duration });
+                }
+            });
+
+            if (!isValid || tasks.length === 0) {
+                Swal.fire('Missing Information', 'Please enter valid task names and duration (minimum 5 minutes).', 'warning');
+                return;
+            }
+
+            // Lấy token chống giả mạo (nếu có)
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || null;
+            try {
+                const res = await fetch('/Calendar/AutoPlanTomorrow', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'RequestVerificationToken': token } : {})
+                    },
+                    body: JSON.stringify(tasks)
+                });
+                if (res.ok) {
+                    Swal.fire('Success!', "Tomorrow's schedule has been created automatically.", 'success');
+                    calendar.refetchEvents();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('autoPlanModal'));
+                    if (modal) modal.hide();
+                    // Reset lại danh sách tasks (chỉ giữ một dòng trống)
+                    const container = document.getElementById('autoTasksList');
+                    container.innerHTML = '';
+                    const defaultRow = document.createElement('div');
+                    defaultRow.className = 'row g-2 align-items-center mb-2 auto-task-row';
+                    defaultRow.innerHTML = `
+                        <div class="col-6">
+                            <input type="text" class="form-control rounded-3 task-title" placeholder="Task name" required>
+                        </div>
+                        <div class="col-3">
+                            <select class="form-select rounded-3 task-diff">
+                                <option value="Hard">Hard (Red)</option>
+                                <option value="Medium" selected>Medium (Yellow)</option>
+                                <option value="Easy">Easy (Green)</option>
+                            </select>
+                        </div>
+                        <div class="col-2">
+                            <input type="number" class="form-control rounded-3 task-duration" placeholder="Minutes" value="30" min="5" step="5" required>
+                        </div>
+                        <div class="col-1 text-end">
+                            <button type="button" class="btn btn-danger btn-sm rounded-circle px-2" onclick="this.closest('.auto-task-row').remove()"><i class="fas fa-times"></i></button>
+                        </div>
+                    `;
+                    container.appendChild(defaultRow);
+                } else {
+                    const txt = await res.text();
+                    Swal.fire('Error', 'An error occurred while creating the schedule.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Error', 'Cannot connect to server.', 'error');
+            }
+        }
+
+        // Khởi tạo FullCalendar
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
             if (!calendarEl) {
@@ -443,7 +728,6 @@
                     addEvent: {
                         text: '+ Add Event',
                         click: function() {
-                            // Reset form cho sự kiện mới
                             document.getElementById('eventTitle').value = '';
                             document.getElementById('eventDescription').value = '';
                             const now = new Date();
@@ -470,7 +754,7 @@
                 editable: true,
                 selectable: true,
                 eventDrop: function(info) {
-                    const ownerId = (info.event.extendedProps && (info.event.extendedProps.ownerId || info.event.extendedProps.ownerid || info.event.extendedProps.userId)) || '';
+                    const ownerId = (info.event.extendedProps?.ownerId || info.event.extendedProps?.userId) || '';
                     const isEventOwner = (ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
                     if (!isEventOwner) {
                         info.revert();
@@ -480,7 +764,7 @@
                     updateEventDates(info.event, info.revert);
                 },
                 eventResize: function(info) {
-                    const ownerId = (info.event.extendedProps && (info.event.extendedProps.ownerId || info.event.extendedProps.ownerid || info.event.extendedProps.userId)) || '';
+                    const ownerId = (info.event.extendedProps?.ownerId || info.event.extendedProps?.userId) || '';
                     const isEventOwner = (ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
                     if (!isEventOwner) {
                         info.revert();
@@ -491,13 +775,12 @@
                 },
                 eventDidMount: function(info) {
                     let tooltipText = info.event.title;
-                    if (info.event.extendedProps && info.event.extendedProps.description) {
+                    if (info.event.extendedProps?.description) {
                         tooltipText += '\n' + info.event.extendedProps.description;
                     }
                     info.el.setAttribute('title', tooltipText);
                 },
                 select: function(info) {
-                    // Khi kéo chọn khoảng thời gian
                     document.getElementById('eventTitle').value = '';
                     document.getElementById('eventDescription').value = '';
                     document.getElementById('eventTitle').readOnly = false;
@@ -512,9 +795,8 @@
                     document.getElementById('eventEnd').value = localEnd;
                     document.getElementById('eventColor').value = getRandomPastelColor();
                     currentEventId = null;
-                    isOwner = true; // since it's anew event, current user is owner
+                    isOwner = true;
                     document.querySelector('#addEventModal .btn-danger').style.display = 'none';
-                    document.querySelector('#addEventModal .btn-pastel-primary').style.display = 'inline-block';
                     new bootstrap.Modal(document.getElementById('addEventModal')).show();
                 },
                 eventClick: function(info) {
@@ -523,16 +805,14 @@
                     const eventId = rawId !== undefined && rawId !== null ? rawId.toString() : '';
                     let title = info.event.title || '';
 
-                    // TRƯỜNG HỢP 1: NẾU LÀ PROJECT (Vùng màu đỏ có ID bắt đầu bằng prj_)
+                    // Xử lý Project Task (prj_)
                     if (eventId && eventId.startsWith('prj_')) {
                         const realProjectId = eventId.replace('prj_', '');
-
-                        // Dùng SweetAlert2 để hỏi cho chuyên nghiệp (giống trang Admin)
                         Swal.fire({
                             title: title,
                             text: "Do you want to manage this task?",
                             icon: 'info',
-                            showDenyButton: true, // Xóa
+                            showDenyButton: true,
                             showCancelButton: true,
                             confirmButtonText: '<i class="fas fa-edit"></i> Edit',
                             denyButtonText: `<i class="fas fa-trash"></i> Delete`,
@@ -540,72 +820,54 @@
                             denyButtonColor: '#f43f5e'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // Chuyển hướng sang trang Edit Task
                                 window.location.href = '/WorkTask/Edit/' + realProjectId;
                             }
                         });
-                        return; // Thoát hàm, không chạy đoạn code mở Modal bên dưới
+                        return;
                     }
 
-                    // TRƯỜNG HỢP 2: NẾU LÀ EVENT BÌNH THƯỜNG
-                    // Cắt emoji khỏi title (độ dài emoji "📅 " là 3 characters unicode)
+                    // Xử lý Event thường
                     if (title.startsWith('📅 ')) title = title.replace('📅 ', '');
-
-                    // Lấy ownerId từ extendedProps
-                    const ownerId = (info.event.extendedProps && (info.event.extendedProps.ownerId || info.event.extendedProps.ownerid || info.event.extendedProps.userId)) || '';
+                    const ownerId = (info.event.extendedProps?.ownerId || info.event.extendedProps?.userId) || '';
                     isOwner = (ownerId && currentUserId && ownerId.toString() === currentUserId.toString());
 
                     document.getElementById('eventTitle').value = title;
                     document.getElementById('eventDescription').value = info.event.extendedProps?.description || '';
-                    // show project name when available
                     const projName = info.event.extendedProps?.projectName || '';
                     const projElem = document.getElementById('eventProject');
                     if (projName) { projElem.style.display = 'block'; projElem.textContent = 'Project: ' + projName; } else { projElem.style.display = 'none'; projElem.textContent = ''; }
                     
-                    // Chuyển đổi timestamp sang local string để hiển thị trên input (bỏ phần z và timezone offset)
                     const formStart = info.event.start ? new Date(info.event.start.getTime() - info.event.start.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
                     const formEnd = info.event.end ? new Date(info.event.end.getTime() - info.event.end.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
-                    
                     document.getElementById('eventStart').value = formStart;
                     document.getElementById('eventEnd').value = formEnd;
 
-                    const color = info.event.extendedProps?.rawColor || info.event.backgroundColor || info.event.color || '#6366f1';
-                    // Đảm bảo lấy đúng 7 ký tự Hex (#RRGGBB) để khớp chính xác giá trị của thẻ <select>
+                    const color = info.event.extendedProps?.rawColor || info.event.backgroundColor || '#6366f1';
                     const hexColor = color.length > 7 ? color.substring(0, 7).toLowerCase() : color.toLowerCase();
                     document.getElementById('eventColor').value = hexColor;
 
-                    // Nếu không phải owner -> chỉ cho phép chỉnh màu (readonly)
                     document.getElementById('eventTitle').readOnly = !isOwner;
                     document.getElementById('eventDescription').readOnly = !isOwner;
                     document.getElementById('eventStart').readOnly = !isOwner;
                     document.getElementById('eventEnd').readOnly = !isOwner;
-                    // Ẩn/hiện nút Delete
                     document.querySelector('#addEventModal .btn-danger').style.display = isOwner ? 'inline-block' : 'none';
 
                     currentEventId = eventId;
-                    const modal = new bootstrap.Modal(document.getElementById('addEventModal'));
-                    modal.show();
+                    new bootstrap.Modal(document.getElementById('addEventModal')).show();
                 },
                 eventDataTransform: function(eventData) {
                     let rawColor = eventData.color || eventData.backgroundColor || '#6366f1';
-                    
-                    // Lưu lại mã màu nguyên bản để khi click vào Edit sẽ chọn đúng trong Dropdown màu
                     eventData.extendedProps = eventData.extendedProps || {};
                     eventData.extendedProps.rawColor = rawColor;
-
-                    // Nếu là Project Task, bỏ qua vì class prj-event đã xử lý màu CSS cứng
                     if (eventData.className && eventData.className.includes('prj-event')) {
-                         return eventData;
+                        return eventData;
                     }
-
-                    // ThemeColor sang Phong cách Pastel (Thêm alpha Hex ~20% vào background)
                     if (rawColor.length === 7 && rawColor.startsWith('#')) {
-                        eventData.backgroundColor = rawColor + '33'; // Opacity 20%
+                        eventData.backgroundColor = rawColor + '33';
                         eventData.borderColor = 'transparent';
-                        eventData.textColor = '#1e293b'; // Slate 800 - Text đậm dễ đọc
-                        delete eventData.color; // Bỏ mặc định để áp filter mới
+                        eventData.textColor = '#1e293b';
+                        delete eventData.color;
                     }
-                    
                     return eventData;
                 },
                 nowIndicator: true,
@@ -616,266 +878,3 @@
         });
     </script>
 }
-
-<!-
-
-<style>
-    /* FullCalendar event visuals: pastel rounded cards with hover */
-    .fc .fc-event, .fc .fc-daygrid-event, .fc .fc-timegrid-event {
-        border: none !important;
-        border-radius: 10px !important;
-        padding: 6px 8px !important;
-        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06);
-        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-        white-space: normal !important; /* allow wrapping to avoid rotated text */
-        overflow: visible !important;
-    }
-
-    /* Specific pastel colors for types */
-    .fc .fc-event.evt-event, .fc .fc-event.evt-event .fc-event-title {
-        color: #1e293b !important;
-        /* Loại bỏ background: #eef2ff !important; để dùng ThemeColor DB tự động sinh ở dạng Pastel */
-    }
-    .fc .fc-event.prj-event, .fc .fc-event.prj-event .fc-event-title {
-        background: #fff1f2 !important; /* pastel pink */
-        color: #7f1d1d !important;
-    }
-
-    /* Hover effect */
-    .fc .fc-event:hover, .fc .fc-daygrid-event:hover, .fc .fc-timegrid-event:hover {
-        transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 14px 30px rgba(2,6,23,0.12);
-        filter: brightness(1.02);
-        z-index: 9999;
-    }
-
-    /* Ensure event title wraps nicely */
-    .fc-event .fc-event-title, .fc-event .fc-event-main { 
-        white-space: normal !important; 
-        line-height: 1.2 !important;
-    }
-
-    /* Calendar Pastel Styles - đồng bộ với toàn bộ hệ thống */
-    .calendar-container {
-        max-width: 1600px;
-        margin: -1rem auto 0;
-        padding: 0 1rem;
-    }
-
-    /* Sidebar pastel indigo */
-    .bg-pastel-indigo {
-        background: linear-gradient(145deg, #f8fafc, #f1f5f9);
-        border: 1px solid rgba(99, 102, 241, 0.15);
-    }
-    body.theme-dark .bg-pastel-indigo {
-        background: linear-gradient(145deg, #1e293b, #0f172a);
-        border-color: rgba(129, 140, 248, 0.2);
-    }
-    .shadow-xs {
-        box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 1px 1px rgba(0,0,0,0.02);
-    }
-    .btn-primary-soft {
-        background-color: rgba(99, 102, 241, 0.12);
-        color: #4f46e5;
-        border: none;
-        transition: all 0.2s;
-    }
-    .btn-primary-soft:hover {
-        background-color: #6366f1;
-        color: white;
-        transform: translateY(-1px);
-    }
-    body.theme-dark .btn-primary-soft {
-        background-color: rgba(129, 140, 248, 0.2);
-        color: #a5b4fc;
-    }
-    body.theme-dark .btn-primary-soft:hover {
-        background-color: #818cf8;
-        color: #0f172a;
-    }
-
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--pastel-primary-dark, #6366f1), #4f46e5);
-    }
-
-    .icon-circle {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 30px;
-    }
-    .bg-pastel-primary-soft {
-        background: rgba(99, 102, 241, 0.12);
-    }
-    .text-pastel-primary {
-        color: var(--pastel-primary-dark, #818cf8);
-    }
-    .text-pastel-dark {
-        color: var(--pastel-dark, #1e293b);
-    }
-    .text-pastel-muted {
-        color: var(--pastel-muted, #64748b);
-    }
-
-    /* Buttons Pastel */
-    .btn-pastel-primary {
-        background: var(--pastel-primary, #a5b4fc);
-        color: #1e293b;
-        border: none;
-        transition: all 0.2s;
-        font-weight: 500;
-    }
-    .btn-pastel-primary:hover {
-        background: var(--pastel-primary-dark, #818cf8);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
-    }
-    .btn-outline-pastel {
-        border: 1px solid var(--pastel-primary-dark, #818cf8);
-        color: var(--pastel-primary-dark, #818cf8);
-        background: transparent;
-        transition: all 0.2s;
-    }
-    .btn-outline-pastel:hover {
-        background: var(--pastel-primary-dark, #818cf8);
-        color: white;
-    }
-
-    /* Form controls */
-    .form-control, .form-select {
-        border: 1px solid var(--pastel-border, #e2e8f0);
-        background-color: var(--pastel-card-bg, #ffffff);
-        color: var(--pastel-dark, #0f172a);
-        transition: all 0.2s ease;
-        font-size: 0.95rem;
-        padding: 0.6rem 1rem;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: var(--pastel-primary-dark, #818cf8);
-        box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
-        outline: none;
-    }
-    .form-label {
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--pastel-muted, #64748b);
-    }
-
-    /* FullCalendar Pastel Overrides - không ghi đè màu event */
-    .fc {
-        --fc-border-color: var(--pastel-border, #e2e8f0);
-        --fc-button-bg-color: var(--pastel-primary, #a5b4fc);
-        --fc-button-border-color: var(--pastel-primary, #a5b4fc);
-        --fc-button-hover-bg-color: var(--pastel-primary-dark, #818cf8);
-        --fc-button-hover-border-color: var(--pastel-primary-dark, #818cf8);
-        --fc-button-active-bg-color: var(--pastel-primary-dark, #818cf8);
-        --fc-button-active-border-color: var(--pastel-primary-dark, #818cf8);
-        --fc-today-bg-color: rgba(99, 102, 241, 0.08);
-        --fc-page-bg-color: var(--pastel-card-bg, #ffffff);
-    }
-    .fc .fc-button-primary {
-        font-weight: 500;
-        text-transform: capitalize;
-        border-radius: 40px;
-        padding: 0.4rem 1rem;
-    }
-    .fc .fc-button-primary:not(:disabled):active,
-    .fc .fc-button-primary:not(:disabled).fc-button-active {
-        background: var(--pastel-primary-dark, #818cf8);
-        border-color: var(--pastel-primary-dark, #818cf8);
-    }
-    .fc-theme-standard .fc-scrollgrid,
-    .fc-theme-standard td, 
-    .fc-theme-standard th {
-        border-color: var(--pastel-border, #e2e8f0);
-    }
-    .fc .fc-col-header-cell-cushion,
-    .fc .fc-daygrid-day-number {
-        color: var(--pastel-dark, #0f172a);
-    }
-    .fc .fc-daygrid-day.fc-day-today {
-        background-color: var(--pastel-primary-soft, #e0e7ff);
-    }
-
-    /* Fix hiển thị sự kiện bị cắt ngang - cho phép xuống dòng */
-    .fc-event {
-        white-space: normal !important;
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-    }
-
-    .fc-event-title {
-        white-space: normal !important;
-        word-wrap: break-word !important;
-        overflow-wrap: break-word !important;
-        line-height: 1.3 !important;
-    }
-
-    .fc-daygrid-event {
-        min-height: 2.5em !important;
-    }
-
-    .fc-timegrid-event .fc-event-main {
-        white-space: normal !important;
-        word-wrap: break-word !important;
-    }
-
-    /* Dark Mode */
-    body.theme-dark {
-        --pastel-primary: #818cf8;
-        --pastel-primary-dark: #6366f1;
-        --pastel-primary-soft: #1e293b;
-        --pastel-border: #334155;
-        --pastel-card-bg: #1e293b;
-        --pastel-dark: #f1f5f9;
-        --pastel-muted: #94a3b8;
-    }
-    body.theme-dark .fc {
-        --fc-page-bg-color: #1e293b;
-        --fc-border-color: #334155;
-        --fc-today-bg-color: rgba(99, 102, 241, 0.15);
-    }
-    body.theme-dark .fc .fc-col-header-cell-cushion,
-    body.theme-dark .fc .fc-daygrid-day-number {
-        color: #f1f5f9;
-    }
-    body.theme-dark .form-control,
-    body.theme-dark .form-select {
-        background-color: #1e293b;
-        border-color: #334155;
-        color: #f1f5f9;
-    }
-    body.theme-dark .btn-outline-pastel {
-        border-color: #818cf8;
-        color: #a5b4fc;
-    }
-    body.theme-dark .btn-outline-pastel:hover {
-        background: #818cf8;
-        color: #1e293b;
-    }
-
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .calendar-container {
-            padding: 0 0.5rem;
-        }
-        .icon-circle {
-            width: 40px;
-            height: 40px;
-        }
-        .fc .fc-toolbar {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .row.g-4 {
-            --bs-gutter-y: 1rem;
-        }
-        #task-list {
-            max-height: 50vh !important;
-        }
-    }
-</style>

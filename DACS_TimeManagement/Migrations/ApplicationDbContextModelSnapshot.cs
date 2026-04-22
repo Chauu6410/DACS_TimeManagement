@@ -45,7 +45,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("BoardLists");
+                    b.ToTable("BoardLists", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.CalendarEvent", b =>
@@ -82,7 +82,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CalendarEvents");
+                    b.ToTable("CalendarEvents", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.Notification", b =>
@@ -116,7 +116,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.PersonalGoal", b =>
@@ -146,7 +146,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PersonalGoals");
+                    b.ToTable("PersonalGoals", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.Project", b =>
@@ -175,7 +175,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.ProjectDiscussion", b =>
@@ -218,7 +218,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProjectDiscussion");
+                    b.ToTable("ProjectDiscussion", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.ProjectMember", b =>
@@ -249,7 +249,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ProjectMembers");
+                    b.ToTable("ProjectMembers", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.SharedEvent", b =>
@@ -282,7 +282,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("SharedEvents");
+                    b.ToTable("SharedEvents", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.SharedTask", b =>
@@ -315,7 +315,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasIndex("WorkTaskId");
 
-                    b.ToTable("SharedTasks");
+                    b.ToTable("SharedTasks", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.TimeLog", b =>
@@ -342,7 +342,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasIndex("WorkTaskId");
 
-                    b.ToTable("TimeLogs");
+                    b.ToTable("TimeLogs", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.UserProfile", b =>
@@ -397,7 +397,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserProfiles");
+                    b.ToTable("UserProfiles", (string)null);
                 });
 
             modelBuilder.Entity("DACS_TimeManagement.Models.WorkTask", b =>
@@ -462,7 +462,7 @@ namespace DACS_TimeManagement.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("WorkTasks");
+                    b.ToTable("WorkTasks", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

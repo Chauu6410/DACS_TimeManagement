@@ -276,6 +276,7 @@ namespace DACS_TimeManagement.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AutoPlanTomorrow([FromBody] List<AutoPlanTaskModel> tasks)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

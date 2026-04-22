@@ -1,6 +1,6 @@
 @model DACS_TimeManagement.Models.Project
 @{
-    ViewData["Title"] = Model.Name + " - Details";
+    ViewData["Title"] = "Project Details";
     var completedTasks = Model.Tasks?.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed) ?? 0;
     var totalTasks = Model.Tasks?.Count() ?? 0;
     var progressPct = totalTasks == 0 ? 0 : (int)((double)completedTasks / totalTasks * 100);
@@ -9,8 +9,7 @@
 }
 
 <style>
-    /* Ẩn tiêu đề layout mặc định */
-    .page-title, .content-header h1 { display: none !important; }
+    .content-header h1 { display: none !important; }
 
     /* ========== PASTEL COLOR SYSTEM ========== */
     :root {
@@ -287,6 +286,12 @@
         justify-content: center;
     }
 
+    @@keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: var(--pastel-column-bg); border-radius: 10px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--pastel-border); border-radius: 10px; }
@@ -327,7 +332,6 @@
         border: 1px solid rgba(52, 211, 153, 0.3);
     }
 </style>
-
 <div class="project-details-container my-4" data-aos="fade-up">
     <!-- Alert messages -->
     @if (TempData["ErrorMessage"] != null)
@@ -467,12 +471,20 @@
                         <form id="commentForm" class="d-flex gap-2 align-items-end">
                             <input type="hidden" name="projectId" value="@Model.Id" />
                             <div class="chat-input-wrapper">
+                                <div id="recordingUI" class="position-absolute top-50 start-50 translate-middle d-none w-100 h-100 align-items-center justify-content-between px-4" style="z-index: 5; border-radius: 24px; background: #ffe4e6; border: 1px solid #fecdd3;">
+                                    <div class="d-flex align-items-center gap-2 text-danger fw-bold">
+                                        <i class="fas fa-circle rounded-circle text-danger" style="animation: blink 1s infinite; font-size: 0.6rem;"></i>
+                                        <span id="recordingTimer">00:00</span>
+                                    </div>
+                                    <div class="text-danger small fw-semibold">Recording Voice...</div>
+                                    <button type="button" class="btn-close" style="font-size: 0.7rem;" id="cancelRecordBtn" title="Cancel"></button>
+                                </div>
                                 <label class="chat-media-btn mb-0" style="left: 6px;" title="Attach File">
                                     <i class="fas fa-paperclip fs-6"></i>
                                     <input type="file" id="attachmentInput" class="d-none" accept="*/*">
                                 </label>
                                 <input type="text" class="form-control" id="commentContent" placeholder="Nhắn tin vào nhóm dự án..." autocomplete="off" style="font-size: 0.95rem;">
-                                <div class="d-flex position-absolute" style="right: 6px; top: 50%; transform: translateY(-50%);">
+                                <div class="d-flex position-absolute" style="right: 6px; top: 50%; transform: translateY(-50%); z-index: 6;">
                                     <div class="dropdown d-inline-block dropup">
                                         <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" data-bs-toggle="dropdown" aria-expanded="false" title="Insert Emoji">
                                             <i class="far fa-smile fs-6"></i>
@@ -481,8 +493,8 @@
                                             <div class="d-flex flex-wrap gap-1 justify-content-center" id="emojiPickerContent"></div>
                                         </div>
                                     </div>
-                                    <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" title="Send Voice" onclick="alert('Chức năng ghi âm Voice Message đang thử nghiệm!')">
-                                        <i class="fas fa-microphone fs-6"></i>
+                                    <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" id="btnRecordVoice" title="Record Voice">
+                                        <i class="fas fa-microphone fs-6" id="micIcon"></i>
                                     </button>
                                 </div>
                             </div>
@@ -664,10 +676,17 @@
                                                 <div class="${isMine ? 'text-white' : 'text-pastel-dark'}">${escapeHtml(c.content)}</div>
                                                 ${c.attachmentFileName ? `
                                                     <div class="mt-2 p-2 rounded-3" style="background: rgba(0,0,0,0.1);">
-                                                        <a href="/uploads/project_discussions/${c.attachmentFileName}" target="_blank" class="text-decoration-none ${isMine ? 'text-white' : 'text-primary'} d-flex align-items-center gap-2">
-                                                            <i class="fas fa-paperclip"></i>
-                                                            <span class="small fw-medium">${escapeHtml(c.attachmentOriginalName)}</span>
-                                                        </a>
+                                                        ${c.attachmentContentType && c.attachmentContentType.startsWith('audio/') ? `
+                                                            <audio controls class="w-100 mt-1" style="max-height: 40px; outline: none; border-radius: 20px;">
+                                                                <source src="/uploads/project_discussions/${c.attachmentFileName}" type="${c.attachmentContentType}">
+                                                                Your browser does not support the audio element.
+                                                            </audio>
+                                                        ` : `
+                                                            <a href="/uploads/project_discussions/${c.attachmentFileName}" target="_blank" class="text-decoration-none ${isMine ? 'text-white' : 'text-primary'} d-flex align-items-center gap-2">
+                                                                <i class="fas fa-paperclip"></i>
+                                                                <span class="small fw-medium">${escapeHtml(c.attachmentOriginalName)}</span>
+                                                            </a>
+                                                        `}
                                                     </div>
                                                 ` : ''}
                                             </div>
@@ -768,14 +787,111 @@
             });
         }
 
-        // Submit comment
+        // Submit comment & Voice logic
+        let voiceBlob = null;
+        let mediaRecorder;
+        let audioChunks = [];
+        let recordTimerInterval;
+        let recordSeconds = 0;
+
+        const btnRecordVoice = document.getElementById('btnRecordVoice');
+        const micIcon = document.getElementById('micIcon');
+        const recordingUI = document.getElementById('recordingUI');
+        const recordingTimer = document.getElementById('recordingTimer');
+        const cancelRecordBtn = document.getElementById('cancelRecordBtn');
+
+        if (btnRecordVoice) {
+            btnRecordVoice.addEventListener('click', async function() {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    return;
+                }
+                
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = event => {
+                        if (event.data.size > 0) audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstart = () => {
+                        recordingUI.classList.remove('d-none');
+                        recordingUI.classList.add('d-flex');
+                        micIcon.classList.replace('fa-microphone', 'fa-stop');
+                        btnRecordVoice.classList.add('text-danger');
+                        recordSeconds = 0;
+                        updateTimerUI();
+                        recordTimerInterval = setInterval(() => {
+                            recordSeconds++;
+                            updateTimerUI();
+                        }, 1000);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        clearInterval(recordTimerInterval);
+                        recordingUI.classList.add('d-none');
+                        recordingUI.classList.remove('d-flex');
+                        micIcon.classList.replace('fa-stop', 'fa-microphone');
+                        btnRecordVoice.classList.remove('text-danger');
+                        
+                        voiceBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        stream.getTracks().forEach(track => track.stop());
+                        
+                        const filePreview = new File([voiceBlob], "voice_message.webm", { type: 'audio/webm' });
+                        currentAttachment = filePreview;
+                        document.getElementById('attachmentName').innerHTML = '<i class="fas fa-microphone-lines me-1"></i> Voice Message (' + getTimerFormat(recordSeconds) + ')';
+                        document.getElementById('attachmentPreview').classList.remove('d-none');
+                    };
+
+                    mediaRecorder.start();
+                } catch (err) {
+                    console.error("Error accessing mic: ", err);
+                    alert("Could not access microphone. Please check permissions.");
+                }
+            });
+        }
+
+        if (cancelRecordBtn) {
+            cancelRecordBtn.addEventListener('click', () => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.onstop = () => {
+                        clearInterval(recordTimerInterval);
+                        recordingUI.classList.add('d-none');
+                        recordingUI.classList.remove('d-flex');
+                        micIcon.classList.replace('fa-stop', 'fa-microphone');
+                        btnRecordVoice.classList.remove('text-danger');
+                        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                        voiceBlob = null;
+                        audioChunks = [];
+                    };
+                    mediaRecorder.stop();
+                }
+            });
+        }
+
+        function updateTimerUI() {
+            recordingTimer.innerText = getTimerFormat(recordSeconds);
+        }
+        function getTimerFormat(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
         const form = document.getElementById('commentForm');
         if (form) {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const contentInput = document.getElementById('commentContent');
-                const content = contentInput.value.trim();
-                if (!content) return;
+                let content = contentInput.value.trim();
+                
+                if (!content && !currentAttachment) return;
+                
+                if (!content && currentAttachment && currentAttachment.type && currentAttachment.type.startsWith('audio/')) {
+                    content = "🎤 Voice Message";
+                }
 
                 const submitBtn = form.querySelector('button[type="submit"]');
                 submitBtn.disabled = true;
@@ -807,7 +923,7 @@
                 .catch(err => alert('Error: ' + err.message))
                 .finally(() => {
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane fs-5"></i>';
                 });
             });
         }
