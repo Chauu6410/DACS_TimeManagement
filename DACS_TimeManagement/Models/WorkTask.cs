@@ -24,6 +24,8 @@ namespace DACS_TimeManagement.Models
         [Required(ErrorMessage = "End date is required")]
         public DateTime EndDate { get; set; }
 
+        public string? Color { get; set; }
+
         public Priority Priority { get; set; }
         public TaskStatus Status { get; set; }
 
@@ -56,6 +58,7 @@ namespace DACS_TimeManagement.Models
         public bool IsPrivate { get; set; } = false; // Đánh dấu thẻ là riêng tư
 
         public ICollection<TimeLog> TimeLogs { get; set; } = new List<TimeLog>();
+        public ICollection<ScheduledEvent> ScheduledEvents { get; set; } = new List<ScheduledEvent>();
 
     }
 }

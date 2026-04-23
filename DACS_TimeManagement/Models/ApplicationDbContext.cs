@@ -17,6 +17,7 @@ namespace DACS_TimeManagement.Models
         public DbSet<Project> Projects { get; set; }
         public DbSet<WorkTask> WorkTasks { get; set; }
         public DbSet<CalendarEvent> CalendarEvents { get; set; }
+        public DbSet<ScheduledEvent> ScheduledEvents { get; set; }
         public DbSet<PersonalGoal> PersonalGoals { get; set; }
         public DbSet<TimeLog> TimeLogs { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
@@ -94,6 +95,13 @@ namespace DACS_TimeManagement.Models
                 .WithMany()
                 .HasForeignKey(pm => pm.UserId)
                 .OnDelete(DeleteBehavior.Cascade); // Cái này có thể giữ Cascade
+
+            // ScheduledEvent - WorkTask (n - 1)
+            builder.Entity<ScheduledEvent>()
+                .HasOne(se => se.Task)
+                .WithMany(t => t.ScheduledEvents)
+                .HasForeignKey(se => se.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
         public DbSet<DACS_TimeManagement.Models.ProjectDiscussion> ProjectDiscussion { get; set; } = default!;
     }
