@@ -248,9 +248,22 @@ namespace DACS_TimeManagement.Controllers
             _context.ProjectMembers.Add(newMember);
             await _context.SaveChangesAsync();
 
+            // 4.5 Lưu Notification vào DB
+            var notification = new Notification
+            {
+                Title = "New Assignment",
+                Message = $"You have been added to the project: {project.Name}!",
+                TriggerTime = DateTime.Now,
+                CreatedAt = DateTime.Now,
+                IsRead = false,
+                UserId = targetUser.Id
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
             // 5. Bắn thông báo Realtime SignalR cho người vừa được Invite
             await _hubContext.Clients.User(targetUser.Id)
-                .SendAsync("ReceiveNotification", $"You have been added to the project: {project.Name}!", "System");
+                .SendAsync("ReceiveNotification", notification.Message, "System");
 
             TempData["SuccessMessage"] = $"Successfully invited {email} to the project!";
             return RedirectToAction(nameof(Details), new { id = projectId });

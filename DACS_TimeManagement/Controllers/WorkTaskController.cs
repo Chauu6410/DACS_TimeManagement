@@ -83,7 +83,7 @@ namespace DACS_TimeManagement.Controllers
                 var tasks = await _context.WorkTasks
                     .AsNoTracking()
                     .Include(t => t.Assignee)
-                    .Where(t => t.ProjectId == selectedId && (isProjectOwner || t.UserId == currentUserId || t.AssigneeId == currentUserId))
+                    .Where(t => t.ProjectId == selectedId && (!t.IsPrivate || isProjectOwner || t.UserId == currentUserId || t.AssigneeId == currentUserId))
                     .ToListAsync();
 
                 // 4. Ghép Task vào List (Chỉ xử lý trong phạm vi 1 Project nên cực nhanh)
@@ -113,7 +113,7 @@ namespace DACS_TimeManagement.Controllers
         }
 
         // --- 2. TẠO MỚI TASK ---
-        public async Task<IActionResult> Create(int? projectId)
+        public async Task<IActionResult> Create(int? projectId, int? boardListId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             // 1. Lấy danh sách Project của người đang đăng nhập
@@ -157,7 +157,7 @@ namespace DACS_TimeManagement.Controllers
             // Không gán allUsers nữa, load động hoặc để nguyên list rỗng lúc đầu
             ViewBag.AssigneeId = new SelectList(assignees, "Id", "DisplayName", userId);
             
-            var task = new WorkTask { ProjectId = projectId };
+            var task = new WorkTask { ProjectId = projectId, BoardListId = boardListId };
             return View(task);
         }
         
@@ -203,11 +203,23 @@ namespace DACS_TimeManagement.Controllers
 
                 if (task.AssigneeId != userId)
                 {
+                    var notif = new Notification
+                    {
+                        Title = "New Task",
+                        Message = "You have been assigned a new task!",
+                        TriggerTime = DateTime.Now,
+                        CreatedAt = DateTime.Now,
+                        IsRead = false,
+                        UserId = task.AssigneeId
+                    };
+                    _context.Notifications.Add(notif);
+                    await _context.SaveChangesAsync();
+
                     await _hubContext.Clients.User(task.AssigneeId)
-                        .SendAsync("ReceiveNotification", "You have been assigned a new task!", task.Title);
+                        .SendAsync("ReceiveNotification", notif.Message, task.Title);
                 }
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { projectId = task.ProjectId });
             }
 
             var projects = await _projectRepo.GetAllAsync(userId);
@@ -233,6 +245,81 @@ namespace DACS_TimeManagement.Controllers
             ViewBag.AssigneeId = new SelectList(assignees, "Id", "DisplayName", task.AssigneeId);
 
             return View(task);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuickCreate(int projectId, int boardListId, string title)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                return Json(new { success = false, message = "Title is required" });
+            }
+
+            try
+            {
+                // Xác định status dựa trên BoardListId
+                var projectLists = await _context.BoardLists
+                        .AsNoTracking()
+                        .Where(bl => bl.ProjectId == projectId)
+                        .OrderBy(bl => bl.Position)
+                        .Select(bl => bl.Id)
+                        .ToListAsync();
+
+                Models.TaskStatus status = Models.TaskStatus.Todo;
+                if (projectLists.Any())
+                {
+                    if (boardListId == projectLists.Last()) status = Models.TaskStatus.Completed;
+                    else if (boardListId != projectLists.First()) status = Models.TaskStatus.InProgress;
+                }
+
+                // Tìm Position lớn nhất để chèn vào cuối cột
+                var maxPosition = await _context.WorkTasks
+                    .Where(t => t.BoardListId == boardListId)
+                    .OrderByDescending(t => t.Position)
+                    .Select(t => (int?)t.Position)
+                    .FirstOrDefaultAsync() ?? -1;
+
+                var task = new WorkTask
+                {
+                    Title = title,
+                    ProjectId = projectId,
+                    BoardListId = boardListId,
+                    UserId = userId,
+                    AssigneeId = userId, // Assign to self by default
+                    StartDate = DateTime.Now,
+                    EndDate = DateTime.Now.AddDays(1),
+                    Priority = Priority.Medium,
+                    Status = status,
+                    Progress = status == Models.TaskStatus.Completed ? 100 : 0,
+                    Position = maxPosition + 1
+                };
+
+                await _taskRepo.AddAsync(task);
+                await _taskRepo.SaveAsync();
+
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                var userName = currentUser?.UserName ?? "U";
+
+                return Json(new { 
+                    success = true, 
+                    task = new {
+                        id = task.Id,
+                        title = task.Title,
+                        priorityClass = "pastel-warning",
+                        priorityText = task.Priority.ToString(),
+                        assigneeInitial = userName.Substring(0, 1).ToUpper(),
+                        assigneeName = userName,
+                        endDate = task.EndDate.ToString("MMM dd, yyyy"),
+                        progress = task.Progress
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpGet]
@@ -279,11 +366,14 @@ namespace DACS_TimeManagement.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             
+            var isAdmin = User.IsInRole("Admin");
             // Check if user is creator, assignee, or project owner
             var task = await _context.WorkTasks
                 .Include(t => t.Project)
+                .ThenInclude(p => p.Members)
                 .FirstOrDefaultAsync(t => t.Id == taskId && 
-                    (t.UserId == userId || t.AssigneeId == userId || (t.Project != null && t.Project.UserId == userId)));
+                    (isAdmin || t.UserId == userId || t.AssigneeId == userId || 
+                    (t.Project != null && (t.Project.UserId == userId || (!t.IsPrivate && t.Project.Members.Any(m => m.UserId == userId))))));
 
             if (task == null) return Json(new { success = false, message = "Task not found or you do not have permission to update" });
 
@@ -333,12 +423,15 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
             // Eager load Project and TimeLogs
-            var tasks = await _taskRepo.FindAsync(
-                t => t.Id == id && t.UserId == userId,
-                t => t.Project,
-                t => t.TimeLogs);
-            var task = tasks.FirstOrDefault();
+            var task = await _context.WorkTasks
+                .Include(t => t.Project)
+                .ThenInclude(p => p.Members)
+                .Include(t => t.TimeLogs)
+                .FirstOrDefaultAsync(t => t.Id == id && 
+                    (isAdmin || t.UserId == userId || t.AssigneeId == userId || 
+                    (t.Project != null && (t.Project.UserId == userId || (!t.IsPrivate && t.Project.Members.Any(m => m.UserId == userId))))));
             
             if (task == null)
             {
@@ -365,7 +458,13 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var task = await _taskRepo.GetByIdAsync(id, userId);
+            var isAdmin = User.IsInRole("Admin");
+            var task = await _context.WorkTasks
+                .Include(t => t.Project)
+                .ThenInclude(p => p.Members)
+                .FirstOrDefaultAsync(t => t.Id == id && 
+                    (isAdmin || t.UserId == userId || t.AssigneeId == userId || 
+                    (t.Project != null && (t.Project.UserId == userId || (!t.IsPrivate && t.Project.Members.Any(m => m.UserId == userId))))));
 
             if (task == null)
             {
@@ -388,6 +487,40 @@ namespace DACS_TimeManagement.Controllers
 
             var projects = await _projectRepo.GetAllAsync(userId);
             ViewBag.ProjectId = new SelectList(projects, "Id", "Name", task.ProjectId);
+
+            // Fetch assignees
+            var assignees = new List<object>();
+            if (task.ProjectId.HasValue)
+            {
+                var project = await _context.Projects.FirstOrDefaultAsync(p => p.Id == task.ProjectId);
+                if (project != null)
+                {
+                    if (project.UserId == userId) 
+                    {
+                        var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == project.UserId);
+                        if (owner != null) assignees.Add(new { Id = owner.Id, DisplayName = owner.Email + " (Owner)" });
+
+                        var members = await _context.ProjectMembers
+                            .Where(pm => pm.ProjectId == task.ProjectId.Value)
+                            .Join(_context.Users, pm => pm.UserId, u => u.Id, (pm, u) => new { Id = u.Id, DisplayName = u.Email })
+                            .ToListAsync();
+                        
+                        assignees.AddRange(members.Where(m => m.Id != owner.Id));
+                    }
+                    else
+                    {
+                        var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                        if (currentUser != null) assignees.Add(new { Id = currentUser.Id, DisplayName = currentUser.Email + " (You)" });
+                    }
+                }
+            }
+            else
+            {
+                var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                if (currentUser != null) assignees.Add(new { Id = currentUser.Id, DisplayName = currentUser.Email + " (You)" });
+            }
+            ViewBag.AssigneeId = new SelectList(assignees, "Id", "DisplayName", task.AssigneeId);
+
             return View(task);
         }
 
@@ -438,7 +571,8 @@ namespace DACS_TimeManagement.Controllers
                         taskForm.Description = _crypto.Encrypt(taskForm.Description);
                     }
 
-                    var success = await _taskRepo.UpdateTaskDetailsAsync(id, userId, taskForm);
+                    var isAdmin = User.IsInRole("Admin");
+                    var success = await _taskRepo.UpdateTaskDetailsAsync(id, userId, taskForm, isAdmin);
                     if (!success)
                     {
                         return NotFound();
@@ -447,12 +581,24 @@ namespace DACS_TimeManagement.Controllers
                     // BẮN THÔNG BÁO SIGNALR NẾU ASSIGNEE KHÁC NGƯỜI SỬA
                     if (!string.IsNullOrEmpty(taskForm.AssigneeId) && taskForm.AssigneeId != userId)
                     {
+                        var notif = new Notification
+                        {
+                            Title = "Task Updated",
+                            Message = "One of your tasks has just been updated!",
+                            TriggerTime = DateTime.Now,
+                            CreatedAt = DateTime.Now,
+                            IsRead = false,
+                            UserId = taskForm.AssigneeId
+                        };
+                        _context.Notifications.Add(notif);
+                        await _context.SaveChangesAsync();
+
                         await _hubContext.Clients.User(taskForm.AssigneeId)
-                            .SendAsync("ReceiveNotification", "One of your tasks has just been updated!", taskForm.Title);
+                            .SendAsync("ReceiveNotification", notif.Message, taskForm.Title);
                     }
 
                     TempData["SuccessMessage"] = "Task updated successfully!";
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index), new { projectId = taskForm.ProjectId });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -467,6 +613,26 @@ namespace DACS_TimeManagement.Controllers
             // Nếu form lỗi, load lại danh sách project để hiển thị lại View
             var projects = await _projectRepo.GetAllAsync(userId);
             ViewBag.ProjectId = new SelectList(projects, "Id", "Name", taskForm.ProjectId);
+
+            // Re-bind AssigneeId
+            var assignees = new List<object>();
+            if (taskForm.ProjectId.HasValue)
+            {
+               var proj = await _context.Projects.FirstOrDefaultAsync(p => p.Id == taskForm.ProjectId);
+               if (proj != null)
+               {
+                   var owner = await _context.Users.FirstOrDefaultAsync(u => u.Id == proj.UserId);
+                   if (owner != null) assignees.Add(new { Id = owner.Id, DisplayName = owner.Email });
+
+                   var members = await _context.ProjectMembers
+                       .Where(pm => pm.ProjectId == taskForm.ProjectId.Value)
+                       .Join(_context.Users, pm => pm.UserId, u => u.Id, (pm, u) => new { Id = u.Id, DisplayName = u.Email })
+                       .ToListAsync();
+                   assignees.AddRange(members.Where(m => m.Id != owner.Id));
+               }
+            }
+            ViewBag.AssigneeId = new SelectList(assignees, "Id", "DisplayName", taskForm.AssigneeId);
+
             return View(taskForm);
         }
 
@@ -474,10 +640,15 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAdmin = User.IsInRole("Admin");
 
             // CẢI THIỆN: Load kèm Project để trang Delete hiện tên dự án thay vì hiện ID
-            var tasks = await _taskRepo.FindAsync(t => t.Id == id && t.UserId == userId, t => t.Project);
-            var task = tasks.FirstOrDefault();
+            var task = await _context.WorkTasks
+                .Include(t => t.Project)
+                .ThenInclude(p => p.Members)
+                .FirstOrDefaultAsync(t => t.Id == id && 
+                    (isAdmin || t.UserId == userId || t.AssigneeId == userId || 
+                    (t.Project != null && (t.Project.UserId == userId || (!t.IsPrivate && t.Project.Members.Any(m => m.UserId == userId))))));
 
             if (task == null)
             {
@@ -495,18 +666,22 @@ namespace DACS_TimeManagement.Controllers
 
             try
             {
-                var success = await _taskRepo.DeleteTaskAsync(id, userId);
+                // Lấy thông tin task trước khi xóa để lấy projectId
+                var task = await _context.WorkTasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
+                int? projectId = task?.ProjectId;
+
+                var isAdmin = User.IsInRole("Admin");
+                var success = await _taskRepo.DeleteTaskAsync(id, userId, isAdmin);
                 if (!success)
                 {
                     return NotFound();
                 }
 
                 TempData["SuccessMessage"] = "Task deleted successfully!";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { projectId = projectId });
             }
             catch (Exception ex)
             {
-                // CẢI THIỆN: Thay vì kẹt ở trang Delete, trả về Index và báo lỗi
                 TempData["ErrorMessage"] = "Cannot delete this task. It may contain other linked data: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }

@@ -622,6 +622,39 @@
             }
             fetchNotif();
             setInterval(fetchNotif, 60000);
+
+            // Fetch notification list when dropdown is opened
+            $('.notification-bell').on('show.bs.dropdown', function () {
+                var $list = $('#notifList');
+                $list.html('<li class="p-4 text-center"><i class="fas fa-spinner fa-spin text-primary fs-4"></i></li>');
+                
+                $.get('/Notification/GetRecentNotifications', function(data) {
+                    $list.empty();
+                    if(data && data.length > 0) {
+                        data.forEach(n => {
+                            var bgClass = n.isRead ? '' : 'bg-primary-subtle';
+                            var fwClass = n.isRead ? 'fw-normal' : 'fw-bold text-dark';
+                            var dot = n.isRead ? '' : '<span class="position-absolute top-50 start-0 translate-middle p-1 bg-danger border border-light rounded-circle" style="margin-left: 10px;"></span>';
+                            $list.append(`
+                                <li>
+                                    <a class="dropdown-item py-3 px-4 border-bottom ${bgClass} position-relative" href="/Notification/Index">
+                                        ${dot}
+                                        <div class="d-flex w-100 justify-content-between mb-1">
+                                            <span class="${fwClass} text-truncate" style="max-width: 150px; font-size: 0.9rem;">${n.title}</span>
+                                            <small class="text-muted" style="font-size: 0.75rem;">${n.time}</small>
+                                        </div>
+                                        <p class="mb-0 text-muted text-truncate" style="max-width: 250px; font-size: 0.85rem;">${n.message}</p>
+                                    </a>
+                                </li>
+                            `);
+                        });
+                    } else {
+                        $list.html('<li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2"></i><br/>All caught up</li>');
+                    }
+                }).fail(() => {
+                    $list.html('<li class="p-4 text-center text-danger small">Failed to load notifications</li>');
+                });
+            });
         });
     </script>
     @await RenderSectionAsync("Scripts", required: false)

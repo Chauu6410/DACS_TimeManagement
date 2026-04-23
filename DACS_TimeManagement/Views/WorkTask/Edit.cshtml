@@ -87,14 +87,24 @@
                                 <span asp-validation-for="ProjectId" class="text-danger small"></span>
                             </div>
 
-                            <!-- Progress with Slider & Number Input -->
+                            <!-- Assignee -->
+                            <div class="col-12 mt-1">
+                                <label asp-for="AssigneeId" class="form-label fw-semibold mb-2">
+                                    <i class="fas fa-user-tag text-primary me-1"></i> Assignee
+                                </label>
+                                <select asp-for="AssigneeId" class="form-select rounded-3" asp-items="ViewBag.AssigneeId">
+                                    <option value="">-- Select Member --</option>
+                                </select>
+                            </div>
+
+                            <!-- Progress -->
                             <div class="col-12">
                                 <label asp-for="Progress" class="form-label fw-semibold mb-2">
                                     <i class="fas fa-percent text-primary me-1"></i> Progress (%)
                                 </label>
-                                <div class="progress-input-group d-flex align-items-center gap-3">
-                                    <input asp-for="Progress" type="range" class="form-range flex-grow-1" min="0" max="100" id="progressSlider" />
-                                    <input type="number" id="progressNumber" value="@Model.Progress" min="0" max="100" class="form-control progress-number" style="width: 85px;" />
+                                <div class="input-group">
+                                    <input asp-for="Progress" type="number" min="0" max="100" class="form-control rounded-3" />
+                                    <span class="input-group-text bg-light rounded-3">%</span>
                                 </div>
                                 <span asp-validation-for="Progress" class="text-danger small"></span>
                             </div>
@@ -121,22 +131,37 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        // Sync progress slider and number input
-        const slider = document.getElementById('progressSlider');
-        const number = document.getElementById('progressNumber');
-        if (slider && number) {
-            slider.addEventListener('input', function() {
-                number.value = this.value;
+        // Effect on focus
+        document.querySelectorAll('.form-control, .form-select').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement?.classList.add('focused');
             });
-            number.addEventListener('input', function() {
-                let val = parseInt(this.value);
-                if (isNaN(val)) val = 0;
-                if (val < 0) val = 0;
-                if (val > 100) val = 100;
-                slider.value = val;
-                number.value = val;
+            input.addEventListener('blur', function() {
+                this.parentElement?.classList.remove('focused');
             });
-        }
+        });
+
+        // AJAX update Assignee dropdown based on Project
+        document.getElementById('ProjectId').addEventListener('change', function() {
+            var projectId = this.value || "0";
+            var assigneeSelect = document.getElementById('AssigneeId');
+            
+            fetch('/WorkTask/GetProjectMembers?projectId=' + projectId)
+                .then(response => response.json())
+                .then(data => {
+                    assigneeSelect.innerHTML = '';
+                    if (data.length > 1) {
+                         assigneeSelect.innerHTML += '<option value="">-- Select Member --</option>';
+                    }
+                    data.forEach(item => {
+                        var option = document.createElement('option');
+                        option.value = item.id;
+                        option.text = item.displayName;
+                        assigneeSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching members:', error));
+        });
     </script>
 }
 

@@ -5,22 +5,23 @@
 }
 
 <div class="kanban-page" data-aos="fade-up">
-    <!-- Actions -->
+    <!-- Project Selector & Filters (if any) -->
     <div class="d-flex justify-content-end gap-2 mb-3 align-items-center">
         <form method="get" asp-action="Index" id="projectSelector" class="mb-0">
-            <select name="projectId" class="form-select pastel-select rounded-pill shadow-sm border-0" onchange="this.form.submit()" 
-                    style="min-width: 200px; cursor: pointer;">
+            <select name="projectId" class="form-select border-pastel shadow-sm rounded-pill fw-medium text-pastel-dark" style="min-width: 250px; background-color: white;" onchange="document.getElementById('projectSelector').submit();">
                 @foreach (var p in Model.Projects)
                 {
-                    <option value="@p.Id" selected="@(p.Id == Model.SelectedProjectId)">
-                        @p.Name
-                    </option>
+                    if (p.Id == Model.SelectedProjectId)
+                    {
+                        <option value="@p.Id" selected="selected">@p.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@p.Id">@p.Name</option>
+                    }
                 }
             </select>
         </form>
-        <a class="btn btn-pastel-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift" asp-action="Create" asp-route-projectId="@Model.SelectedProjectId">
-            <i class="fas fa-plus me-2"></i>Add Task
-        </a>
     </div>
 
     @if (ViewBag.ErrorMessage != null)
@@ -81,7 +82,17 @@
                                                             };
                                                             string priorityText = t.Priority.ToString();
                                                         }
-                                                        <span class="badge @priorityClass rounded-pill px-2 py-1 fs-6">@priorityText</span>
+                                                        <div class="d-flex align-items-center gap-2 position-relative" style="z-index: 2;">
+                                                            <a asp-action="Edit" asp-route-id="@t.Id" class="text-pastel-primary opacity-75 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Sửa thẻ">
+                                                                <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
+                                                            </a>
+                                                            <form asp-action="Delete" asp-route-id="@t.Id" method="post" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thẻ này?');">
+                                                                <button type="submit" class="btn btn-link text-danger p-0 opacity-75 text-decoration-none border-0" style="transition: opacity 0.2s; background: transparent;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Xóa thẻ">
+                                                                    <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
+                                                                </button>
+                                                            </form>
+                                                            <span class="badge @priorityClass rounded-pill px-2 py-1 fs-6">@priorityText</span>
+                                                        </div>
                                                     </div>
 
                                                     <!-- Description (cắt ngắn) -->
@@ -155,6 +166,19 @@
                                             </div>
                                         }
                                     }
+                                </div>
+
+                                <div class="add-card-container px-2 pb-2">
+                                    <button class="btn btn-sm text-pastel-dark text-start w-100 add-card-btn d-flex align-items-center" style="background: transparent; border: none; padding: 8px 12px; border-radius: 8px; transition: background 0.2s;">
+                                        <i class="fas fa-plus me-2 text-pastel-muted"></i> <span class="fw-medium text-pastel-muted">Add task</span>
+                                    </button>
+                                    <div class="add-card-form d-none mt-2">
+                                        <textarea class="form-control rounded-3 border-pastel shadow-sm mb-2 quick-task-title" rows="2" placeholder="Enter task title..."></textarea>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <button class="btn btn-primary btn-sm rounded-3 px-3 fw-medium submit-quick-task" data-project-id="@Model.SelectedProjectId" data-list-id="@list.Id">Add task</button>
+                                            <button class="btn btn-link text-pastel-muted p-0 cancel-add-card text-decoration-none hover-danger" style="font-size: 1.25rem;"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         }
@@ -245,6 +269,140 @@
             }
 
             initTaskLists();
+
+            // Inline Task Creation Logic
+            document.querySelectorAll('.add-card-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const container = this.closest('.add-card-container');
+                    this.classList.add('d-none');
+                    const form = container.querySelector('.add-card-form');
+                    form.classList.remove('d-none');
+                    const textarea = form.querySelector('.quick-task-title');
+                    textarea.focus();
+                });
+            });
+
+            document.querySelectorAll('.cancel-add-card').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const container = this.closest('.add-card-container');
+                    container.querySelector('.add-card-form').classList.add('d-none');
+                    container.querySelector('.add-card-btn').classList.remove('d-none');
+                    container.querySelector('.quick-task-title').value = '';
+                });
+            });
+
+            document.querySelectorAll('.quick-task-title').forEach(textarea => {
+                textarea.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.closest('.add-card-form').querySelector('.submit-quick-task').click();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.submit-quick-task').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const form = this.closest('.add-card-form');
+                    const textarea = form.querySelector('.quick-task-title');
+                    const title = textarea.value.trim();
+                    const projectId = this.dataset.projectId;
+                    const listId = this.dataset.listId;
+                    const container = this.closest('.column');
+                    const taskList = container.querySelector('.task-list');
+
+                    if (!title) {
+                        textarea.focus();
+                        return;
+                    }
+
+                    const originalText = this.innerText;
+                    this.innerText = '...';
+                    this.disabled = true;
+
+                    const formData = new FormData();
+                    formData.append('projectId', projectId);
+                    formData.append('boardListId', listId);
+                    formData.append('title', title);
+                    formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+                    fetch('/WorkTask/QuickCreate', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Tạo thẻ task mới bằng JS
+                            const t = data.task;
+                            const newTaskHtml = `
+                                <div class="card task-card pastel-task-card mb-3 border-0 shadow-sm rounded-3" data-task-id="${t.id}">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="fw-bold mb-0 text-pastel-dark">
+                                                <a href="/WorkTask/Details/${t.id}" class="text-decoration-none text-pastel-dark stretched-link">
+                                                    ${escapeHtml(t.title)}
+                                                </a>
+                                            </h6>
+                                            <div class="d-flex align-items-center gap-2 position-relative" style="z-index: 2;">
+                                                <a href="/WorkTask/Edit/${t.id}" class="text-pastel-primary opacity-75 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Sửa thẻ">
+                                                    <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
+                                                </a>
+                                                <form action="/WorkTask/Delete/${t.id}" method="post" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thẻ này?');">
+                                                    <input name="__RequestVerificationToken" type="hidden" value="${document.querySelector('[name=__RequestVerificationToken]').value}" />
+                                                    <button type="submit" class="btn btn-link text-danger p-0 opacity-75 text-decoration-none border-0" style="transition: opacity 0.2s; background: transparent;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Xóa thẻ">
+                                                        <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
+                                                    </button>
+                                                </form>
+                                                <span class="badge ${t.priorityClass} rounded-pill px-2 py-1 fs-6">${t.priorityText}</span>
+                                            </div>
+                                        </div>
+                                        <p class="small text-pastel-muted mb-3"><i class="far fa-file-alt me-1"></i>No description</p>
+                                        <div class="task-footer mt-2 pt-2 border-top border-pastel">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="avatar-xs rounded-circle bg-pastel-primary-soft d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                                        <span class="fw-bold text-pastel-primary fs-6">${t.assigneeInitial}</span>
+                                                    </div>
+                                                    <span class="small fw-medium text-pastel-dark">${escapeHtml(t.assigneeName)}</span>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                                <small class="text-pastel-muted">
+                                                    <i class="far fa-calendar-alt me-1"></i>Due: ${t.endDate}
+                                                </small>
+                                                <small class="text-pastel-muted">0%</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            taskList.insertAdjacentHTML('beforeend', newTaskHtml);
+                            
+                            // Giữ form mở để nhập tiếp
+                            textarea.value = '';
+                            textarea.focus();
+                            updateCounts();
+                        } else {
+                            alert("Lỗi: " + data.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("Lỗi kết nối");
+                    })
+                    .finally(() => {
+                        this.innerText = originalText;
+                        this.disabled = false;
+                    });
+                });
+            });
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>'"]/g, tag => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+                }[tag] || tag));
+            }
         });
     </script>
 }

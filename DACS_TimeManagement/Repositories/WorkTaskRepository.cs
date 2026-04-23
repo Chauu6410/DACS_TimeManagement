@@ -38,9 +38,15 @@ namespace DACS_TimeManagement.Repositories
             return await SaveAsync();
         }
 
-        public async Task<bool> UpdateTaskDetailsAsync(int id, string userId, WorkTask updatedTask)
+        public async Task<bool> UpdateTaskDetailsAsync(int id, string userId, WorkTask updatedTask, bool isAdmin = false)
         {
-            var existingTask = await GetByIdAsync(id, userId);
+            var existingTask = await _context.WorkTasks
+                .Include(t => t.Project)
+                .ThenInclude(p => p.Members)
+                .FirstOrDefaultAsync(t => t.Id == id && 
+                    (isAdmin || t.UserId == userId || t.AssigneeId == userId || 
+                    (t.Project != null && (t.Project.UserId == userId || (!t.IsPrivate && t.Project.Members.Any(m => m.UserId == userId))))));
+                    
             if (existingTask == null) return false;
 
             // Đồng bộ hoá trạng thái (Status) & Tiến độ (Progress)
@@ -78,10 +84,15 @@ namespace DACS_TimeManagement.Repositories
             return await SaveAsync();
         }
 
-        public async Task<bool> DeleteTaskAsync(int id, string userId)
+        public async Task<bool> DeleteTaskAsync(int id, string userId, bool isAdmin = false)
         {
-            var tasks = await FindAsync(t => t.Id == id && t.UserId == userId, t => t.TimeLogs);
-            var task = tasks.FirstOrDefault();
+            var task = await _context.WorkTasks
+                .Include(t => t.TimeLogs)
+                .Include(t => t.Project)
+                .ThenInclude(p => p.Members)
+                .FirstOrDefaultAsync(t => t.Id == id && 
+                    (isAdmin || t.UserId == userId || t.AssigneeId == userId || 
+                    (t.Project != null && (t.Project.UserId == userId || (!t.IsPrivate && t.Project.Members.Any(m => m.UserId == userId))))));
             if (task == null) return false;
 
             if (task.TimeLogs != null && task.TimeLogs.Any())

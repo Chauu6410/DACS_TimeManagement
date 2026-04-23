@@ -24,6 +24,7 @@
                 <!-- Form Body -->
                 <div class="card-body p-4 p-lg-5">
                     <form asp-action="Create" id="createTaskForm">
+                        <input type="hidden" asp-for="BoardListId" />
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3 border-0" role="alert"></div>
 
                         <div class="row g-4">

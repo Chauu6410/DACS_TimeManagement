@@ -23,7 +23,7 @@ namespace DACS_TimeManagement.Controllers
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
 
-            return View(notifications);
+            return View("~/Views/Account/Notifications.cshtml", notifications);
         }
 
         // Route so the view under Views/Account/Notifications.cshtml can be reached at /Account/Notifications
@@ -49,6 +49,21 @@ namespace DACS_TimeManagement.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             int count = await _notifRepo.CountUnreadAsync(userId);
             return Json(count);
+        }
+
+        // Lấy 5 thông báo mới nhất cho Dropdown
+        [HttpGet]
+        public async Task<IActionResult> GetRecentNotifications()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var notifications = await _notifRepo.GetPagedAsync(userId, 1, 5); // Lấy 5 thông báo trang 1
+            return Json(notifications.Select(n => new {
+                id = n.Id,
+                title = n.Title,
+                message = n.Message,
+                isRead = n.IsRead,
+                time = n.CreatedAt.ToString("g")
+            }));
         }
 
         // Đánh dấu một thông báo là đã đọc
