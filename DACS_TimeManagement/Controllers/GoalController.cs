@@ -120,8 +120,14 @@ namespace DACS_TimeManagement.Controllers
                 }
                 else if (lastDate < today.AddDays(-1))
                 {
-                    goal.CurrentStreak = 0;
+                    // KHẮC PHỤC BUG (4): Quá hạn hoặc đứt chuỗi thì reset về 1 (vì đang hoàn thành hôm nay)
+                    goal.CurrentStreak = 1;
                 }
+            }
+            else
+            {
+                // KHẮC PHỤC BUG (4): Mục tiêu mới, lần đầu tiên hoàn thành -> Streak = 1
+                goal.CurrentStreak = 1;
             }
             goal.LastUpdated = DateTime.Now;
         }

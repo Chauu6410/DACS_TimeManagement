@@ -63,9 +63,9 @@ namespace DACS_TimeManagement.Controllers
                 bool isDirty = false;
                 foreach (var list in boardLists)
                 {
-                    if (list.Name == "To Do" || list.Name == "Cần làm") { list.Name = "To Do"; list.Position = 0; isDirty = true; }
-                    else if (list.Name == "In Progress" || list.Name == "Đang làm" || list.Name == "Doing") { list.Name = "In Progress"; list.Position = 1; isDirty = true; }
-                    else if (list.Name == "Done" || list.Name == "Hoàn tất" && list.Position != 3) { list.Name = "Done"; list.Position = 3; isDirty = true; }
+                    if ((list.Name == "To Do" || list.Name == "Cần làm") && (list.Name != "To Do" || list.Position != 0)) { list.Name = "To Do"; list.Position = 0; isDirty = true; }
+                    else if ((list.Name == "In Progress" || list.Name == "Đang làm" || list.Name == "Doing") && (list.Name != "In Progress" || list.Position != 1)) { list.Name = "In Progress"; list.Position = 1; isDirty = true; }
+                    else if ((list.Name == "Done" || list.Name == "Hoàn tất") && (list.Name != "Done" || list.Position != 3)) { list.Name = "Done"; list.Position = 3; isDirty = true; }
                 }
                 if (!boardLists.Any(bl => bl.Name == "Testing"))
                 {
@@ -415,8 +415,25 @@ namespace DACS_TimeManagement.Controllers
             {
                 try
                 {
-                    // Mã hóa lại trước khi cập nhật
-                    if (taskForm.IsPrivate && !string.IsNullOrEmpty(taskForm.Description))
+                    // KHẮC PHỤC BUG (2): Lấy Data cũ để đối chiếu quyền và tránh ghi đè mô tả mật
+                    var dbTask = await _context.WorkTasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
+                    if (dbTask != null && dbTask.IsPrivate)
+                    {
+                        if (userId != dbTask.UserId && userId != dbTask.AssigneeId)
+                        {
+                            // Nếu không có quyền, giữ nguyên trạng thái mã hóa gốc từ DB
+                            taskForm.Description = dbTask.Description;
+                        }
+                        else if (!string.IsNullOrEmpty(taskForm.Description))
+                        {
+                            taskForm.Description = _crypto.Encrypt(taskForm.Description);
+                        }
+                        else 
+                        {
+                            taskForm.Description = string.Empty;
+                        }
+                    }
+                    else if (taskForm.IsPrivate && !string.IsNullOrEmpty(taskForm.Description))
                     {
                         taskForm.Description = _crypto.Encrypt(taskForm.Description);
                     }

@@ -6,6 +6,10 @@
 }
 
 <div class="admin-container" data-aos="fade-up">
+
+    <!-- KHẮC PHỤC BUG (3): Sinh sẵn Anti-forgery Token Ẩn để Fetch API Toggle Role/Lock luôn hoạt động -->
+    <form id="antiForgeryForm" method="post">@Html.AntiForgeryToken()</form>
+
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-pastel-success alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4" role="alert">
@@ -490,23 +494,3 @@
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    $('.role-form').on('submit', function(e) {
-        e.preventDefault();
-        var form = this;
-        Swal.fire({
-            title: 'Confirm role change?',
-            text: "This user's role will be changed immediately!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#6366f1',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: 'Confirm',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                form.submit();
-            }
-        });
-    });
-</script>
