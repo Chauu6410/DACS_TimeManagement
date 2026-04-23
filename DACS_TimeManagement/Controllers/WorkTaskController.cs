@@ -33,6 +33,59 @@ namespace DACS_TimeManagement.Controllers
             _logger = logger;
         }
 
+        private async Task NotifyProjectUsersAboutNewTaskAsync(WorkTask task, string creatorUserId)
+        {
+            if (!task.ProjectId.HasValue)
+            {
+                return;
+            }
+
+            var project = await _context.Projects
+                .Include(p => p.Members)
+                .FirstOrDefaultAsync(p => p.Id == task.ProjectId.Value);
+
+            if (project == null)
+            {
+                return;
+            }
+
+            var creator = await _context.Users.FirstOrDefaultAsync(u => u.Id == creatorUserId);
+            var creatorName = creator?.Email ?? creator?.UserName ?? "A member";
+
+            var recipientIds = project.Members
+                .Select(m => m.UserId)
+                .Append(project.UserId)
+                .Where(id => !string.IsNullOrEmpty(id) && id != creatorUserId)
+                .Distinct()
+                .ToList();
+
+            if (!recipientIds.Any())
+            {
+                return;
+            }
+
+            var title = "Project Update";
+            var mainMessage = $"{creatorName} added a new task in project {project.Name}.";
+            var notifications = recipientIds.Select(recipientId => new Notification
+            {
+                Title = title,
+                Message = $"{mainMessage}||Task: {task.Title}",
+                TriggerTime = DateTime.Now,
+                CreatedAt = DateTime.Now,
+                IsRead = false,
+                UserId = recipientId
+            }).ToList();
+
+            _context.Notifications.AddRange(notifications);
+            await _context.SaveChangesAsync();
+
+            foreach (var recipientId in recipientIds)
+            {
+                await _hubContext.Clients.User(recipientId)
+                    .SendAsync("ReceiveNotification", title, mainMessage, task.Title);
+            }
+        }
+
         // --- 1. TRANG KANBAN (Tối ưu tốc độ cực cao) ---
         public async Task<IActionResult> Index(int? projectId)
         {
@@ -201,6 +254,8 @@ namespace DACS_TimeManagement.Controllers
                 await _taskRepo.AddAsync(task);
                 await _taskRepo.SaveAsync();
 
+                await NotifyProjectUsersAboutNewTaskAsync(task, userId);
+
                 if (task.AssigneeId != userId)
                 {
                     var notif = new Notification
@@ -216,7 +271,7 @@ namespace DACS_TimeManagement.Controllers
                     await _context.SaveChangesAsync();
 
                     await _hubContext.Clients.User(task.AssigneeId)
-                        .SendAsync("ReceiveNotification", notif.Message, task.Title);
+                        .SendAsync("ReceiveNotification", notif.Title, notif.Message, task.Title);
                 }
 
                 return RedirectToAction(nameof(Index), new { projectId = task.ProjectId });
@@ -298,6 +353,8 @@ namespace DACS_TimeManagement.Controllers
 
                 await _taskRepo.AddAsync(task);
                 await _taskRepo.SaveAsync();
+
+                await NotifyProjectUsersAboutNewTaskAsync(task, userId);
 
                 var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
                 var userName = currentUser?.UserName ?? "U";
@@ -583,8 +640,8 @@ namespace DACS_TimeManagement.Controllers
                     {
                         var notif = new Notification
                         {
-                            Title = "Task Updated",
-                            Message = "One of your tasks has just been updated!",
+                            Title = "New Assignment",
+                            Message = $"One of your tasks has just been updated!||Task: {taskForm.Title}",
                             TriggerTime = DateTime.Now,
                             CreatedAt = DateTime.Now,
                             IsRead = false,
@@ -594,7 +651,7 @@ namespace DACS_TimeManagement.Controllers
                         await _context.SaveChangesAsync();
 
                         await _hubContext.Clients.User(taskForm.AssigneeId)
-                            .SendAsync("ReceiveNotification", notif.Message, taskForm.Title);
+                            .SendAsync("ReceiveNotification", notif.Title, "One of your tasks has just been updated!", taskForm.Title);
                     }
 
                     TempData["SuccessMessage"] = "Task updated successfully!";

@@ -60,7 +60,7 @@ namespace DACS_TimeManagement.Controllers
             return Json(notifications.Select(n => new {
                 id = n.Id,
                 title = n.Title,
-                message = n.Message,
+                message = (n.Message ?? string.Empty).Split("||", StringSplitOptions.None)[0],
                 isRead = n.IsRead,
                 time = n.CreatedAt.ToString("g")
             }));

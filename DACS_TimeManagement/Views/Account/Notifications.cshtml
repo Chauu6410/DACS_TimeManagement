@@ -1,3 +1,4 @@
+@model IEnumerable<DACS_TimeManagement.Models.Notification>
 @{
     ViewData["Title"] = "Notifications";
 }
@@ -30,7 +31,7 @@
                 </div>
                 <h5 class="fw-bold mb-0 text-pastel-dark">Recent Notifications</h5>
                 @{
-                    var notifications = ViewBag.Notifications as List<DACS_TimeManagement.Models.Notification> ?? new List<DACS_TimeManagement.Models.Notification>();
+                    var notifications = Model != null ? Model.ToList() : new List<DACS_TimeManagement.Models.Notification>();
                     var unreadCount = notifications.Count(n => !n.IsRead);
                     if (unreadCount > 0)
                     {
@@ -45,6 +46,9 @@
                 <div class="notification-timeline">
                     @foreach (var n in notifications)
                     {
+                        var messageParts = (n.Message ?? string.Empty).Split("||", StringSplitOptions.None);
+                        var mainMessage = messageParts.Length > 0 ? messageParts[0] : string.Empty;
+                        var detailMessage = messageParts.Length > 1 ? messageParts[1] : string.Empty;
                         <div class="notification-item p-4 border-bottom @(!n.IsRead ? "unread" : "")">
                             <div class="d-flex flex-wrap gap-3 align-items-start justify-content-between">
                                 <div class="d-flex gap-3 flex-grow-1">
@@ -60,7 +64,11 @@
                                     </div>
                                     <div class="flex-grow-1">
                                         <h6 class="fw-bold mb-1 text-pastel-dark">@n.Title</h6>
-                                        <p class="small text-pastel-muted mb-2">@n.Message</p>
+                                        <p class="small text-pastel-muted mb-1">@mainMessage</p>
+                                        @if (!string.IsNullOrWhiteSpace(detailMessage))
+                                        {
+                                            <p class="small text-primary-emphasis mb-2">@detailMessage</p>
+                                        }
                                         <div class="d-flex align-items-center gap-3">
                                             <small class="text-pastel-muted">
                                                 <i class="far fa-clock me-1"></i>@n.CreatedAt.ToString("MMM dd, yyyy · HH:mm")

@@ -263,7 +263,7 @@ namespace DACS_TimeManagement.Controllers
 
             // 5. Bắn thông báo Realtime SignalR cho người vừa được Invite
             await _hubContext.Clients.User(targetUser.Id)
-                .SendAsync("ReceiveNotification", notification.Message, "System");
+                .SendAsync("ReceiveNotification", notification.Title, notification.Message, "System");
 
             TempData["SuccessMessage"] = $"Successfully invited {email} to the project!";
             return RedirectToAction(nameof(Details), new { id = projectId });
