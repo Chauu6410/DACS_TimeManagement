@@ -34,7 +34,7 @@ namespace DACS_TimeManagement.Controllers
 
             var events = await _context.ScheduledEvents
                 .Include(se => se.Task)!.ThenInclude(t => t.Project)
-                .Where(se => se.Task != null && (se.Task.UserId == userId || se.Task.AssigneeId == userId)
+                .Where(se => se.Task != null && (se.Task.AssigneeId == userId || (se.Task.UserId == userId && string.IsNullOrEmpty(se.Task.AssigneeId)))
                              && ((se.StartTime >= start && se.StartTime <= end) || (se.EndTime >= start && se.EndTime <= end)))
                 .OrderBy(se => se.StartTime)
                 .ToListAsync();
@@ -70,7 +70,7 @@ namespace DACS_TimeManagement.Controllers
 
             var tasks = await _context.WorkTasks
                 .Include(t => t.Project)
-                .Where(t => t.UserId == userId)
+                .Where(t => t.AssigneeId == userId || (t.UserId == userId && string.IsNullOrEmpty(t.AssigneeId)))
                 .Select(t => new
                 {
                     id = t.Id,
@@ -102,20 +102,30 @@ namespace DACS_TimeManagement.Controllers
                 .Select(se => se.TaskId)
                 .ToListAsync();
 
-            var tasks = await _context.WorkTasks
+            var tasksQuery = await _context.WorkTasks
                 .Include(t => t.Project)
-                .Where(t => t.UserId == userId && !scheduledTaskIds.Contains(t.Id))
+                .Where(t => (t.AssigneeId == userId || (t.UserId == userId && string.IsNullOrEmpty(t.AssigneeId))) && !scheduledTaskIds.Contains(t.Id))
                 .Select(t => new
                 {
                     id = t.Id,
                     title = t.Title ?? "Unnamed Task",
                     projectName = t.Project != null ? t.Project.Name : "No Project",
                     description = t.Description ?? "",
-                    deadline = t.EndDate.ToString("yyyy-MM-dd"),
+                    deadlineDate = t.EndDate,
                     isOverdue = t.EndDate < today
                 })
-                .OrderBy(t => t.deadline)
+                .OrderBy(t => t.deadlineDate)
                 .ToListAsync();
+
+            var tasks = tasksQuery.Select(t => new
+            {
+                id = t.id,
+                title = t.title,
+                projectName = t.projectName,
+                description = t.description,
+                deadline = t.deadlineDate.ToString("yyyy-MM-dd"),
+                isOverdue = t.isOverdue
+            });
 
             return Ok(tasks);
         }
@@ -131,20 +141,29 @@ namespace DACS_TimeManagement.Controllers
             var startOfDay = date.Date;
             var endOfDay = date.Date.AddDays(1);
 
-            var scheduledEvents = await _context.ScheduledEvents
+            var scheduledEventsQuery = await _context.ScheduledEvents
                 .Include(se => se.Task)!.ThenInclude(t => t.Project)
-                .Where(se => se.Task != null && (se.Task.UserId == userId || se.Task.AssigneeId == userId)
+                .Where(se => se.Task != null && (se.Task.AssigneeId == userId || (se.Task.UserId == userId && string.IsNullOrEmpty(se.Task.AssigneeId)))
                              && se.StartTime >= startOfDay && se.StartTime < endOfDay)
                 .OrderBy(se => se.StartTime)
                 .Select(se => new
                 {
                     id = se.Id,
                     title = (se.Task!.Project != null ? se.Task.Project.Name + " - " : "") + (se.Task.Title ?? "Unnamed Task"),
-                    start = se.StartTime.ToString("HH:mm"),
-                    end = se.EndTime.ToString("HH:mm"),
+                    startDateTime = se.StartTime,
+                    endDateTime = se.EndTime,
                     color = se.Color ?? "#818cf8"
                 })
                 .ToListAsync();
+
+            var scheduledEvents = scheduledEventsQuery.Select(se => new
+            {
+                id = se.id,
+                title = se.title,
+                start = se.startDateTime.ToString("HH:mm"),
+                end = se.endDateTime.ToString("HH:mm"),
+                color = se.color
+            });
 
             return Ok(scheduledEvents);
         }
@@ -163,7 +182,7 @@ namespace DACS_TimeManagement.Controllers
                 // validate task exists and user owns or assigned
                 var task = await _context.WorkTasks
                     .Include(t => t.Project)
-                    .FirstOrDefaultAsync(t => t.Id == request.TaskId && (t.UserId == userId || t.AssigneeId == userId));
+                    .FirstOrDefaultAsync(t => t.Id == request.TaskId && (t.AssigneeId == userId || (t.UserId == userId && string.IsNullOrEmpty(t.AssigneeId))));
 
                 if (task == null)
                     return BadRequest(new { success = false, message = "Task not found or not allowed" });
@@ -209,10 +228,31 @@ public class ScheduledEventDto
                 return Json(new { success = false, message = "Event not found" });
 
             // permission: only task owner or assignee can delete
-            if (se.Task == null || !(se.Task.UserId == userId || se.Task.AssigneeId == userId))
+            if (se.Task == null || !(se.Task.AssigneeId == userId || (se.Task.UserId == userId && string.IsNullOrEmpty(se.Task.AssigneeId))))
                 return Forbid();
 
             _context.ScheduledEvents.Remove(se);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        // POST: Calendar/UpdateScheduledEventColor
+        [HttpPost]
+        public async Task<IActionResult> UpdateScheduledEventColor(int id, string color)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { success = false, message = "User not authenticated" });
+
+            var se = await _context.ScheduledEvents.Include(s => s.Task).FirstOrDefaultAsync(s => s.Id == id);
+            if (se == null)
+                return Json(new { success = false, message = "Event not found" });
+
+            // permission: only task owner or assignee can edit
+            if (se.Task == null || !(se.Task.AssigneeId == userId || (se.Task.UserId == userId && string.IsNullOrEmpty(se.Task.AssigneeId))))
+                return Forbid();
+
+            se.Color = color;
             await _context.SaveChangesAsync();
             return Json(new { success = true });
         }
