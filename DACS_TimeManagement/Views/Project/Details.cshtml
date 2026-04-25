@@ -357,7 +357,7 @@
                 Active Project
             </span>
             <div class="d-flex gap-2">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light rounded-pill px-4 shadow-sm btn-sm fw-semibold" style="color: var(--primary);">
+                <a asp-controller="Project" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light rounded-pill px-4 shadow-sm btn-sm fw-semibold" style="color: var(--primary);">
                     <i class="fas fa-pencil-alt me-2"></i>Edit
                 </a>
                 <button type="button" class="btn btn-outline-light-custom rounded-pill px-4 shadow-sm btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">

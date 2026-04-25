@@ -111,8 +111,7 @@ namespace DACS_TimeManagement.Controllers
                     title = t.Title ?? "Unnamed Task",
                     projectName = t.Project != null ? t.Project.Name : "No Project",
                     description = t.Description ?? "",
-                    deadlineDate = t.EndDate,
-                    isOverdue = t.EndDate < today
+                    deadlineDate = t.EndDate
                 })
                 .OrderBy(t => t.deadlineDate)
                 .ToListAsync();
@@ -124,7 +123,7 @@ namespace DACS_TimeManagement.Controllers
                 projectName = t.projectName,
                 description = t.description,
                 deadline = t.deadlineDate.ToString("yyyy-MM-dd"),
-                isOverdue = t.isOverdue
+                isOverdue = t.deadlineDate < today
             });
 
             return Ok(tasks);
@@ -257,88 +256,128 @@ public class ScheduledEventDto
             return Json(new { success = true });
         }
 
-        // POST: Calendar/AutoPlanTasks - Auto plan lấy task từ database
+        public class AIPlanRequest
+        {
+            public List<int> TaskIds { get; set; } = new List<int>();
+        }
+
+        // POST: Calendar/AnalyzeTasksWithAI
         [HttpPost]
-        public async Task<IActionResult> AutoPlanTasks([FromBody] AutoPlan request)
+        public async Task<IActionResult> AnalyzeTasksWithAI([FromBody] AIPlanRequest request)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { success = false, message = "User not authenticated" });
 
-            if (request.Tasks == null || !request.Tasks.Any())
+            if (request.TaskIds == null || !request.TaskIds.Any())
                 return BadRequest(new { success = false, message = "No tasks selected" });
 
-            try
+            var tasks = await _context.WorkTasks
+                .Include(t => t.Project)
+                .Where(t => request.TaskIds.Contains(t.Id) && (t.AssigneeId == userId || (t.UserId == userId && string.IsNullOrEmpty(t.AssigneeId))))
+                .ToListAsync();
+
+            var suggestions = new List<object>();
+            var currentTime = DateTime.Today.AddDays(1).AddHours(8); // Start tomorrow 8 AM
+
+            foreach (var task in tasks.OrderBy(t => t.EndDate)) // Prioritize earlier deadlines
             {
-                var targetDate = request.TargetDate ?? DateTime.Today.AddDays(1);
-                var currentTime = new DateTime(targetDate.Year, targetDate.Month, targetDate.Day, 8, 0, 0);
-
-                // Sắp xếp: Hard làm buổi sáng, Medium/Easy buổi chiều
-                var morningTasks = request.Tasks.Where(t => t.Difficulty == "Hard").ToList();
-                var afternoonTasks = request.Tasks.Where(t => t.Difficulty != "Hard").ToList();
-
-                var scheduledEvents = new List<ScheduledEvent>();
-
-                // Xử lý tasks buổi sáng
-                foreach (var t in morningTasks)
+                // Skip lunch break
+                if (currentTime.TimeOfDay >= new TimeSpan(12, 0, 0) && currentTime.TimeOfDay < new TimeSpan(13, 30, 0))
                 {
-                    // Nghỉ trưa từ 12:00 đến 13:30
-                    if (currentTime.TimeOfDay >= new TimeSpan(12, 0, 0) && currentTime.TimeOfDay < new TimeSpan(13, 30, 0))
-                    {
-                        currentTime = new DateTime(targetDate.Year, targetDate.Month, targetDate.Day, 13, 30, 0);
-                    }
-
-                    if (currentTime.TimeOfDay >= new TimeSpan(21, 0, 0)) break;
-
-                    var endTime = currentTime.AddMinutes(t.DurationMinutes);
-
-                    var se = new ScheduledEvent
-                    {
-                        TaskId = t.TaskId,
-                        StartTime = currentTime,
-                        EndTime = endTime,
-                        Color = "#ef4444" // Màu đỏ cho Hard
-                    };
-
-                    scheduledEvents.Add(se);
-                    currentTime = endTime.AddMinutes(5);
+                    currentTime = currentTime.Date.AddHours(13).AddMinutes(30);
                 }
 
-                // Reset time cho buổi chiều
-                currentTime = new DateTime(targetDate.Year, targetDate.Month, targetDate.Day, 13, 30, 0);
-
-                // Xử lý tasks buổi chiều
-                foreach (var t in afternoonTasks)
+                // Move to next day if it's too late
+                if (currentTime.TimeOfDay >= new TimeSpan(21, 0, 0))
                 {
-                    if (currentTime.TimeOfDay >= new TimeSpan(21, 0, 0)) break;
-
-                    var endTime = currentTime.AddMinutes(t.DurationMinutes);
-                    var color = t.Difficulty == "Medium" ? "#f59e0b" : "#10b981";
-
-                    var se = new ScheduledEvent
-                    {
-                        TaskId = t.TaskId,
-                        StartTime = currentTime,
-                        EndTime = endTime,
-                        Color = color
-                    };
-
-                    scheduledEvents.Add(se);
-                    currentTime = endTime.AddMinutes(5);
+                    currentTime = currentTime.Date.AddDays(1).AddHours(8);
                 }
 
-                if (scheduledEvents.Any())
+                string importance;
+                string color;
+                int durationMinutes;
+                
+                var daysUntilDeadline = (task.EndDate - DateTime.Today).TotalDays;
+
+                if (daysUntilDeadline < 0)
                 {
-                    _context.ScheduledEvents.AddRange(scheduledEvents);
-                    await _context.SaveChangesAsync();
+                    importance = "Critical (Overdue)";
+                    color = "#ef4444"; // Red
+                    durationMinutes = 90;
+                }
+                else if (daysUntilDeadline <= 2)
+                {
+                    importance = "High (Approaching Deadline)";
+                    color = "#f59e0b"; // Orange
+                    durationMinutes = 60;
+                }
+                else
+                {
+                    importance = "Normal";
+                    color = "#10b981"; // Green
+                    durationMinutes = 45;
                 }
 
-                return Ok(new { success = true, message = $"Scheduled {scheduledEvents.Count} tasks for {targetDate:dd/MM/yyyy}", count = scheduledEvents.Count });
+                var startTime = currentTime;
+                var endTime = currentTime.AddMinutes(durationMinutes);
+
+                suggestions.Add(new
+                {
+                    taskId = task.Id,
+                    title = (task.Project != null ? task.Project.Name + " - " : "") + task.Title,
+                    startTime = startTime.ToString("yyyy-MM-ddTHH:mm"),
+                    endTime = endTime.ToString("yyyy-MM-ddTHH:mm"),
+                    color = color,
+                    importance = importance
+                });
+
+                currentTime = endTime.AddMinutes(15); // 15 min break
             }
-            catch (Exception ex)
+
+            return Ok(new { success = true, data = suggestions });
+        }
+
+        // POST: Calendar/SaveScheduledEvents
+        [HttpPost]
+        public async Task<IActionResult> SaveScheduledEvents([FromBody] List<ScheduledEventDto> requests)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { success = false, message = "User not authenticated" });
+
+            if (requests == null || !requests.Any())
+                return BadRequest(new { success = false, message = "No events to save" });
+
+            var taskIds = requests.Select(r => r.TaskId).ToList();
+            var tasks = await _context.WorkTasks
+                .Where(t => taskIds.Contains(t.Id) && (t.AssigneeId == userId || (t.UserId == userId && string.IsNullOrEmpty(t.AssigneeId))))
+                .ToListAsync();
+
+            var validTaskIds = tasks.Select(t => t.Id).ToHashSet();
+
+            var eventsToSave = new List<ScheduledEvent>();
+            foreach (var req in requests)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                if (validTaskIds.Contains(req.TaskId))
+                {
+                    eventsToSave.Add(new ScheduledEvent
+                    {
+                        TaskId = req.TaskId,
+                        StartTime = req.StartTime,
+                        EndTime = req.EndTime,
+                        Color = req.Color ?? GetRandomPastelColor()
+                    });
+                }
             }
+
+            if (eventsToSave.Any())
+            {
+                _context.ScheduledEvents.AddRange(eventsToSave);
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new { success = true, message = "Saved successfully" });
         }
 
         private string GetRandomPastelColor()

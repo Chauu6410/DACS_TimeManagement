@@ -163,6 +163,15 @@
         overflow-y: auto;
         max-height: calc(85vh - 60px);
     }
+
+    /* Color swatches in Set Task modal */
+    .color-swatches { align-items: center; }
+    .color-swatch {
+        width: 34px; height: 34px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; outline: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .color-swatch:focus { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .color-swatch.selected { border-color: rgba(15,23,42,0.12); transform: translateY(-2px); }
     
     .action-buttons-row {
         display: flex;
@@ -244,12 +253,16 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Color</label>
-                    <div class="d-flex gap-2">
-                        <select id="eventColorSelect" class="form-select">
-                            <option value="#818cf8">Purple</option><option value="#f472b6">Pink</option><option value="#fb923c">Orange</option>
-                            <option value="#fbbf24">Yellow</option><option value="#4ade80">Green</option><option value="#2dd4bf">Teal</option><option value="#60a5fa">Blue</option>
-                        </select>
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" onclick="randomColor()"><i class="fas fa-random"></i> Random</button>
+                    <input type="hidden" id="eventColorSelect" value="#818cf8" />
+                    <div class="color-swatches d-flex gap-2 align-items-center">
+                        <button type="button" class="color-swatch" data-color="#818cf8" title="Purple" style="background:#818cf8"></button>
+                        <button type="button" class="color-swatch" data-color="#f472b6" title="Pink" style="background:#f472b6"></button>
+                        <button type="button" class="color-swatch" data-color="#fb923c" title="Orange" style="background:#fb923c"></button>
+                        <button type="button" class="color-swatch" data-color="#fbbf24" title="Yellow" style="background:#fbbf24"></button>
+                        <button type="button" class="color-swatch" data-color="#4ade80" title="Green" style="background:#4ade80"></button>
+                        <button type="button" class="color-swatch" data-color="#2dd4bf" title="Teal" style="background:#2dd4bf"></button>
+                        <button type="button" class="color-swatch" data-color="#60a5fa" title="Blue" style="background:#60a5fa"></button>
+                        <button type="button" id="randomColorBtn" class="btn btn-outline-secondary rounded-pill px-3 ms-2" onclick="randomColor()"><i class="fas fa-random"></i></button>
                     </div>
                 </div>
             </div>
@@ -283,17 +296,38 @@
 <div class="modal fade" id="autoPlanModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-xl rounded-4">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold"><i class="fas fa-magic me-2"></i>Auto Schedule Tasks</h5>
+            <div class="modal-header" style="background: linear-gradient(135deg, #3b82f6, #8b5cf6);">
+                <h5 class="modal-title fw-bold text-white"><i class="fas fa-robot me-2"></i>AI Task Auto-Plan</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4 bg-light">
-                <div class="mb-3"><label class="form-label fw-semibold">Schedule Date</label><input type="date" id="autoPlanDate" class="form-control" /></div>
-                <div class="mb-3"><label class="form-label fw-semibold">Select Tasks to Schedule</label><div id="tasksListContainer" class="border rounded-3 p-3" style="max-height: 400px; overflow-y: auto;"><div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div></div>
+                <p class="text-muted mb-3">Select the tasks you want the AI to analyze and schedule for you.</p>
+                <div class="mb-3"><label class="form-label fw-semibold">Select Tasks to Schedule</label><div id="tasksListContainer" class="border rounded-3 p-3 bg-white shadow-sm" style="max-height: 400px; overflow-y: auto;"><div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> Loading...</div></div></div>
             </div>
             <div class="modal-footer border-0 pb-4 pe-4 bg-light">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="submitAutoPlanFromTasks()">Start Scheduling</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="analyzeWithAI()"><i class="fas fa-brain me-2"></i>Analyze with AI</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal AI Approval -->
+<div class="modal fade" id="aiApprovalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-xl rounded-4">
+            <div class="modal-header" style="background: linear-gradient(135deg, #10b981, #3b82f6);">
+                <h5 class="modal-title fw-bold text-white"><i class="fas fa-calendar-check me-2"></i>Review AI Suggestions</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-muted mb-4">AI has analyzed your tasks and suggested the following schedule based on priority. You can adjust the times if needed.</p>
+                <div id="aiSuggestionsContainer" class="d-flex flex-column gap-3" style="max-height: 500px; overflow-y: auto;">
+                </div>
+            </div>
+            <div class="modal-footer border-0 pb-4 pe-4 bg-light">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success rounded-pill px-4 shadow-sm" onclick="saveAIApprovedTasks()">Approve & Save</button>
             </div>
         </div>
     </div>
@@ -310,7 +344,28 @@
         let selectedTaskId = null, selectedTaskTitle = null, selectedTasks = [];
         const pastelColors = ["#818cf8", "#c084fc", "#f472b6", "#fb923c", "#fbbf24", "#4ade80", "#2dd4bf", "#60a5fa"];
         function getRandomPastelColor() { return pastelColors[Math.floor(Math.random() * pastelColors.length)]; }
-        window.randomColor = () => document.getElementById('eventColorSelect').value = getRandomPastelColor();
+        window.randomColor = () => {
+            const col = getRandomPastelColor();
+            document.getElementById('eventColorSelect').value = col;
+            document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+            const sw = document.querySelector(`.color-swatch[data-color="${col}"]`);
+            if(sw) sw.classList.add('selected');
+        };
+        // Color swatch click handling
+        document.addEventListener('click', function(e){
+            const sw = e.target.closest && e.target.closest('.color-swatch');
+            if(sw) {
+                document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+                sw.classList.add('selected');
+                const col = sw.getAttribute('data-color');
+                document.getElementById('eventColorSelect').value = col;
+            }
+            if(e.target && e.target.id === 'randomColorBtn') {
+                const col = getRandomPastelColor();
+                document.getElementById('eventColorSelect').value = col;
+                document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+            }
+        });
         
         // Tooltip tùy chỉnh
         let tooltipDiv = null;
@@ -383,17 +438,30 @@
                 { val: '#4ade80', name: 'Green' }, { val: '#2dd4bf', name: 'Teal' },
                 { val: '#60a5fa', name: 'Blue' }
             ];
-            let optionsHtml = colors.map(c => `<option value="${c.val}" ${c.val === currentColor ? 'selected' : ''}>${c.name}</option>`).join('');
+
+            // build swatch buttons html; clicking sets window._swalSelectedColor and highlights selection
+            let swatchesHtml = '<div class="d-flex gap-2 flex-wrap">' + colors.map(c => `
+                <button type="button" class="color-swatch swal-swatch" data-color="${c.val}" title="${c.name}" style="background:${c.val}; margin:4px;" onclick="(function(btn){window._swalSelectedColor='${c.val}'; document.querySelectorAll('.swal-swatch').forEach(s=>s.classList.remove('selected')); btn.classList.add('selected');})(this)"></button>`).join('') + '</div>';
+
+            // initialize global selected color to currentColor
+            window._swalSelectedColor = currentColor || colors[0].val;
 
             Swal.fire({
                 title: 'Select Color',
-                html: `<select id="swal-color-select" class="form-select">${optionsHtml}</select>`,
-                showCancelButton: true, confirmButtonText: 'Save',
-                preConfirm: () => document.getElementById('swal-color-select').value
+                html: `<div class=\"text-center mb-2\">Choose a color</div>${swatchesHtml}`,
+                showCancelButton: true,
+                confirmButtonText: 'Save',
+                didOpen: () => {
+                    // mark the current color as selected inside the modal
+                    const initial = window._swalSelectedColor;
+                    document.querySelectorAll('.swal-swatch').forEach(s=>{ if(s.dataset.color===initial) s.classList.add('selected'); });
+                },
+                preConfirm: () => window._swalSelectedColor || currentColor
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     try {
-                        const res = await fetch(`/Calendar/UpdateScheduledEventColor?id=${eventId}&color=${encodeURIComponent(result.value)}`, { method: 'POST' });
+                        const chosen = result.value || currentColor;
+                        const res = await fetch(`/Calendar/UpdateScheduledEventColor?id=${eventId}&color=${encodeURIComponent(chosen)}`, { method: 'POST' });
                         if ((await res.json()).success) { calendar.refetchEvents(); loadScheduledTasksByDate(); Swal.fire('Updated!','','success'); }
                     } catch (e) { Swal.fire('Error','','error'); }
                 }
@@ -402,7 +470,13 @@
         
         function openSetTaskModal(start,end){
             document.getElementById('taskSelect').value=''; document.getElementById('startTimeInput').value=start; document.getElementById('endTimeInput').value=end;
-            document.getElementById('eventColorSelect').value=getRandomPastelColor(); selectedTaskId=null;
+            // ensure swatch selection reflects hidden color input
+            const defaultColor = getRandomPastelColor();
+            document.getElementById('eventColorSelect').value = defaultColor;
+            document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
+            const sw = document.querySelector(`.color-swatch[data-color="${defaultColor}"]`);
+            if(sw) sw.classList.add('selected');
+            selectedTaskId=null;
             new bootstrap.Modal(document.getElementById('setTaskModal')).show();
         }
         
@@ -410,32 +484,104 @@
         async function loadUnplannedTasks(){
             try{
                 const res=await fetch('/Calendar/GetAllTasks'); const tasks=await res.json(); const cont=document.getElementById('tasksListContainer');
-                if(!tasks?.length){ cont.innerHTML='<div class="text-center py-3">No pending tasks</div>'; return; }
-                cont.innerHTML=tasks.map(t=>`<div class="task-item mb-3 p-3 border rounded" data-id="${t.id}"><div class="d-flex gap-2 align-items-center mb-2"><input type="checkbox" class="task-checkbox" data-id="${t.id}" onchange="toggleTaskSelection(this)"><strong>${escapeHtml(t.projectName)} - ${escapeHtml(t.title)}</strong>${t.isOverdue?'<span class="badge bg-danger">Overdue</span>':''}</div>${t.deadline?`<small><i class="far fa-calendar-alt"></i> Deadline: ${t.deadline}</small>`:''}<div class="row mt-2"><div class="col-5"><select class="form-select form-select-sm task-diff" disabled><option value="Hard">Hard</option><option value="Medium" selected>Medium</option><option value="Easy">Easy</option></select></div><div class="col-4"><select class="form-select form-select-sm task-dur" disabled><option value="15">15m</option><option value="30">30m</option><option value="45">45m</option><option value="60" selected>1h</option><option value="90">1.5h</option><option value="120">2h</option></select></div></div></div>`).join('');
+                if(!tasks?.length){ cont.innerHTML='<div class="text-center py-3 text-muted"><i class="fas fa-check-circle me-2"></i>No pending tasks</div>'; return; }
+                cont.innerHTML=tasks.map(t=>`<div class="task-item mb-2 p-3 border rounded shadow-sm bg-white" data-id="${t.id}"><div class="d-flex gap-2 align-items-center"><input type="checkbox" class="task-checkbox form-check-input" data-id="${t.id}" onchange="toggleTaskSelection(this)"><strong class="ms-2">${escapeHtml(t.projectName)} - ${escapeHtml(t.title)}</strong>${t.isOverdue?'<span class="badge bg-danger ms-auto">Overdue</span>':''}</div>${t.deadline?`<div class="mt-2 text-muted small ms-4"><i class="far fa-calendar-alt"></i> Deadline: ${t.deadline}</div>`:''}</div>`).join('');
             }catch(e){ document.getElementById('tasksListContainer').innerHTML='<div class="text-danger">Error loading tasks</div>'; }
         }
         window.toggleTaskSelection=function(cb){
-            const div=cb.closest('.task-item'); const tid=parseInt(cb.dataset.id); const diff=div.querySelector('.task-diff'), dur=div.querySelector('.task-dur');
+            const tid=parseInt(cb.dataset.id);
             if(cb.checked){
-                diff.disabled=false; dur.disabled=false;
-                selectedTasks.push({taskId:tid, difficulty:diff.value, durationMinutes:parseInt(dur.value)});
-                diff.onchange=()=>{ let idx=selectedTasks.findIndex(t=>t.taskId===tid); if(idx!==-1) selectedTasks[idx].difficulty=diff.value; };
-                dur.onchange=()=>{ let idx=selectedTasks.findIndex(t=>t.taskId===tid); if(idx!==-1) selectedTasks[idx].durationMinutes=parseInt(dur.value); };
+                if(!selectedTasks.includes(tid)) selectedTasks.push(tid);
             }else{
-                diff.disabled=true; dur.disabled=true;
-                selectedTasks=selectedTasks.filter(t=>t.taskId!==tid);
+                selectedTasks=selectedTasks.filter(id=>id!==tid);
             }
         };
-        window.submitAutoPlanFromTasks=async function(){
-            const targetDate=document.getElementById('autoPlanDate').value;
-            if(!selectedTasks.length) return Swal.fire('No tasks','Select at least one','warning');
-            Swal.fire({title:'Scheduling...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
+        window.analyzeWithAI=async function(){
+            if(!selectedTasks.length) return Swal.fire('No tasks','Select at least one task to analyze','warning');
+            Swal.fire({title:'AI is analyzing...',html:'Determining importance and optimal scheduling...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
             try{
-                const res=await fetch('/Calendar/AutoPlanTasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks:selectedTasks,targetDate:targetDate||null})});
-                const data=await res.json(); Swal.close();
-                if(data.success){ Swal.fire('Success',data.message,'success'); bootstrap.Modal.getInstance(document.getElementById('autoPlanModal')).hide(); calendar.refetchEvents(); loadScheduledTasksByDate(); selectedTasks=[]; }
-                else Swal.fire('Error',data.message,'error');
+                const res=await fetch('/Calendar/AnalyzeTasksWithAI',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({taskIds:selectedTasks})});
+                const result=await res.json(); Swal.close();
+                if(result.success){
+                    bootstrap.Modal.getInstance(document.getElementById('autoPlanModal')).hide();
+                    renderAISuggestions(result.data);
+                    new bootstrap.Modal(document.getElementById('aiApprovalModal')).show();
+                } else Swal.fire('Error',result.message,'error');
             }catch(e){ Swal.close(); Swal.fire('Error','Server error','error'); }
+        };
+        
+        let currentAISuggestions = [];
+        function renderAISuggestions(suggestions) {
+            currentAISuggestions = suggestions;
+            const container = document.getElementById('aiSuggestionsContainer');
+            container.innerHTML = suggestions.map((s, index) => `
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="card-title fw-bold mb-0 text-dark">${escapeHtml(s.title)}</h6>
+                            <span class="badge rounded-pill" style="background-color: ${s.color}; font-size: 0.75rem;">${escapeHtml(s.importance)}</span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted fw-semibold">Start Time</label>
+                                <input type="datetime-local" class="form-control ai-start-time" data-index="${index}" value="${s.startTime}" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small text-muted fw-semibold">End Time</label>
+                                <input type="datetime-local" class="form-control ai-end-time" data-index="${index}" value="${s.endTime}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.saveAIApprovedTasks = async function() {
+            const eventsToSave = [];
+            let hasError = false;
+            
+            document.querySelectorAll('.ai-start-time').forEach(el => {
+                const index = el.dataset.index;
+                const startTime = el.value;
+                const endTime = document.querySelector(`.ai-end-time[data-index="${index}"]`).value;
+                
+                if(!startTime || !endTime || new Date(startTime) >= new Date(endTime)) {
+                    hasError = true;
+                }
+                
+                eventsToSave.push({
+                    taskId: currentAISuggestions[index].taskId,
+                    startTime: startTime,
+                    endTime: endTime,
+                    color: currentAISuggestions[index].color
+                });
+            });
+            
+            if(hasError) return Swal.fire('Error', 'Please ensure all times are valid and end time is after start time.', 'warning');
+            
+            Swal.fire({title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            
+            try {
+                const res = await fetch('/Calendar/SaveScheduledEvents', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(eventsToSave)
+                });
+                const data = await res.json();
+                Swal.close();
+                if(data.success) {
+                    Swal.fire('Success', 'Tasks scheduled successfully!', 'success');
+                    bootstrap.Modal.getInstance(document.getElementById('aiApprovalModal')).hide();
+                    calendar.refetchEvents();
+                    loadScheduledTasksByDate();
+                    selectedTasks = [];
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            } catch(e) {
+                Swal.close();
+                Swal.fire('Error', 'Server error', 'error');
+            }
         };
         
         // Draggable Todo Sidebar
@@ -519,7 +665,7 @@
             document.getElementById('todoDateFilter').addEventListener('change', loadScheduledTasksByDate);
             loadScheduledTasksByDate();
             document.getElementById('openSetTaskFromSidebarBtn').onclick = () => { let n=new Date(); let s=new Date(n.getTime()-n.getTimezoneOffset()*60000).toISOString().slice(0,16); let e=new Date(n.getTime()+3600000-n.getTimezoneOffset()*60000).toISOString().slice(0,16); openSetTaskModal(s,e); };
-            document.getElementById('openAutoPlanModalBtn').onclick = () => { let t=new Date(); t.setDate(t.getDate()+1); document.getElementById('autoPlanDate').value=t.toISOString().slice(0,10); selectedTasks=[]; loadUnplannedTasks(); new bootstrap.Modal(document.getElementById('autoPlanModal')).show(); };
+            document.getElementById('openAutoPlanModalBtn').onclick = () => { selectedTasks=[]; loadUnplannedTasks(); new bootstrap.Modal(document.getElementById('autoPlanModal')).show(); };
         });
     </script>
 }
