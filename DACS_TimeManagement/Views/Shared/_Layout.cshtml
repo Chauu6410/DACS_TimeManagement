@@ -527,6 +527,12 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            @{ var pendingCount = 0; var uid = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier); if(!string.IsNullOrEmpty(uid)) { pendingCount = _context.TaskChangeRequests.Count(r => r.OwnerId == uid && r.Status == DACS_TimeManagement.Models.TaskChangeStatus.Pending); } }
+                            <a class="nav-link @(currentController == "TaskChangeRequest" ? "active" : "")" asp-controller="TaskChangeRequest" asp-action="Index">
+                                <i class="fas fa-inbox"></i> Requests @if(pendingCount>0){<span class="badge bg-danger ms-2">@pendingCount</span>}
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link @(currentController == "Share" ? "active" : "")" asp-controller="Share" asp-action="Index">
                                 <i class="fas fa-share-alt"></i> Team Shared
                             </a>
@@ -739,6 +745,31 @@
                     if(badge) { let cnt = parseInt(badge.innerText)||0; badge.innerText=cnt+1; badge.style.display="inline"; }
                     new bootstrap.Toast(document.getElementById("realtimeToast"), {delay:5000}).show();
                     if(navigator.vibrate) navigator.vibrate([100,50,100]);
+                });
+                connection.on("TaskChangeApplied", function(taskId) {
+                    try {
+                        var el = document.querySelector('[data-task-id="' + taskId + '"]');
+                        if (el) {
+                            el.classList.remove('pending-task');
+                            el.style.transition = 'background 0.3s';
+                            el.style.background = 'rgba(34,197,94,0.06)';
+                            setTimeout(function(){ location.reload(); }, 700);
+                        } else {
+                            location.reload();
+                        }
+                    } catch(e) { console.error(e); location.reload(); }
+                });
+                // When someone requests a task change (member moved a task and it's pending), owners get this event
+                connection.on("TaskChangeRequested", function(taskId, requestId) {
+                    try {
+                        var el = document.querySelector('[data-task-id="' + taskId + '"]');
+                        if (el) {
+                            el.classList.add('pending-task');
+                            // show pending controls on hover
+                            var controls = el.querySelector('.pending-controls');
+                            if (controls) controls.style.display = 'inline-block';
+                        }
+                    } catch(e) { console.error(e); }
                 });
                 connection.start().catch(err=>console.error(err));
             });

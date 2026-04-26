@@ -78,6 +78,9 @@ namespace DACS_TimeManagement.Repositories
             existingTask.Priority = updatedTask.Priority;
             existingTask.Status = updatedTask.Status;
             existingTask.Progress = updatedTask.Progress;
+            // Ensure Assignee changes are persisted
+            existingTask.AssigneeId = updatedTask.AssigneeId;
+            existingTask.IsPrivate = updatedTask.IsPrivate;
             existingTask.ProjectId = updatedTask.ProjectId;
 
             Update(existingTask);

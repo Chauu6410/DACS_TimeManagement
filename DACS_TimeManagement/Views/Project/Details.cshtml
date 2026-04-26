@@ -1,4 +1,5 @@
 @model DACS_TimeManagement.Models.Project
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Project Details";
     var completedTasks = Model.Tasks?.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed) ?? 0;
@@ -356,13 +357,17 @@
                 <span class="spinner-grow spinner-grow-sm me-2 text-pastel-primary" style="width: 0.5rem; height: 0.5rem;"></span>
                 Active Project
             </span>
+    @{ var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier); }
             <div class="d-flex gap-2">
-                <a asp-controller="Project" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light rounded-pill px-4 shadow-sm btn-sm fw-semibold" style="color: var(--primary);">
-                    <i class="fas fa-pencil-alt me-2"></i>Edit
-                </a>
-                <button type="button" class="btn btn-outline-light-custom rounded-pill px-4 shadow-sm btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
-                    <i class="fas fa-user-plus me-2"></i>Invite
-                </button>
+                @if (!string.IsNullOrEmpty(currentUserId) && currentUserId == Model.UserId)
+                {
+                    <a asp-controller="Project" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light rounded-pill px-4 shadow-sm btn-sm fw-semibold" style="color: var(--primary);">
+                        <i class="fas fa-pencil-alt me-2"></i>Edit
+                    </a>
+                    <button type="button" class="btn btn-outline-light-custom rounded-pill px-4 shadow-sm btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
+                        <i class="fas fa-user-plus me-2"></i>Invite
+                    </button>
+                }
             </div>
         </div>
         <h3 class="fw-bold mb-2 text-white text-truncate" title="@Model.Name">

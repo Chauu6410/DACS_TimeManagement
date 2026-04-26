@@ -83,9 +83,30 @@
                                                             string priorityText = t.Priority.ToString();
                                                         }
                                                         <div class="d-flex align-items-center gap-2 position-relative" style="z-index: 2;">
-                                                            <a asp-action="Edit" asp-route-id="@t.Id" class="text-pastel-primary opacity-75 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Sửa thẻ">
-                                                                <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
-                                                            </a>
+                                                            @* Edit link: only show if current user is creator or assignee or project owner. If assignee and not creator, opening edit will show request flow *@
+                                                            @{
+                                                                var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                                                                var isCreatorOrAssignee = (t.UserId == currentUserId) || (t.AssigneeId == currentUserId);
+                                                            }
+                                                            @if (isCreatorOrAssignee)
+                                                            {
+                                                                <a href="/WorkTask/Edit/@t.Id" class="text-pastel-primary opacity-75 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Sửa thẻ">
+                                                                    <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
+                                                                </a>
+                                                            }
+                                                            @* If this task has a pending request, and current user is project owner, show approve/reject buttons on hover *@
+                                                            @{
+                                                                var pending = (ViewBag.PendingRequests as List<DACS_TimeManagement.Models.TaskChangeRequest>) ?? new List<DACS_TimeManagement.Models.TaskChangeRequest>();
+                                                                var pr = pending.FirstOrDefault(r => r.TaskId == t.Id);
+                                                                var isOwnerView = ViewBag.IsProjectOwner as bool? == true;
+                                                            }
+                                                            @if (pr != null && isOwnerView)
+                                                            {
+                                                                <div class="pending-controls ms-2" style="display:inline-block">
+                                                                    <button class="btn btn-sm btn-success approve-btn" data-request-id="@pr.Id" title="Approve"><i class="fas fa-check"></i></button>
+                                                                    <button class="btn btn-sm btn-danger reject-btn ms-1" data-request-id="@pr.Id" title="Reject"><i class="fas fa-times"></i></button>
+                                                                </div>
+                                                            }
                                                             <form asp-action="Delete" asp-route-id="@t.Id" method="post" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thẻ này?');">
                                                                 <button type="submit" class="btn btn-link text-danger p-0 opacity-75 text-decoration-none border-0" style="transition: opacity 0.2s; background: transparent;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Xóa thẻ">
                                                                     <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
@@ -163,6 +184,9 @@
                                                         }
                                                     </div>
                                                 </div>
+                                            @* Visual mark when a task has a pending request (client will add class 'pending') *@
+                                            @{ var pendingList = (ViewBag.PendingRequests as List<DACS_TimeManagement.Models.TaskChangeRequest>) ?? new List<DACS_TimeManagement.Models.TaskChangeRequest>(); var hasPending = pendingList.Any(r => r.TaskId == t.Id); }
+                                            <script>document.addEventListener('DOMContentLoaded', function(){ var el=document.querySelector('[data-task-id="@t.Id"]'); if(el && @((hasPending)?1:0)===1){ el.classList.add('pending-task'); } });</script>
                                             </div>
                                         }
                                     }
@@ -249,6 +273,17 @@
                                     alert("Error: " + data.message);
                                     location.reload();
                                 }
+
+                                // If server indicates this change is pending approval, mark the moved card as pending
+                                if (data.pending) {
+                                    try {
+                                        evt.item.classList.add('pending-task');
+                                        // Optionally show pending-controls if present
+                                        var controls = evt.item.querySelector('.pending-controls');
+                                        if (controls) controls.style.display = 'inline-block';
+                                    } catch(e) { console.error(e); }
+                                }
+
                                 updateCounts();
                             })
                             .catch(() => {
@@ -269,6 +304,50 @@
             }
 
             initTaskLists();
+
+            // Approve/Reject handlers (delegated) - works for dynamically added buttons too
+            document.addEventListener('click', function(e) {
+                const approveBtn = e.target.closest('.approve-btn');
+                const rejectBtn = e.target.closest('.reject-btn');
+                if (approveBtn) {
+                    e.stopPropagation();
+                    const id = approveBtn.dataset.requestId;
+                    if (!id) return;
+                    approveBtn.disabled = true;
+                    fetch('/TaskChangeRequest/Approve', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value },
+                        body: `id=${id}`
+                    }).then(r => {
+                        approveBtn.disabled = false;
+                        if (r.ok) {
+                            // optimistic UI: remove pending on this card
+                            const card = approveBtn.closest('[data-task-id]');
+                            if (card) card.classList.remove('pending-task');
+                            location.reload();
+                        } else alert('Failed');
+                    }).catch(() => { approveBtn.disabled = false; alert('Failed'); });
+                }
+                if (rejectBtn) {
+                    e.stopPropagation();
+                    const id = rejectBtn.dataset.requestId;
+                    if (!id) return;
+                    rejectBtn.disabled = true;
+                    fetch('/TaskChangeRequest/Reject', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value },
+                        body: `id=${id}`
+                    }).then(r => {
+                        rejectBtn.disabled = false;
+                        if (r.ok) {
+                            // optimistic: remove pending class
+                            const card = rejectBtn.closest('[data-task-id]');
+                            if (card) card.classList.remove('pending-task');
+                            location.reload();
+                        } else alert('Failed');
+                    }).catch(() => { rejectBtn.disabled = false; alert('Failed'); });
+                }
+            });
 
             // Inline Task Creation Logic
             document.querySelectorAll('.add-card-btn').forEach(btn => {
@@ -408,6 +487,10 @@
 }
 
 <style>
+    .task-card.pending-task { opacity: 0.6; filter: grayscale(40%); position: relative; }
+    .task-card.pending-task:after { content: '\f110'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; right: 12px; top: 12px; color: rgba(0,0,0,0.12); font-size: 20px; }
+    .pending-controls { display: none; }
+    .task-card:hover .pending-controls { display: inline-block; }
     /* ---------- PASTEL COLOR SYSTEM (giữ nguyên từ bản cũ + bổ sung) ---------- */
     :root {
         --pastel-primary: #a5b4fc;

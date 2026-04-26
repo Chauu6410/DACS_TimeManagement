@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace DACS_TimeManagement.Controllers
 {
@@ -133,11 +134,25 @@ namespace DACS_TimeManagement.Controllers
                     boardLists = boardLists.OrderBy(bl => bl.Position).ToList();
                 }
 
-                var tasks = await _context.WorkTasks
-                    .AsNoTracking()
-                    .Include(t => t.Assignee)
-                    .Where(t => t.ProjectId == selectedId && (!t.IsPrivate || isProjectOwner || t.UserId == currentUserId || t.AssigneeId == currentUserId))
-                    .ToListAsync();
+                List<WorkTask> tasks;
+                if (isProjectOwner)
+                {
+                    // Project owner can see all tasks in the project
+                    tasks = await _context.WorkTasks
+                        .AsNoTracking()
+                        .Include(t => t.Assignee)
+                        .Where(t => t.ProjectId == selectedId)
+                        .ToListAsync();
+                }
+                else
+                {
+                    // Members may only see tasks they created or tasks assigned to them
+                    tasks = await _context.WorkTasks
+                        .AsNoTracking()
+                        .Include(t => t.Assignee)
+                        .Where(t => t.ProjectId == selectedId && (t.UserId == currentUserId || t.AssigneeId == currentUserId))
+                        .ToListAsync();
+                }
 
                 // 4. Ghép Task vào List (Chỉ xử lý trong phạm vi 1 Project nên cực nhanh)
                 foreach (var list in boardLists)
@@ -155,6 +170,15 @@ namespace DACS_TimeManagement.Controllers
                     SelectedProjectId = selectedId,
                     BoardLists = boardLists
                 };
+
+                // Load pending change requests related to tasks in this project
+                var taskIds = tasks.Select(t => t.Id).ToList();
+                var pendingRequests = await _context.TaskChangeRequests
+                    .Where(r => r.Status == TaskChangeStatus.Pending && taskIds.Contains(r.TaskId))
+                    .ToListAsync();
+
+                ViewBag.PendingRequests = pendingRequests; // List<TaskChangeRequest>
+                ViewBag.IsProjectOwner = isProjectOwner;
 
                 return View(viewModel);
             }
@@ -251,11 +275,47 @@ namespace DACS_TimeManagement.Controllers
 
                 if (string.IsNullOrEmpty(task.AssigneeId)) task.AssigneeId = userId;
 
-                await _taskRepo.AddAsync(task);
-                await _taskRepo.SaveAsync();
+                var project = task.ProjectId.HasValue ? await _context.Projects.FirstOrDefaultAsync(p => p.Id == task.ProjectId.Value) : null;
+                var isOwner = project != null && project.UserId == userId;
 
-                await NotifyProjectUsersAboutNewTaskAsync(task, userId);
-
+                if (isOwner)
+                {
+                    await _taskRepo.AddAsync(task);
+                    await _taskRepo.SaveAsync();
+                    await NotifyProjectUsersAboutNewTaskAsync(task, userId);
+                }
+                else
+                {
+                    // Create a change request for creation
+                    var payload = new { Title = task.Title, ProjectId = task.ProjectId, BoardListId = task.BoardListId };
+                    var tcr = new Models.TaskChangeRequest
+                    {
+                        TaskId = 0,
+                        RequesterId = userId,
+                        OwnerId = project?.UserId ?? string.Empty,
+                        Action = Models.TaskChangeAction.Create,
+                        Payload = JsonSerializer.Serialize(payload),
+                        Status = Models.TaskChangeStatus.Pending
+                    };
+                    _context.TaskChangeRequests.Add(tcr);
+                    await _context.SaveChangesAsync();
+                    // Notify owner
+                    if (!string.IsNullOrEmpty(tcr.OwnerId))
+                    {
+                        var notif = new Notification
+                        {
+                            Title = "Task Creation Request",
+                            Message = $"{User.Identity?.Name} requested to create a task in project '{project?.Name}'.",
+                            TriggerTime = DateTime.Now,
+                            CreatedAt = DateTime.Now,
+                            IsRead = false,
+                            UserId = tcr.OwnerId
+                        };
+                        _context.Notifications.Add(notif);
+                        await _context.SaveChangesAsync();
+                        await _hubContext.Clients.User(tcr.OwnerId).SendAsync("ReceiveNotification", notif.Title, notif.Message, "task-request", tcr.Id);
+                    }
+                }
                 if (task.AssigneeId != userId)
                 {
                     var notif = new Notification
@@ -434,6 +494,52 @@ namespace DACS_TimeManagement.Controllers
 
             if (task == null) return Json(new { success = false, message = "Task not found or you do not have permission to update" });
 
+            // If the user is not the owner and is attempting to modify a task assigned to them that they did not create,
+            // create a TaskChangeRequest instead of applying the change immediately.
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isOwner = task.Project != null && task.Project.UserId == currentUserId;
+
+            // If the user is not the owner and is attempting to modify a task assigned to them that they did not create,
+            // create a TaskChangeRequest instead of applying the change immediately. The client that initiated the move
+            // should still update its UI optimistically, but the DB update will wait for owner approval.
+            if (!isOwner && task.AssigneeId == currentUserId && task.UserId != currentUserId)
+            {
+                var payload = new { NewListId = newListId, NewPosition = newPosition };
+                var tcr = new Models.TaskChangeRequest
+                {
+                    TaskId = taskId,
+                    RequesterId = currentUserId,
+                    OwnerId = task.Project?.UserId ?? string.Empty,
+                    Action = Models.TaskChangeAction.Edit,
+                    Payload = JsonSerializer.Serialize(payload),
+                    Status = Models.TaskChangeStatus.Pending
+                };
+                _context.TaskChangeRequests.Add(tcr);
+                await _context.SaveChangesAsync();
+
+                // Notify owner about the change request
+                if (!string.IsNullOrEmpty(tcr.OwnerId) && tcr.OwnerId != userId)
+                {
+                    var notif = new Notification
+                    {
+                        Title = "Task Change Request",
+                        Message = $"User has requested to modify task {task.Title}.",
+                        TriggerTime = DateTime.Now,
+                        CreatedAt = DateTime.Now,
+                        IsRead = false,
+                        UserId = tcr.OwnerId
+                    };
+                    _context.Notifications.Add(notif);
+                    await _context.SaveChangesAsync();
+
+                    await _hubContext.Clients.User(tcr.OwnerId).SendAsync("ReceiveNotification", notif.Title, notif.Message, task.Title);
+                    // Also notify owner that a task change has been requested so they can mark pending in UI
+                    await _hubContext.Clients.User(tcr.OwnerId).SendAsync("TaskChangeRequested", task.Id, tcr.Id);
+                }
+
+                return Json(new { success = true, pending = true, message = "Change request submitted and awaiting owner approval" });
+            }
+
             try
             {
                 // Cập nhật BoardListId và Status dựa trên thứ tự cột của dự án thay vì dựa vào tên cột
@@ -469,6 +575,55 @@ namespace DACS_TimeManagement.Controllers
                 _taskRepo.Update(task);
                 await _taskRepo.SaveAsync();
 
+                // Notify project members about the move so owners see it immediately
+                try
+                {
+                    if (task.Project != null)
+                    {
+                        var recipientIds = task.Project.Members.Select(m => m.UserId)
+                            .Append(task.Project.UserId)
+                            .Where(id => !string.IsNullOrEmpty(id))
+                            .Distinct()
+                            .Where(id => id != userId) // exclude actor
+                            .ToList();
+
+                        if (recipientIds.Any())
+                        {
+                            var notif = new Notification
+                            {
+                                Title = "Task Updated",
+                                Message = $"Task '{task.Title}' was moved by {User.Identity?.Name}.",
+                                TriggerTime = DateTime.Now,
+                                CreatedAt = DateTime.Now,
+                                IsRead = false
+                            };
+
+                            // Create notifications for each recipient
+                            var notifications = recipientIds.Select(rid => new Notification
+                            {
+                                Title = notif.Title,
+                                Message = notif.Message + "||TaskMove",
+                                TriggerTime = notif.TriggerTime,
+                                CreatedAt = notif.CreatedAt,
+                                IsRead = false,
+                                UserId = rid
+                            }).ToList();
+
+                            _context.Notifications.AddRange(notifications);
+                            await _context.SaveChangesAsync();
+
+                            foreach (var rid in recipientIds)
+                            {
+                                await _hubContext.Clients.User(rid)
+                                    .SendAsync("ReceiveNotification", notif.Title, notif.Message, task.Title);
+                                // Also send a lightweight event so clients can update Kanban UI
+                                await _hubContext.Clients.User(rid).SendAsync("TaskChangeApplied", task.Id);
+                            }
+                        }
+                    }
+                }
+                catch { /* swallow notification exceptions */ }
+
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -493,6 +648,15 @@ namespace DACS_TimeManagement.Controllers
             if (task == null)
             {
                 return NotFound();
+            }
+
+            // If current user is assignee but not creator and not project owner, editing requires owner approval.
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isProjectOwner = task.Project != null && task.Project.UserId == currentUserId;
+            if (!isProjectOwner && task.AssigneeId == currentUserId && task.UserId != currentUserId)
+            {
+                // Present a read-only view with a warning and option to submit change request
+                ViewBag.RequiresApproval = true;
             }
 
             // Giải mã nếu private (và nếu người dùng là Owner hoặc Assignee)
@@ -629,6 +793,51 @@ namespace DACS_TimeManagement.Controllers
                     }
 
                     var isAdmin = User.IsInRole("Admin");
+                    // If requester is assignee but not creator/owner, create change request instead of direct update
+                    var isOwner = dbTask != null && dbTask.ProjectId.HasValue && (await _context.Projects.FindAsync(dbTask.ProjectId.Value))?.UserId == userId;
+                    if (dbTask != null && dbTask.AssigneeId == userId && dbTask.UserId != userId && !isOwner)
+                    {
+                        // Build payload with proposed changes
+                        var payloadObj = new {
+                            Title = taskForm.Title,
+                            Description = taskForm.Description,
+                            EndDate = taskForm.EndDate,
+                            Priority = taskForm.Priority,
+                            Progress = taskForm.Progress
+                        };
+                            var tcr = new Models.TaskChangeRequest
+                        {
+                            TaskId = id,
+                            RequesterId = userId,
+                                OwnerId = (await _context.Projects.FindAsync(dbTask.ProjectId.Value))?.UserId ?? string.Empty,
+                            Action = Models.TaskChangeAction.Edit,
+                            Payload = JsonSerializer.Serialize(payloadObj),
+                            Status = Models.TaskChangeStatus.Pending
+                        };
+                        _context.TaskChangeRequests.Add(tcr);
+                        await _context.SaveChangesAsync();
+
+                        // Notify owner via Notifications and SignalR
+                        if (!string.IsNullOrEmpty(tcr.OwnerId))
+                        {
+                            var notif = new Notification
+                            {
+                                Title = "Task Change Request",
+                                Message = $"{User.Identity?.Name} requested changes to task '{dbTask.Title}'.",
+                                TriggerTime = DateTime.Now,
+                                CreatedAt = DateTime.Now,
+                                IsRead = false,
+                                UserId = tcr.OwnerId
+                            };
+                            _context.Notifications.Add(notif);
+                            await _context.SaveChangesAsync();
+                            await _hubContext.Clients.User(tcr.OwnerId).SendAsync("ReceiveNotification", notif.Title, notif.Message, dbTask.Title);
+                        }
+
+                        TempData["SuccessMessage"] = "Change request submitted to project owner for approval.";
+                        return RedirectToAction(nameof(Index), new { projectId = taskForm.ProjectId });
+                    }
+
                     var success = await _taskRepo.UpdateTaskDetailsAsync(id, userId, taskForm, isAdmin);
                     if (!success)
                     {

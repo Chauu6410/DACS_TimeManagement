@@ -1,0 +1,42 @@
+@model IEnumerable<DACS_TimeManagement.Models.TaskChangeRequest>
+@{
+    ViewData["Title"] = "Task Change Requests";
+}
+
+<div class="container my-4">
+    <h4>Pending Task Change Requests</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Requester</th>
+                <th>Action</th>
+                <th>Created</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var r in Model)
+            {
+                <tr>
+                    <td>@r.Id</td>
+                    <td>@r.TaskId</td>
+                    <td>@r.RequesterId</td>
+                    <td>@r.Action.ToString()</td>
+                    <td>@r.CreatedAt.ToString("g")</td>
+                    <td>
+                        <form asp-action="Approve" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@r.Id" />
+                            <button class="btn btn-sm btn-success">Approve</button>
+                        </form>
+                        <form asp-action="Reject" method="post" class="d-inline ms-2">
+                            <input type="hidden" name="id" value="@r.Id" />
+                            <button class="btn btn-sm btn-danger">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
