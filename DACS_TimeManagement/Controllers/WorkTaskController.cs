@@ -282,6 +282,19 @@ namespace DACS_TimeManagement.Controllers
                 {
                     await _taskRepo.AddAsync(task);
                     await _taskRepo.SaveAsync();
+                    
+                    // Ghi nhận lịch sử tạo task
+                    var history = new TaskHistory
+                    {
+                        WorkTaskId = task.Id,
+                        OldBoardListId = null,
+                        NewBoardListId = task.BoardListId,
+                        ChangedAt = DateTime.Now,
+                        ChangedByUserId = userId
+                    };
+                    _context.TaskHistories.Add(history);
+                    await _context.SaveChangesAsync();
+                    
                     await NotifyProjectUsersAboutNewTaskAsync(task, userId);
                 }
                 else
@@ -543,6 +556,7 @@ namespace DACS_TimeManagement.Controllers
             try
             {
                 // Cập nhật BoardListId và Status dựa trên thứ tự cột của dự án thay vì dựa vào tên cột
+                int? oldBoardListId = task.BoardListId;
                 task.BoardListId = newListId;
                 if (newListId.HasValue && task.ProjectId.HasValue)
                 {
@@ -574,6 +588,21 @@ namespace DACS_TimeManagement.Controllers
                 task.Position = newPosition;
                 _taskRepo.Update(task);
                 await _taskRepo.SaveAsync();
+
+                // Ghi nhận lịch sử nếu cột thay đổi
+                if (oldBoardListId != newListId)
+                {
+                    var history = new TaskHistory
+                    {
+                        WorkTaskId = task.Id,
+                        OldBoardListId = oldBoardListId,
+                        NewBoardListId = newListId,
+                        ChangedAt = DateTime.Now,
+                        ChangedByUserId = userId
+                    };
+                    _context.TaskHistories.Add(history);
+                    await _context.SaveChangesAsync();
+                }
 
                 // Notify project members about the move so owners see it immediately
                 try

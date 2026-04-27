@@ -27,6 +27,7 @@ namespace DACS_TimeManagement.Models
         public DbSet<BoardList> BoardLists { get; set; }
         public DbSet<ProjectMember> ProjectMembers { get; set; }
         public DbSet<TaskChangeRequest> TaskChangeRequests { get; set; }
+        public DbSet<TaskHistory> TaskHistories { get; set; }
 
         // Cấu hình quan hệ và ràng buộc dữ liệu
         protected override void OnModelCreating(ModelBuilder builder)

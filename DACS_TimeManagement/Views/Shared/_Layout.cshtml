@@ -696,23 +696,69 @@
                 const startBtn = document.getElementById('startBtn'), pauseBtn = document.getElementById('pauseBtn'), resetBtn = document.getElementById('resetBtn');
                 const widget = document.getElementById('pomodoroWidget'), toggleBtn = document.getElementById('togglePomodoro'), closeBtn = document.getElementById('closePomodoroBtn');
                 const toast = document.getElementById('pomodoroToast');
+                
                 function formatTime(s){ let m=Math.floor(s/60), sec=s%60; return `${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`; }
                 function updateUI(){ timerDisplay.innerText=formatTime(currentSeconds); progressBar.style.width=`${(currentSeconds/initialSeconds)*100}%`; }
                 function showToast(){ toast.style.opacity='1'; toast.style.transform='translateX(-50%) translateY(0px)'; setTimeout(()=>{ toast.style.opacity='0'; toast.style.transform='translateX(-50%) translateY(20px)'; },2800); if(navigator.vibrate) navigator.vibrate(200); try{ let audio=new Audio(); audio.src='data:audio/wav;base64,U3RlYWx0aCBzb3VuZA=='; audio.play(); }catch(e){} }
-                function endTimer(){ if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; showToast(); currentSeconds=initialSeconds; updateUI(); startBtn.disabled=false; }
-                function startCountdown(){ if(timerInterval) clearInterval(timerInterval); timerInterval=setInterval(()=>{ if(currentSeconds<=1){ clearInterval(timerInterval); timerInterval=null; currentSeconds=0; updateUI(); endTimer(); }else{ currentSeconds--; updateUI(); } },1000); }
-                function startTimer(){ if(isRunning) return; if(currentSeconds<=0) currentSeconds=initialSeconds; isRunning=true; startCountdown(); startBtn.disabled=true; }
-                function pauseTimer(){ if(!isRunning) return; if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; startBtn.disabled=false; }
-                function resetTimer(){ if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; currentSeconds=initialSeconds; updateUI(); startBtn.disabled=false; }
+                
+                function saveState() {
+                    localStorage.setItem("pomoState", JSON.stringify({
+                        currentSeconds, isRunning, timestamp: Date.now(), display: widget.style.display
+                    }));
+                }
+                
+                function loadState() {
+                    let data = localStorage.getItem("pomoState");
+                    if (data) {
+                        try {
+                            let state = JSON.parse(data);
+                            widget.style.display = state.display || 'none';
+                            currentSeconds = state.currentSeconds;
+                            if (state.isRunning) {
+                                let elapsed = Math.floor((Date.now() - state.timestamp) / 1000);
+                                currentSeconds = Math.max(0, currentSeconds - elapsed);
+                                if (currentSeconds > 0) {
+                                    startTimer();
+                                } else {
+                                    currentSeconds = 0;
+                                    endTimer();
+                                }
+                            }
+                        } catch(e) {}
+                    }
+                }
+
+                function endTimer(){ if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; showToast(); currentSeconds=initialSeconds; updateUI(); startBtn.disabled=false; saveState(); }
+                function startCountdown(){ 
+                    if(timerInterval) clearInterval(timerInterval); 
+                    timerInterval=setInterval(()=>{ 
+                        if(currentSeconds<=1){ 
+                            clearInterval(timerInterval); timerInterval=null; currentSeconds=0; updateUI(); endTimer(); 
+                        }else{ 
+                            currentSeconds--; updateUI(); saveState();
+                        } 
+                    },1000); 
+                }
+                function startTimer(){ if(isRunning) return; if(currentSeconds<=0) currentSeconds=initialSeconds; isRunning=true; startCountdown(); startBtn.disabled=true; saveState(); }
+                function pauseTimer(){ if(!isRunning) return; if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; startBtn.disabled=false; saveState(); }
+                function resetTimer(){ if(timerInterval) clearInterval(timerInterval); timerInterval=null; isRunning=false; currentSeconds=initialSeconds; updateUI(); startBtn.disabled=false; saveState(); }
+                
                 startBtn.addEventListener('click',startTimer); pauseBtn.addEventListener('click',pauseTimer); resetBtn.addEventListener('click',resetTimer);
-                toggleBtn.addEventListener('click',()=>{ widget.style.display = (widget.style.display==='none'||getComputedStyle(widget).display==='none')?'block':'none'; });
-                closeBtn.addEventListener('click',()=>widget.style.display='none');
+                toggleBtn.addEventListener('click',()=>{ widget.style.display = (widget.style.display==='none'||getComputedStyle(widget).display==='none')?'block':'none'; saveState(); });
+                closeBtn.addEventListener('click',()=>{ widget.style.display='none'; saveState(); });
+                
+                // DRAG LOGIC
                 const dragHandle=document.getElementById('pomodoroHeader'); let isDragging=false, startX,startY,startLeft,startTop;
                 function getWidgetPos(){ let left=parseFloat(widget.style.left),top=parseFloat(widget.style.top); if(isNaN(left)){ let rect=widget.getBoundingClientRect(); left=rect.left; top=rect.top; } return {left,top}; }
                 function onMouseDown(e){ if(!dragHandle.contains(e.target)) return; e.preventDefault(); isDragging=true; startX=e.clientX; startY=e.clientY; let {left,top}=getWidgetPos(); startLeft=left; startTop=top; if(widget.style.right!==''||widget.style.bottom!==''){ let rect=widget.getBoundingClientRect(); widget.style.left=rect.left+'px'; widget.style.top=rect.top+'px'; widget.style.right='auto'; widget.style.bottom='auto'; startLeft=rect.left; startTop=rect.top; } document.addEventListener('mousemove',onMouseMove); document.addEventListener('mouseup',onMouseUp); widget.style.transition='none'; }
                 function onMouseMove(e){ if(!isDragging) return; let newLeft=startLeft+(e.clientX-startX), newTop=startTop+(e.clientY-startY); newLeft=Math.min(Math.max(newLeft,10),window.innerWidth-widget.offsetWidth-10); newTop=Math.min(Math.max(newTop,10),window.innerHeight-widget.offsetHeight-10); widget.style.left=newLeft+'px'; widget.style.top=newTop+'px'; }
-                function onMouseUp(){ isDragging=false; document.removeEventListener('mousemove',onMouseMove); document.removeEventListener('mouseup',onMouseUp); widget.style.transition=''; }
+                function onMouseUp(){ isDragging=false; document.removeEventListener('mousemove',onMouseMove); document.removeEventListener('mouseup',onMouseUp); widget.style.transition=''; localStorage.setItem("pomoPos", JSON.stringify({left: widget.style.left, top: widget.style.top})); }
                 dragHandle.addEventListener('mousedown',onMouseDown);
+                
+                // LOAD ON INIT
+                let savedPos = localStorage.getItem("pomoPos");
+                if (savedPos) { try { let pos = JSON.parse(savedPos); widget.style.left = pos.left; widget.style.top = pos.top; widget.style.right = 'auto'; widget.style.bottom = 'auto'; }catch(e){} }
+                loadState();
                 updateUI();
             })();
         </script>

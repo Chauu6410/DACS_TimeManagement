@@ -1,156 +1,191 @@
-using DACS_TimeManagement.Models;
-using DACS_TimeManagement.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using System.Text.Json;
-using ClosedXML.Excel;
-using System.IO;
+using DACS_TimeManagement.Models;
 
 namespace DACS_TimeManagement.Controllers
 {
     [Authorize]
     public class ReportController : Controller
     {
-        private readonly IWorkTaskRepository _taskRepo;
-        private readonly IProjectRepository _projectRepo;
         private readonly ApplicationDbContext _context;
 
-        public ReportController(IWorkTaskRepository taskRepo, IProjectRepository projectRepo, ApplicationDbContext context)
+        public ReportController(ApplicationDbContext context)
         {
-            _taskRepo = taskRepo;
-            _projectRepo = projectRepo;
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        // View chính cho trang báo cáo
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // 1. Task Completion Chart (7 days)
+        [HttpGet]
+        public async Task<IActionResult> GetPerformanceData()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var tasks = await _taskRepo.GetAllAsync(userId);
-            var projects = await _projectRepo.GetProjectsWithStatsAsync(userId);
+            var sevenDaysAgo = DateTime.Now.Date.AddDays(-6); 
 
-            // 1. Task Status Distribution (Pie Chart)
-            var statusStats = tasks.GroupBy(t => t.Status)
-                                   .Select(g => new { Status = g.Key.ToString(), Count = g.Count() })
-                                   .ToList();
-
-            // 2. Time Logging Analytics (Bar Chart)
-            var thirtyDaysAgo = DateTime.Now.AddDays(-30);
-            var timeLogs = await _context.TimeLogs
-                .Include(t => t.WorkTask)
-                .Where(t => t.WorkTask.UserId == userId && t.LogDate >= thirtyDaysAgo)
+            var completedTasks = await _context.TaskHistories
+                .Include(h => h.WorkTask)
+                .Where(h => (h.WorkTask.UserId == userId || h.WorkTask.AssigneeId == userId) 
+                            && h.ChangedAt >= sevenDaysAgo)
                 .ToListAsync();
 
-            // Aggregate hours by Project
-            var projectTimeMap = new Dictionary<string, double>();
-            var unassignedHours = 0.0;
-
-            foreach(var log in timeLogs)
-            {
-                var pId = log.WorkTask.ProjectId;
-                if(pId.HasValue) 
-                {
-                    var proj = projects.FirstOrDefault(p => p.Id == pId.Value);
-                    string pName = proj?.Name ?? "Deleted Project";
-                    if(projectTimeMap.ContainsKey(pName))
-                        projectTimeMap[pName] += log.DurationHours;
-                    else
-                        projectTimeMap[pName] = log.DurationHours;
-                }
-                else
-                {
-                    unassignedHours += log.DurationHours;
-                }
-            }
-            if (unassignedHours > 0) projectTimeMap["No Project"] = unassignedHours;
-
-            // 3. Daily Hours Over Last 7 Days (Line Chart)
-            var last7Days = Enumerable.Range(0, 7).Select(i => DateTime.Today.AddDays(-6 + i)).ToList();
-            var dailyHours = new double[7];
-            for(int i = 0; i < 7; i++)
-            {
-                var dt = last7Days[i].Date;
-                dailyHours[i] = timeLogs.Where(t => t.LogDate.Date == dt).Sum(t => t.DurationHours);
-            }
-
-            // Overview Metrics
-            ViewBag.TotalTimeLogged = timeLogs.Sum(t => t.DurationHours);
-            ViewBag.TotalTasksCompleted = tasks.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed);
-            ViewBag.TotalProjects = projects.Count();
-            ViewBag.TaskCompletionRate = tasks.Any() ? (int)((double)ViewBag.TotalTasksCompleted / tasks.Count() * 100) : 0;
-
-            // Chart Data
-            ViewBag.StatusJson = JsonSerializer.Serialize(statusStats.Select(s => s.Count));
-            ViewBag.StatusLabelsJson = JsonSerializer.Serialize(statusStats.Select(s => s.Status));
+            var boardLists = await _context.BoardLists.ToDictionaryAsync(b => b.Id, b => b.Name);
             
-            ViewBag.ProjectTimeLabelsJson = JsonSerializer.Serialize(projectTimeMap.Keys);
-            ViewBag.ProjectTimeDataJson = JsonSerializer.Serialize(projectTimeMap.Values);
+            var data = completedTasks
+                .Where(h => h.NewBoardListId.HasValue && boardLists.ContainsKey(h.NewBoardListId.Value) 
+                            && (boardLists[h.NewBoardListId.Value].ToLower().Contains("done") || boardLists[h.NewBoardListId.Value].ToLower().Contains("hoàn tất")))
+                .GroupBy(h => h.ChangedAt.Date)
+                .Select(g => new { Date = g.Key.ToString("yyyy-MM-dd"), Count = g.Count() })
+                .ToList();
 
-            ViewBag.DailyTimeLabelsJson = JsonSerializer.Serialize(last7Days.Select(d => d.ToString("ddd")));
-            ViewBag.DailyTimeDataJson = JsonSerializer.Serialize(dailyHours);
+            var result = new List<object>();
+            for (int i = 0; i <= 6; i++)
+            {
+                var d = sevenDaysAgo.AddDays(i).ToString("yyyy-MM-dd");
+                var item = data.FirstOrDefault(x => x.Date == d);
+                result.Add(new { Date = d, Count = item != null ? item.Count : 0 });
+            }
 
-            var projectList = projects.ToList();
-            return View(projectList);
+            return Json(result);
         }
 
+        // 2. Hours Worked Tracking (7 days)
         [HttpGet]
-        public async Task<IActionResult> ExportToExcel()
+        public async Task<IActionResult> GetHoursWorkedData()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            var sevenDaysAgo = DateTime.Now.Date.AddDays(-6);
 
-            // Lấy toàn bộ Tasks của users
-            var tasks = await _taskRepo.GetAllAsync(userId);
-            
-            using (var workbook = new XLWorkbook())
+            var timeLogs = await _context.TimeLogs
+                .Include(tl => tl.WorkTask)
+                .Where(tl => (tl.WorkTask.UserId == userId || tl.WorkTask.AssigneeId == userId) 
+                            && tl.LogDate >= sevenDaysAgo)
+                .GroupBy(tl => tl.LogDate.Date)
+                .Select(g => new { Date = g.Key.ToString("yyyy-MM-dd"), Hours = g.Sum(tl => tl.DurationHours) })
+                .ToListAsync();
+
+            var result = new List<object>();
+            for (int i = 0; i <= 6; i++)
             {
-                var worksheet = workbook.Worksheets.Add("User Tasks Report");
+                var d = sevenDaysAgo.AddDays(i).ToString("yyyy-MM-dd");
+                var item = timeLogs.FirstOrDefault(x => x.Date == d);
+                result.Add(new { Date = d, Hours = item != null ? Math.Round(item.Hours, 1) : 0 });
+            }
 
-                // Tạo Header
-                var currentRow = 1;
-                worksheet.Cell(currentRow, 1).Value = "Task ID";
-                worksheet.Cell(currentRow, 2).Value = "Title";
-                worksheet.Cell(currentRow, 3).Value = "Status";
-                worksheet.Cell(currentRow, 4).Value = "Priority";
-                worksheet.Cell(currentRow, 5).Value = "Start Date";
-                worksheet.Cell(currentRow, 6).Value = "End Date";
-                worksheet.Cell(currentRow, 7).Value = "Assignee Info";
+            return Json(result);
+        }
 
-                // Format Header
-                var headerRange = worksheet.Range("A1:G1");
-                headerRange.Style.Font.Bold = true;
-                headerRange.Style.Fill.BackgroundColor = XLColor.AirForceBlue;
-                headerRange.Style.Font.FontColor = XLColor.White;
+        // 3. Productivity Heatmap (365 days)
+        [HttpGet]
+        public async Task<IActionResult> GetHeatmapData()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var oneYearAgo = DateTime.Now.Date.AddDays(-365);
 
-                // Thêm dữ liệu
-                foreach (var task in tasks.OrderByDescending(t => t.Id))
+            var timeLogs = await _context.TimeLogs
+                .Include(tl => tl.WorkTask)
+                .Where(tl => (tl.WorkTask.UserId == userId || tl.WorkTask.AssigneeId == userId) && tl.LogDate >= oneYearAgo)
+                .GroupBy(tl => tl.LogDate.Date)
+                .Select(g => new { date = g.Key.ToString("yyyy-MM-dd"), count = g.Sum(tl => tl.DurationHours) })
+                .ToListAsync();
+
+            return Json(timeLogs);
+        }
+
+        // 4. Task Distribution Analysis (Current)
+        [HttpGet]
+        public async Task<IActionResult> GetTaskDistribution(int? projectId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            var query = _context.WorkTasks
+                .Include(t => t.BoardList)
+                .Where(t => t.UserId == userId || t.AssigneeId == userId);
+                
+            if (projectId.HasValue && projectId.Value > 0)
+            {
+                query = query.Where(t => t.ProjectId == projectId.Value);
+            }
+
+            var distribution = await query
+                .Where(t => t.BoardList != null)
+                .GroupBy(t => t.BoardList.Name)
+                .Select(g => new { Stage = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            return Json(distribution);
+        }
+
+        // 5. Bottleneck Detection (Dwell Time per Stage)
+        [HttpGet]
+        public async Task<IActionResult> GetBottleneckData(int? projectId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            var query = _context.TaskHistories
+                .Include(h => h.WorkTask)
+                .Where(h => h.WorkTask != null && (h.WorkTask.UserId == userId || h.WorkTask.AssigneeId == userId));
+
+            if (projectId.HasValue && projectId.Value > 0)
+            {
+                query = query.Where(h => h.WorkTask.ProjectId == projectId.Value);
+            }
+
+            var histories = await query.OrderBy(h => h.WorkTaskId).ThenBy(h => h.ChangedAt).ToListAsync();
+            var boardLists = await _context.BoardLists.ToDictionaryAsync(b => b.Id, b => b.Name);
+
+            var dwellTimes = new Dictionary<string, double>();
+            var counts = new Dictionary<string, int>();
+
+            var groupedByTask = histories.GroupBy(h => h.WorkTaskId);
+            foreach (var taskGroup in groupedByTask)
+            {
+                var historyList = taskGroup.ToList();
+                for (int i = 0; i < historyList.Count - 1; i++)
                 {
-                    currentRow++;
-                    worksheet.Cell(currentRow, 1).Value = task.Id;
-                    worksheet.Cell(currentRow, 2).Value = task.Title;
-                    worksheet.Cell(currentRow, 3).Value = task.Status.ToString();
-                    worksheet.Cell(currentRow, 4).Value = task.Priority.ToString();
+                    var current = historyList[i];
+                    var next = historyList[i + 1];
                     
-                    // StartDate/EndDate là public DateTime không nullable nên gọi ToString() trực tiếp
-                    worksheet.Cell(currentRow, 5).Value = task.StartDate.ToString("yyyy-MM-dd HH:mm");
-                    worksheet.Cell(currentRow, 6).Value = task.EndDate.ToString("yyyy-MM-dd HH:mm");
-                    
-                    // Hiện người được phân công (nếu có id)
-                    worksheet.Cell(currentRow, 7).Value = string.IsNullOrEmpty(task.AssigneeId) ? "Unassigned" : "Assigned";
+                    if (current.NewBoardListId.HasValue && boardLists.ContainsKey(current.NewBoardListId.Value))
+                    {
+                        var listName = boardLists[current.NewBoardListId.Value];
+                        var duration = (next.ChangedAt - current.ChangedAt).TotalHours;
+
+                        if (!dwellTimes.ContainsKey(listName)) { dwellTimes[listName] = 0; counts[listName] = 0; }
+                        dwellTimes[listName] += duration;
+                        counts[listName]++;
+                    }
                 }
-
-                // Tự canh chỉnh độ rộng cột
-                worksheet.Columns().AdjustToContents();
-
-                // Trả về file Excel dạng stream
-                using (var stream = new MemoryStream())
+                
+                var last = historyList.Last();
+                if (last.NewBoardListId.HasValue && boardLists.ContainsKey(last.NewBoardListId.Value))
                 {
-                    workbook.SaveAs(stream);
-                    var content = stream.ToArray();
-                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"TimeMaster_Report_{DateTime.Now:yyyyMMdd_HHmm}.xlsx");
+                    var listName = boardLists[last.NewBoardListId.Value];
+                    var duration = (DateTime.Now - last.ChangedAt).TotalHours;
+                    
+                    if (!listName.ToLower().Contains("done") && !listName.ToLower().Contains("hoàn tất"))
+                    {
+                        if (!dwellTimes.ContainsKey(listName)) { dwellTimes[listName] = 0; counts[listName] = 0; }
+                        dwellTimes[listName] += duration;
+                        counts[listName]++;
+                    }
                 }
             }
+
+            var result = dwellTimes.Select(kvp => new 
+            { 
+                Stage = kvp.Key, 
+                AverageHours = Math.Round(kvp.Value / (counts[kvp.Key] > 0 ? counts[kvp.Key] : 1), 1) 
+            }).ToList();
+
+            return Json(result);
         }
+
     }
 }

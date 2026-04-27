@@ -16,5 +16,12 @@ namespace DACS_TimeManagement.Repositories
                 .Where(p => p.UserId == userId || p.Members.Any(m => m.UserId == userId))
                 .ToListAsync();
         }
+
+        public override async Task<IEnumerable<Project>> GetAllAsync(string userId)
+        {
+            return await _context.Projects
+                .Where(p => p.UserId == userId || p.Members.Any(m => m.UserId == userId))
+                .ToListAsync();
+        }
     }
 }
