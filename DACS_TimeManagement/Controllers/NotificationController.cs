@@ -97,5 +97,23 @@ namespace DACS_TimeManagement.Controllers
         {
             return await MarkAllRead();
         }
+
+        // Xóa một thông báo
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _notifRepo.DeleteAsync(id, userId);
+            return Ok();
+        }
+
+        // Xóa tất cả thông báo
+        [HttpPost]
+        public async Task<IActionResult> DeleteAll()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            await _notifRepo.DeleteAllAsync(userId);
+            return Ok();
+        }
     }
 }

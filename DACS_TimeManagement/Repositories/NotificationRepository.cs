@@ -1,4 +1,4 @@
-﻿using DACS_TimeManagement.Models;
+using DACS_TimeManagement.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace DACS_TimeManagement.Repositories
@@ -68,6 +68,33 @@ namespace DACS_TimeManagement.Repositories
         {
             return await _context.Notifications
                 .CountAsync(n => n.UserId == userId && !n.IsRead);
+        }
+
+        // Xóa một thông báo
+        public async Task DeleteAsync(int id, string userId)
+        {
+            var notification = await _context.Notifications
+                .FirstOrDefaultAsync(n => n.Id == id && n.UserId == userId);
+
+            if (notification != null)
+            {
+                _context.Notifications.Remove(notification);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        // Xóa tất cả thông báo
+        public async Task DeleteAllAsync(string userId)
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.UserId == userId)
+                .ToListAsync();
+
+            if (notifications.Any())
+            {
+                _context.Notifications.RemoveRange(notifications);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

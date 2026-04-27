@@ -15,9 +15,12 @@
                 <p class="text-pastel-muted small mb-0">Stay updated with your latest alerts</p>
             </div>
         </div>
-        <div class="mt-2 mt-sm-0">
+        <div class="mt-2 mt-sm-0 d-flex gap-2">
             <button class="btn btn-outline-pastel rounded-pill px-3 py-1 btn-sm" id="markAllReadBtn">
                 <i class="fas fa-check-double me-1"></i>Mark all as read
+            </button>
+            <button class="btn btn-outline-danger rounded-pill px-3 py-1 btn-sm" id="deleteAllBtn">
+                <i class="fas fa-trash-alt me-1"></i>Delete all
             </button>
         </div>
     </div>
@@ -85,6 +88,9 @@
                                                     <i class="fas fa-check-circle me-1"></i>Read
                                                 </span>
                                             }
+                                            <button class="btn btn-sm btn-outline-danger rounded-pill delete-notif-btn" data-id="@n.Id" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -245,6 +251,7 @@
     }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Simple client-side simulation for "Mark as read" buttons
     document.querySelectorAll('.mark-read-btn').forEach(btn => {
@@ -266,6 +273,69 @@
             .catch(err => console.error('Error:', err));
         });
     });
+
+    // Delete single notification
+    document.querySelectorAll('.delete-notif-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            Swal.fire({
+                title: 'Delete Notification?',
+                text: "Are you sure you want to delete this notification?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const notificationId = this.dataset.id;
+                    fetch(`/Notification/Delete/${notificationId}`, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            location.reload();
+                        }
+                    })
+                    .catch(err => console.error('Error:', err));
+                }
+            });
+        });
+    });
+
+    // Delete all notifications
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Delete All Notifications?',
+                text: "Are you sure you want to delete ALL notifications? This action cannot be undone.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, delete all!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch('/Notification/DeleteAll', {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            location.reload();
+                        }
+                    })
+                    .catch(err => console.error('Error:', err));
+                }
+            });
+        });
+    }
 
     // Mark all as read button
     const markAllBtn = document.getElementById('markAllReadBtn');

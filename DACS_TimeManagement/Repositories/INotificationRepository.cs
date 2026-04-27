@@ -1,4 +1,4 @@
-﻿using DACS_TimeManagement.Models;
+using DACS_TimeManagement.Models;
 
 namespace DACS_TimeManagement.Repositories
 {
@@ -17,5 +17,11 @@ namespace DACS_TimeManagement.Repositories
 
         // Đếm số lượng thông báo chưa đọc (để hiển thị icon số nhỏ trên menu)
         Task<int> CountUnreadAsync(string userId);
+
+        // Xóa một thông báo
+        Task DeleteAsync(int id, string userId);
+
+        // Xóa tất cả thông báo
+        Task DeleteAllAsync(string userId);
     }
 }
