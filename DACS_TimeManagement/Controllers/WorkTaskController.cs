@@ -573,14 +573,17 @@ namespace DACS_TimeManagement.Controllers
                         if (newListId.Value == projectLists.First())
                         {
                             task.Status = Models.TaskStatus.Todo;
+                            if (task.Progress >= 100) task.Progress = 0;
                         }
                         else if (newListId.Value == projectLists.Last())
                         {
                             task.Status = Models.TaskStatus.Completed;
+                            task.Progress = 100;
                         }
                         else
                         {
                             task.Status = Models.TaskStatus.InProgress;
+                            if (task.Progress >= 100) task.Progress = 90;
                         }
                     }
                 }
@@ -653,7 +656,7 @@ namespace DACS_TimeManagement.Controllers
                 }
                 catch { /* swallow notification exceptions */ }
 
-                return Json(new { success = true });
+                return Json(new { success = true, newProgress = task.Progress });
             }
             catch (Exception ex)
             {
