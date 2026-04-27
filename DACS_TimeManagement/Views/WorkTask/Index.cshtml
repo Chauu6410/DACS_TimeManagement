@@ -107,7 +107,7 @@
                                                                     <button class="btn btn-sm btn-danger reject-btn ms-1" data-request-id="@pr.Id" title="Reject"><i class="fas fa-times"></i></button>
                                                                 </div>
                                                             }
-                                                            <form asp-action="Delete" asp-route-id="@t.Id" method="post" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thẻ này?');">
+                                                            <form asp-action="Delete" asp-route-id="@t.Id" method="post" class="d-inline m-0 p-0" onsubmit="return confirmDeleteTask(event, this);">
                                                                 <button type="submit" class="btn btn-link text-danger p-0 opacity-75 text-decoration-none border-0" style="transition: opacity 0.2s; background: transparent;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Xóa thẻ">
                                                                     <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
                                                                 </button>
@@ -216,8 +216,35 @@
 @Html.AntiForgeryToken()
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
     <script>
+        function confirmDeleteTask(e, form) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Delete this task?',
+                text: "You won't be able to revert this action!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-trash-alt me-1"></i> Yes, delete it',
+                cancelButtonText: 'Cancel',
+                background: document.body.classList.contains('theme-dark') ? '#1e293b' : '#ffffff',
+                color: document.body.classList.contains('theme-dark') ? '#f8fafc' : '#334155',
+                customClass: {
+                    popup: 'rounded-4 shadow-xl border-0',
+                    confirmButton: 'rounded-pill px-4',
+                    cancelButton: 'rounded-pill px-4'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+            return false;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const boardEl = document.getElementById('board');
             
@@ -426,7 +453,7 @@
                                                 <a href="/WorkTask/Edit/${t.id}" class="text-pastel-primary opacity-75 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Sửa thẻ">
                                                     <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
                                                 </a>
-                                                <form action="/WorkTask/Delete/${t.id}" method="post" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thẻ này?');">
+                                                <form action="/WorkTask/Delete/${t.id}" method="post" class="d-inline m-0 p-0" onsubmit="return confirmDeleteTask(event, this);">
                                                     <input name="__RequestVerificationToken" type="hidden" value="${document.querySelector('[name=__RequestVerificationToken]').value}" />
                                                     <button type="submit" class="btn btn-link text-danger p-0 opacity-75 text-decoration-none border-0" style="transition: opacity 0.2s; background: transparent;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Xóa thẻ">
                                                         <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
