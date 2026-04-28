@@ -19,6 +19,8 @@ namespace DACS_TimeManagement.Models
         public DbSet<CalendarEvent> CalendarEvents { get; set; }
         public DbSet<ScheduledEvent> ScheduledEvents { get; set; }
         public DbSet<PersonalGoal> PersonalGoals { get; set; }
+        public DbSet<GoalTask> GoalTasks { get; set; }
+        public DbSet<GoalProgressHistory> GoalProgressHistories { get; set; }
         public DbSet<TimeLog> TimeLogs { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<SharedTask> SharedTasks { get; set; }
@@ -103,6 +105,32 @@ namespace DACS_TimeManagement.Models
                 .HasOne(se => se.Task)
                 .WithMany(t => t.ScheduledEvents)
                 .HasForeignKey(se => se.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Goal - GoalTask (1 - n)
+            builder.Entity<GoalTask>()
+                .HasKey(gt => new { gt.GoalId, gt.WorkTaskId });
+
+            builder.Entity<GoalTask>()
+                .HasOne(gt => gt.Goal)
+                .WithMany(g => g.GoalTasks)
+                .HasForeignKey(gt => gt.GoalId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<GoalTask>()
+                .HasOne(gt => gt.WorkTask)
+                .WithMany(t => t.GoalTasks)
+                .HasForeignKey(gt => gt.WorkTaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Indexes to improve lookup
+            builder.Entity<PersonalGoal>()
+                .HasIndex(g => new { g.UserId, g.Status });
+
+            builder.Entity<GoalProgressHistory>()
+                .HasOne(h => h.Goal)
+                .WithMany(g => g.GoalProgressHistories)
+                .HasForeignKey(h => h.GoalId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
         public DbSet<DACS_TimeManagement.Models.ProjectDiscussion> ProjectDiscussion { get; set; } = default!;

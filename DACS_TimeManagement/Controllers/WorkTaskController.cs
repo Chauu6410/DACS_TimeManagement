@@ -23,8 +23,9 @@ namespace DACS_TimeManagement.Controllers
         private readonly ICryptoService _crypto;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<WorkTaskController> _logger;
+        private readonly DACS_TimeManagement.Services.Interfaces.IGoalService _goalService;
 
-        public WorkTaskController(IWorkTaskRepository taskRepo, IProjectRepository projectRepo, IHubContext<NotificationHub> hubContext, ICryptoService crypto, ApplicationDbContext context, ILogger<WorkTaskController> logger)
+        public WorkTaskController(IWorkTaskRepository taskRepo, IProjectRepository projectRepo, IHubContext<NotificationHub> hubContext, ICryptoService crypto, ApplicationDbContext context, ILogger<WorkTaskController> logger, DACS_TimeManagement.Services.Interfaces.IGoalService goalService)
         {
             _taskRepo = taskRepo;
             _projectRepo = projectRepo;
@@ -32,6 +33,7 @@ namespace DACS_TimeManagement.Controllers
             _crypto = crypto;
             _context = context;
             _logger = logger;
+            _goalService = goalService;
         }
 
         private async Task NotifyProjectUsersAboutNewTaskAsync(WorkTask task, string creatorUserId)
@@ -655,6 +657,26 @@ namespace DACS_TimeManagement.Controllers
                     }
                 }
                 catch { /* swallow notification exceptions */ }
+
+                // Auto-sync: if task moved to Completed, recalculate related goals progress
+                try
+                {
+                    if (task.Status == Models.TaskStatus.Completed)
+                    {
+                        var relatedGoalIds = await _context.GoalTasks
+                            .Where(gt => gt.WorkTaskId == task.Id)
+                            .Select(gt => gt.GoalId)
+                            .Distinct()
+                            .ToListAsync();
+
+                        foreach (var gid in relatedGoalIds)
+                        {
+                            // Recalculate using GoalService to ensure history and status updated
+                            try { await _goalService.RecalculateProgressForGoalAsync(gid, task.Project?.UserId ?? task.UserId); } catch { }
+                        }
+                    }
+                }
+                catch { /* non-critical */ }
 
                 return Json(new { success = true, newProgress = task.Progress });
             }

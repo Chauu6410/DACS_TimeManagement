@@ -1,0 +1,280 @@
+@model DACS_TimeManagement.Models.PersonalGoal
+@{
+    ViewData["Title"] = "Focus Mode - " + Model.Title;
+}
+
+<div id="focusApp" class="focus-app">
+    <!-- Step 1: Task Selection -->
+    <div id="selectionScreen" class="selection-screen container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <div class="glass-premium p-5 rounded-5 shadow-lg">
+                    <div class="mb-4">
+                        <i class="fas fa-brain fa-3x text-primary mb-3"></i>
+                        <h2 class="fw-bold">Bắt đầu phiên tập trung</h2>
+                        <p class="text-muted">Chọn một nhiệm vụ từ mục tiêu <strong>@Model.Title</strong> để bắt đầu Pomodoro.</p>
+                    </div>
+
+                    <div class="task-list-selection text-start mb-5" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                        @if (Model.GoalTasks != null && Model.GoalTasks.Any())
+                        {
+                            @foreach (var gt in Model.GoalTasks.Where(x => x.WorkTask != null))
+                            {
+                                <div class="task-option p-3 mb-3 rounded-4 border d-flex align-items-center gap-3 bg-white shadow-sm" 
+                                     data-task-id="@gt.WorkTaskId" data-title="@gt.WorkTask.Title">
+                                    <div class="task-icon-circle">
+                                        <i class="fas fa-tasks"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold text-dark">@gt.WorkTask.Title</div>
+                                        <div class="small text-muted">
+                                            Trạng thái: <span class="badge bg-light text-dark fw-normal border">@gt.WorkTask.Status</span>
+                                            • Tiến độ: @gt.WorkTask.Progress%
+                                        </div>
+                                    </div>
+                                    <div class="selection-indicator">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 bg-light rounded-4 border border-dashed">
+                                <i class="fas fa-clipboard-list fa-2x text-muted mb-2"></i>
+                                <p class="text-muted mb-0">Không tìm thấy công việc nào liên kết.</p>
+                                <p class="small text-muted">Bạn vẫn có thể tiếp tục tập trung vào mục tiêu chung.</p>
+                            </div>
+                            <div class="task-option p-3 mt-3 rounded-4 border d-flex align-items-center gap-3 active border-primary bg-primary bg-opacity-10" data-task-id="" data-title="Mục tiêu chung">
+                                <div class="task-icon-circle bg-primary text-white"><i class="fas fa-bullseye"></i></div>
+                                <div class="flex-grow-1 fw-bold text-primary">Tập trung vào Goal chính</div>
+                                <div class="selection-indicator opacity-100 text-primary"><i class="fas fa-check-circle"></i></div>
+                            </div>
+                        }
+                    </div>
+
+                    <button id="btnEnterZen" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow">
+                        <i class="fas fa-bolt me-2"></i> Vào chế độ Zen
+                    </button>
+                    <div class="mt-3">
+                        <a asp-action="Index" class="text-muted text-decoration-none small">Quay lại danh sách</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Zen Mode Overlay -->
+    <div id="zenOverlay" class="zen-overlay d-none">
+        <div class="zen-content text-center">
+            <h1 class="zen-task-title mb-2 text-white"></h1>
+            <p class="text-white-50">Đang thực hiện phiên Pomodoro...</p>
+        </div>
+
+        <!-- Floating Tomato Widget -->
+        <div id="tomatoWidget" class="tomato-widget">
+            <div class="tomato-container" id="tomatoTrigger">
+                <img src="https://cdn-icons-png.flaticon.com/512/2907/2907214.png" alt="Tomato" class="tomato-img">
+                <div class="timer-bubble" id="timerDisplay">25:00</div>
+            </div>
+            
+            <div class="tomato-controls shadow-lg p-3 rounded-4 d-none" id="tomatoMenu">
+                <div class="text-center mb-3">
+                    <span class="fw-bold d-block mb-1">Phiên làm việc</span>
+                    <div class="progress rounded-pill" style="height: 6px;">
+                        <div id="timerProgress" class="progress-bar bg-danger" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button id="startBtn" class="btn btn-danger btn-sm rounded-pill flex-grow-1"><i class="fas fa-play"></i> Bắt đầu</button>
+                    <button id="pauseBtn" class="btn btn-outline-secondary btn-sm rounded-pill d-none"><i class="fas fa-pause"></i> Tạm dừng</button>
+                    <button id="exitZen" class="btn btn-light btn-sm rounded-pill"><i class="fas fa-times"></i> Thoát</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectionScreen = document.getElementById('selectionScreen');
+            const zenOverlay = document.getElementById('zenOverlay');
+            const tomatoMenu = document.getElementById('tomatoMenu');
+            const tomatoTrigger = document.getElementById('tomatoTrigger');
+            const taskOptions = document.querySelectorAll('.task-option');
+            const zenTaskTitle = document.querySelector('.zen-task-title');
+            
+            let selectedTaskId = null;
+            let selectedTaskTitle = "";
+            let timerInterval = null;
+            let timeLeft = 25 * 60; // 25 minutes
+            let isRunning = false;
+
+            // Task Selection
+            taskOptions.forEach(opt => {
+                opt.addEventListener('click', function() {
+                    taskOptions.forEach(o => o.classList.remove('active', 'border-primary'));
+                    this.classList.add('active', 'border-primary');
+                    selectedTaskId = this.dataset.taskId;
+                    selectedTaskTitle = this.dataset.title;
+                });
+            });
+
+            // Enter Zen Mode
+            document.getElementById('btnEnterZen').addEventListener('click', function() {
+                if (!selectedTaskTitle && taskOptions.length > 0) {
+                     Swal.fire({ icon: 'warning', title: 'Vui lòng chọn một Task' });
+                     return;
+                }
+                
+                selectionScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    selectionScreen.classList.add('d-none');
+                    zenOverlay.classList.remove('d-none');
+                    zenOverlay.classList.add('fade-in');
+                    zenTaskTitle.textContent = selectedTaskTitle || "Tập trung hoàn thành mục tiêu";
+                }, 500);
+            });
+
+            // Tomato Widget Toggle
+            tomatoTrigger.addEventListener('click', () => {
+                tomatoMenu.classList.toggle('d-none');
+            });
+
+            // Timer Logic
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const timerProgressBar = document.getElementById('timerProgress');
+
+            function updateDisplay() {
+                const mins = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                const percent = (timeLeft / (25 * 60)) * 100;
+                timerProgressBar.style.width = `${percent}%`;
+            }
+
+            function startTimer() {
+                if (isRunning) return;
+                isRunning = true;
+                startBtn.classList.add('d-none');
+                pauseBtn.classList.remove('d-none');
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        completeSession();
+                    }
+                }, 1000);
+            }
+
+            function pauseTimer() {
+                isRunning = false;
+                clearInterval(timerInterval);
+                startBtn.classList.remove('d-none');
+                pauseBtn.classList.add('d-none');
+                startBtn.innerHTML = '<i class="fas fa-play"></i> Tiếp tục';
+            }
+
+            function completeSession() {
+                isRunning = false;
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                
+                const body = new URLSearchParams();
+                body.append('goalId', '@Model.Id');
+                body.append('taskId', selectedTaskId || "");
+                body.append('durationHours', '0.416');
+                body.append('__RequestVerificationToken', token);
+
+                fetch('/Goal/RecordFocusSession', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Tuyệt vời!',
+                            text: 'Bạn đã hoàn thành 25 phút tập trung. Thời gian đã được ghi nhận vào Task Log.',
+                            confirmButtonText: 'Tuyệt!'
+                        }).then(() => location.href = '/Goal/Index');
+                    }
+                });
+            }
+
+            startBtn.addEventListener('click', startTimer);
+            pauseBtn.addEventListener('click', pauseTimer);
+            document.getElementById('exitZen').addEventListener('click', () => {
+                if (isRunning) {
+                    Swal.fire({
+                        title: 'Dừng phiên tập trung?',
+                        text: "Tiến độ hiện tại sẽ không được lưu lại.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Đồng ý thoát',
+                        cancelButtonText: 'Tiếp tục làm'
+                    }).then((result) => {
+                        if (result.isConfirmed) location.href = '/Goal/Index';
+                    });
+                } else {
+                    location.href = '/Goal/Index';
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    .focus-app { min-height: 100vh; background: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+    
+    .glass-premium { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.5); }
+    
+    .task-option { cursor: pointer; transition: all 0.2s; border: 1px solid #e2e8f0; position: relative; }
+    .task-option:hover { transform: translateX(5px); border-color: #6366f1; }
+    .task-option.active { border-color: #6366f1; background: #f5f3ff !important; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1); }
+    .task-icon-circle { width: 45px; height: 45px; border-radius: 14px; background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+    .task-option.active .task-icon-circle { background: #6366f1; color: white; }
+    
+    .selection-indicator { font-size: 1.25rem; color: #6366f1; opacity: 0; transition: 0.3s; }
+    .task-option.active .selection-indicator { opacity: 1; }
+
+    /* Custom scrollbar for task list */
+    .task-list-selection::-webkit-scrollbar { width: 6px; }
+    .task-list-selection::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+    .task-list-selection::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .task-list-selection::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    .fade-out { opacity: 0; transform: translateY(-20px); transition: 0.5s; }
+    .fade-in { animation: fadeIn 0.8s forwards; }
+    @@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Zen Overlay */
+    .zen-overlay { position: fixed; inset: 0; background: #000; z-index: 2000; display: flex; align-items: center; justify-content: center; }
+    .zen-content { transition: 0.5s; }
+    .zen-task-title { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; }
+
+    /* Tomato Widget */
+    .tomato-widget { position: fixed; bottom: 40px; right: 40px; z-index: 2100; }
+    .tomato-container { position: relative; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .tomato-container:hover { transform: scale(1.1); }
+    .tomato-img { width: 80px; height: 80px; filter: drop-shadow(0 10px 15px rgba(239, 68, 68, 0.4)); }
+    .timer-bubble { position: absolute; top: -10px; right: -10px; background: white; color: #ef4444; font-weight: 800; padding: 4px 10px; border-radius: 50px; border: 2px solid #ef4444; font-size: 0.85rem; }
+
+    .tomato-controls { position: absolute; bottom: 100px; right: 0; width: 220px; background: white; border: 1px solid #e2e8f0; animation: slideUp 0.3s; }
+    @@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    @@media (max-width: 768px) {
+        .zen-task-title { font-size: 2rem; padding: 0 20px; }
+        .tomato-widget { bottom: 20px; right: 20px; }
+    }
+</style>

@@ -16,19 +16,22 @@ namespace DACS_TimeManagement.Controllers
         private readonly Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly Microsoft.AspNetCore.SignalR.IHubContext<DACS_TimeManagement.Hubs.NotificationHub> _hubContext;
+        private readonly DACS_TimeManagement.Services.Interfaces.IGoalService _goalService;
 
         public ProjectController(
             IProjectRepository projectRepo, 
             DACS_TimeManagement.Services.ICryptoService crypto,
             Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> userManager,
             ApplicationDbContext context,
-            Microsoft.AspNetCore.SignalR.IHubContext<DACS_TimeManagement.Hubs.NotificationHub> hubContext)
+            Microsoft.AspNetCore.SignalR.IHubContext<DACS_TimeManagement.Hubs.NotificationHub> hubContext,
+            DACS_TimeManagement.Services.Interfaces.IGoalService goalService)
         {
             _projectRepo = projectRepo;
             _crypto = crypto;
             _userManager = userManager;
             _context = context;
             _hubContext = hubContext;
+            _goalService = goalService;
         }
 
         public async Task<IActionResult> Index()
@@ -76,6 +79,43 @@ namespace DACS_TimeManagement.Controllers
                 return RedirectToAction(nameof(Index));
             }
             return View(project);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetGoalContributions(int projectId)
+        {
+            // Find goal-task pairs for tasks in this project
+            var pairs = await _context.GoalTasks
+                .Where(gt => gt.WorkTask.ProjectId == projectId)
+                .Select(gt => new { gt.GoalId, TaskStatus = gt.WorkTask.Status })
+                .ToListAsync();
+
+            var grouped = pairs.GroupBy(p => p.GoalId).ToList();
+            var result = new List<object>();
+            foreach (var g in grouped)
+            {
+                var goalId = g.Key;
+                var total = g.Count();
+                var completed = g.Count(x => x.TaskStatus == Models.TaskStatus.Completed);
+                var pct = total == 0 ? 0 : (double)completed / total * 100.0;
+                var goal = await _context.PersonalGoals.FirstOrDefaultAsync(pg => pg.Id == goalId);
+                var title = goal?.Title ?? "Goal";
+
+                // Get AI prediction text (may be long) and derive a short status for color coding
+                string aiDetail = _goalService != null && goal != null ? _goalService.GetAIPrediction(goal) : "";
+                string aiStatus = "unknown";
+                if (!string.IsNullOrEmpty(aiDetail))
+                {
+                    var lower = aiDetail.ToLower();
+                    if (lower.Contains("trễ") || lower.Contains("trễ hạn") || lower.Contains("⚠️") || lower.Contains("at risk") || lower.Contains("risk")) aiStatus = "at-risk";
+                    else if (lower.Contains("sớm") || lower.Contains("✅") || lower.Contains("achieve") || lower.Contains("hoàn thành sớm")) aiStatus = "on-track";
+                    else aiStatus = "info";
+                }
+
+                result.Add(new { goalId = goalId, goalName = title, contributionPct = pct, progress = Math.Round(pct, 1), aiStatus = aiStatus, aiDetail = aiDetail });
+            }
+
+            return Json(result);
         }
         public async Task<IActionResult> Details(int id)
         {

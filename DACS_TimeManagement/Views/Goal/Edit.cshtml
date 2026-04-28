@@ -1,81 +1,70 @@
 @model DACS_TimeManagement.Models.PersonalGoal
 @{
-    ViewData["Title"] = "Edit Personal Goal";
+    ViewData["Title"] = "Chỉnh sửa mục tiêu";
 }
 
-<div class="edit-goal-container" data-aos="fade-up">
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10">
-            <div class="card border-0 shadow-xl rounded-4 overflow-hidden transition-all hover-lift">
-                <!-- Header Gradient Pastel -->
-                <div class="card-header bg-gradient-pastel-primary text-white border-0 py-4 px-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="icon-circle bg-white bg-opacity-25 text-white">
-                            <i class="fas fa-edit fs-4"></i>
+        <div class="col-lg-8">
+            <div class="glass-premium p-5 rounded-5 shadow-lg border-0">
+                <div class="text-center mb-5">
+                    <div class="icon-circle-lg bg-primary-gradient text-white mb-3 shadow-glow">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark">Chỉnh sửa mục tiêu</h2>
+                    <p class="text-muted">Cập nhật thông tin và điều chỉnh kế hoạch của bạn.</p>
+                </div>
+
+                <form asp-action="Edit" id="editGoalForm">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-4 border-0 shadow-sm mb-4" role="alert"></div>
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="UserId" />
+                    <input type="hidden" asp-for="Type" />
+                    <input type="hidden" asp-for="ProjectId" />
+                    <input type="hidden" asp-for="TargetValue" />
+                    <input type="hidden" asp-for="CurrentValue" />
+                    <input type="hidden" asp-for="Status" />
+
+                    <div class="row g-4">
+                        <!-- Goal Title -->
+                        <div class="col-12">
+                            <label asp-for="Title" class="form-label-custom">Tên mục tiêu <span class="text-danger">*</span></label>
+                            <div class="input-group-custom">
+                                <i class="fas fa-bullseye input-icon"></i>
+                                <input asp-for="Title" class="form-control-custom" placeholder="Ví dụ: Hoàn thành khóa học MVC" required />
+                            </div>
+                            <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
-                        <div>
-                            <h4 class="mb-0 fw-bold">Edit Personal Goal</h4>
-                            <p class="opacity-75 small mb-0">Update your goal details</p>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label-custom">Mô tả (Không bắt buộc)</label>
+                            <div class="input-group-custom align-items-start">
+                                <i class="fas fa-align-left input-icon mt-3"></i>
+                                <textarea asp-for="Description" class="form-control-custom" rows="3" placeholder="Chi tiết mục tiêu..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Target Date -->
+                        <div class="col-12">
+                            <label asp-for="TargetDate" class="form-label-custom">Ngày hoàn thành mong muốn <span class="text-danger">*</span></label>
+                            <div class="input-group-custom">
+                                <i class="fas fa-calendar-day input-icon"></i>
+                                <input asp-for="TargetDate" type="date" class="form-control-custom" required />
+                            </div>
+                            <span asp-validation-for="TargetDate" class="text-danger small"></span>
                         </div>
                     </div>
-                </div>
 
-                <!-- Form Body -->
-                <div class="card-body p-4 p-lg-5">
-                    <form asp-action="Edit" id="editGoalForm">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-pastel-danger rounded-3 border-0" role="alert"></div>
-                        <input type="hidden" asp-for="Id" />
-                        <input type="hidden" asp-for="UserId" />
-
-                        <div class="row g-4">
-                            <!-- Goal Name -->
-                            <div class="col-12">
-                                <label asp-for="GoalName" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-bullseye text-pastel-primary me-1"></i> Goal Title <span class="text-danger">*</span>
-                                </label>
-                                <input asp-for="GoalName" class="form-control form-control-lg rounded-3" required />
-                                <span asp-validation-for="GoalName" class="text-danger small"></span>
-                            </div>
-
-                            <!-- Target & Current Value -->
-                            <div class="col-md-6">
-                                <label asp-for="TargetValue" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-chart-line text-pastel-primary me-1"></i> Target Value <span class="text-danger">*</span>
-                                </label>
-                                <input asp-for="TargetValue" class="form-control rounded-3" type="number" min="1" required />
-                                <span asp-validation-for="TargetValue" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="CurrentValue" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-hourglass-start text-pastel-primary me-1"></i> Current Progress
-                                </label>
-                                <input asp-for="CurrentValue" class="form-control rounded-3" type="number" min="0" />
-                                <span asp-validation-for="CurrentValue" class="text-danger small"></span>
-                            </div>
-
-                            <!-- Target Date -->
-                            <div class="col-12">
-                                <label asp-for="TargetDate" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-calendar-alt text-pastel-primary me-1"></i> Target Date <span class="text-danger">*</span>
-                                </label>
-                                <input asp-for="TargetDate" type="date" class="form-control rounded-3" required />
-                                <span asp-validation-for="TargetDate" class="text-danger small"></span>
-                            </div>
-                        </div>
-
-                        <hr class="my-4 opacity-25" />
-
-                        <!-- Form Actions -->
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                            <a asp-action="Index" class="btn btn-outline-pastel rounded-pill px-4 py-2">
-                                <i class="fas fa-arrow-left me-2"></i>Cancel
-                            </a>
-                            <button type="submit" class="btn btn-pastel-primary rounded-pill px-5 py-2 shadow-sm">
-                                <i class="fas fa-save me-2"></i>Save Changes
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="d-flex gap-3 mt-5">
+                        <a asp-action="Index" class="btn btn-light-custom flex-grow-1 py-3 rounded-4 fw-bold">
+                            <i class="fas fa-arrow-left me-2"></i>Hủy
+                        </a>
+                        <button type="submit" class="btn btn-primary-gradient flex-grow-1 py-3 rounded-4 fw-bold shadow-glow">
+                            <i class="fas fa-save me-2"></i>Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -86,142 +75,55 @@
 }
 
 <style>
-    /* Edit Goal Pastel Styles (đồng bộ với Create/Edit khác) */
-    .edit-goal-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 1rem;
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.8);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
     }
 
-    .bg-gradient-pastel-primary {
-        background: linear-gradient(135deg, var(--pastel-primary, #a5b4fc), var(--pastel-primary-dark, #818cf8));
+    body {
+        background: #f1f5f9;
+        background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%), 
+                          radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
     }
 
-    .icon-circle {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 60px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(4px);
+    .glass-premium {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
     }
 
-    .hover-lift {
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-    .hover-lift:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2) !important;
+    .icon-circle-lg {
+        width: 72px; height: 72px; border-radius: 24px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.8rem; margin: 0 auto;
     }
 
-    /* Form controls */
-    .form-control {
-        border: 1px solid var(--pastel-border, #e2e8f0);
-        background-color: var(--pastel-card-bg, #ffffff);
-        color: var(--pastel-dark, #0f172a);
-        transition: all 0.2s ease;
-        font-size: 0.95rem;
-        padding: 0.7rem 1rem;
-    }
-    .form-control:focus {
-        border-color: var(--pastel-primary-dark, #818cf8);
-        box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
-        outline: none;
-    }
-    .form-label {
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--pastel-muted, #64748b);
-    }
+    .bg-primary-gradient { background: var(--primary-gradient); }
+    .shadow-glow { box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4); }
 
-    /* Alert pastel */
-    .alert-pastel-danger {
-        background: rgba(239, 68, 68, 0.1);
-        border-left: 4px solid #ef4444;
-        color: #b91c1c;
-    }
+    .form-label-custom { font-weight: 700; font-size: 0.85rem; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; display: block; }
 
-    /* Buttons pastel */
-    .btn-pastel-primary {
-        background: var(--pastel-primary, #a5b4fc);
-        color: #1e293b;
-        border: none;
-        transition: all 0.2s;
-        font-weight: 500;
+    .input-group-custom { position: relative; margin-bottom: 0.5rem; display: flex; align-items: center; }
+    .input-icon { position: absolute; left: 1.25rem; color: #94a3b8; font-size: 1.1rem; z-index: 10; }
+    .form-control-custom {
+        width: 100%; padding: 0.85rem 1.25rem 0.85rem 3.25rem;
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;
+        color: #1e293b; font-weight: 500; transition: all 0.3s;
     }
-    .btn-pastel-primary:hover {
-        background: var(--pastel-primary-dark, #818cf8);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
+    .form-control-custom:focus {
+        background: white; border-color: #6366f1; outline: none;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
     }
-    .btn-outline-pastel {
-        border: 1px solid var(--pastel-primary-dark, #818cf8);
-        color: var(--pastel-primary-dark, #818cf8);
-        background: transparent;
-        transition: all 0.2s;
-    }
-    .btn-outline-pastel:hover {
-        background: var(--pastel-primary-dark, #818cf8);
-        color: white;
-    }
+    
+    textarea.form-control-custom { padding-left: 3.25rem; }
 
-    /* Dark mode overrides */
-    body.theme-dark {
-        --pastel-primary: #818cf8;
-        --pastel-primary-dark: #6366f1;
-        --pastel-border: #334155;
-        --pastel-card-bg: #1e293b;
-        --pastel-dark: #f1f5f9;
-        --pastel-muted: #94a3b8;
-    }
-    body.theme-dark .form-control {
-        background-color: var(--pastel-card-bg);
-        border-color: var(--pastel-border);
-        color: var(--pastel-dark);
-    }
-    body.theme-dark .alert-pastel-danger {
-        background: rgba(239, 68, 68, 0.2);
-        color: #fca5a5;
-    }
-    body.theme-dark .btn-outline-pastel {
-        border-color: #818cf8;
-        color: #a5b4fc;
-    }
-    body.theme-dark .btn-outline-pastel:hover {
-        background: #818cf8;
-        color: #1e293b;
-    }
-    body.theme-dark .btn-pastel-primary {
-        background: #4f46e5;
-        color: #e0e7ff;
-    }
-    body.theme-dark .btn-pastel-primary:hover {
-        background: #6366f1;
-    }
+    .btn-primary-gradient { background: var(--primary-gradient); border: none; color: white; transition: all 0.3s; }
+    .btn-primary-gradient:hover { transform: translateY(-2px); opacity: 0.95; color: white; }
 
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .edit-goal-container {
-            padding: 0 0.5rem;
-        }
-        .card-body {
-            padding: 1.5rem !important;
-        }
-        .icon-circle {
-            width: 40px;
-            height: 40px;
-        }
-        .btn {
-            width: 100%;
-            text-align: center;
-            justify-content: center;
-        }
-        .d-flex.flex-wrap {
-            flex-direction: column-reverse;
-        }
-    }
+    .btn-light-custom { background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; transition: all 0.3s; }
+    .btn-light-custom:hover { background: #e2e8f0; color: #1e293b; }
+
+    @@media (max-width: 768px) { .p-5 { padding: 2rem !important; } }
 </style>

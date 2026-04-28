@@ -527,3 +527,78 @@ body.theme-dark main h2 { color: var(--gray-100); }
 body.theme-dark .column-header .fs-5, body.theme-dark .board-column .fs-5 {
     color: var(--gray-200);
 }
+
+/* --- 9. Modern SaaS / Glassmorphism Effects --- */
+.glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+body.theme-dark .glass-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.hover-lift {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+body.theme-dark .hover-lift:hover {
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+/* Focus Pomodoro Wave Effect */
+.focus-root {
+    background-color: #050505 !important;
+    background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%) !important;
+}
+
+.wave-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+.wave-container.active {
+    opacity: 1;
+}
+
+.wave {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 2px solid rgba(99, 102, 241, 0.3);
+    animation: wavePulse 2s infinite cubic-bezier(0.36, 0.11, 0.89, 0.32);
+}
+
+.wave1 { width: 100%; height: 100%; animation-delay: 0s; }
+.wave2 { width: 100%; height: 100%; animation-delay: 0.6s; }
+.wave3 { width: 100%; height: 100%; animation-delay: 1.2s; }
+
+@keyframes wavePulse {
+    0% { width: 200px; height: 200px; opacity: 1; }
+    100% { width: 600px; height: 600px; opacity: 0; }
+}
+
+.focus-content {
+    z-index: 10;
+}
+

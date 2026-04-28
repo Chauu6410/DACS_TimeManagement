@@ -1,9 +1,12 @@
 using DACS_TimeManagement.Models;
 using DACS_TimeManagement.Repositories;
+using DACS_TimeManagement.DTOs;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using DACS_TimeManagement.Services.Interfaces;
 
 namespace DACS_TimeManagement.Controllers
 {
@@ -11,165 +14,285 @@ namespace DACS_TimeManagement.Controllers
     public class GoalController : Controller
     {
         private readonly IGoalRepository _goalRepo;
+        private readonly ApplicationDbContext _db;
+        private readonly IGoalService _goalService;
 
-        public GoalController(IGoalRepository goalRepo) => _goalRepo = goalRepo;
+        public GoalController(IGoalRepository goalRepo, ApplicationDbContext db, IGoalService goalService)
+        {
+            _goalRepo = goalRepo;
+            _db = db;
+            _goalService = goalService;
+        }
 
+        // GET: Goal
         public async Task<IActionResult> Index()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var goals = await _goalRepo.GetAllAsync(userId);
+            // Eager load Project and GoalTasks to avoid N+1 issues in the view
+            var goals = await _db.PersonalGoals
+                .Include(g => g.Project)
+                .Where(g => g.UserId == userId)
+                .OrderByDescending(g => g.CreatedAt)
+                .ToListAsync();
+
             return View(goals);
         }
 
+        // GET: Goal/Create
         public IActionResult Create()
         {
-            return View();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var projects = _db.Projects
+                .AsNoTracking()
+                .Where(p => p.UserId == userId)
+                .Select(p => new { p.Id, p.Name, p.EndDate })
+                .ToList();
+
+            ViewBag.Projects = projects;
+            return View(new CreateGoalDto { TargetDate = DateTime.UtcNow.Date.AddDays(7) });
         }
 
+        // POST: Goal/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(PersonalGoal goal)
+        public async Task<IActionResult> Create(CreateGoalDto dto)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            ModelState.Remove("UserId");
-            if (ModelState.IsValid)
+
+            var project = await _db.Projects
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.UserId == userId);
+
+            if (project == null)
             {
-                goal.UserId = userId;
-                await _goalRepo.AddAsync(goal);
-                await _goalRepo.SaveAsync();
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError(nameof(dto.ProjectId), "Project not found or access denied.");
             }
-            return View(goal);
+            else if (project.EndDate.HasValue && dto.TargetDate.Date > project.EndDate.Value.Date)
+            {
+                ModelState.AddModelError(nameof(dto.TargetDate), $"Target date cannot exceed project deadline ({project.EndDate.Value:dd/MM/yyyy}).");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Projects = _db.Projects.AsNoTracking().Where(p => p.UserId == userId).Select(p => new { p.Id, p.Name, p.EndDate }).ToList();
+                return View(dto);
+            }
+
+            // Auto compute TargetValue as total tasks in project
+            var totalTasks = await _db.WorkTasks.Where(t => t.ProjectId == dto.ProjectId).CountAsync();
+
+            var goal = new PersonalGoal
+            {
+                Title = project.Name + " - Commitment",
+                Description = dto.Description,
+                ProjectId = dto.ProjectId,
+                StartDate = DateTime.UtcNow,
+                TargetDate = dto.TargetDate,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                TargetValue = totalTasks,
+                CurrentValue = 0
+            };
+
+            await _goalRepo.AddAsync(goal);
+            await _goalRepo.SaveAsync();
+
+            // Generate AI strategy
+            if (_goalService is DACS_TimeManagement.Services.GoalService concrete)
+            {
+                goal.AIActionPlan = await concrete.GenerateSmartAIStrategy(dto.ProjectId, dto.TargetDate);
+                _goalRepo.Update(goal);
+                await _goalRepo.SaveAsync();
+            }
+
+            _db.GoalProgressHistories.Add(new GoalProgressHistory
+            {
+                GoalId = goal.Id,
+                Progress = 0,
+                RecordedAt = DateTime.UtcNow,
+                Note = "Initial Commitment Established"
+            });
+            await _db.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
+        // GET: Goal/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var goal = await _goalRepo.GetByIdAsync(id, userId);
+            var goal = await _db.PersonalGoals
+                .Include(g => g.Project)
+                .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
             
             if (goal == null) return NotFound();
             return View(goal);
         }
 
+        // POST: Goal/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(PersonalGoal goal)
+        public async Task<IActionResult> Edit(int id, PersonalGoal goal)
         {
+            if (id != goal.Id) return NotFound();
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var existingGoal = await _db.PersonalGoals.FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
+            
+            if (existingGoal == null) return NotFound();
+
             ModelState.Remove("UserId");
             if (ModelState.IsValid)
             {
-                goal.UserId = userId;
-                _goalRepo.Update(goal);
-                await _goalRepo.SaveAsync();
+                existingGoal.Title = goal.Title;
+                existingGoal.Description = goal.Description;
+                existingGoal.TargetDate = goal.TargetDate;
+                existingGoal.UpdatedAt = DateTime.Now;
+
+                _db.PersonalGoals.Update(existingGoal);
+                await _db.SaveChangesAsync();
+                
                 return RedirectToAction(nameof(Index));
             }
             return View(goal);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> UpdateProgress(int id, double value)
+        // GET: Goal/Details/5
+        public async Task<IActionResult> Details(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var goal = await _goalRepo.GetByIdAsync(id, userId);
-            if (goal != null)
-            {
-                goal.CurrentValue = value;
-                
-                UpdateStreak(goal);
-                
-                _goalRepo.Update(goal);
-                await _goalRepo.SaveAsync();
-                
-                var forecast = ForecastGoal(goal);
-                return Json(new { success = true, forecastStatus = forecast, streak = goal.CurrentStreak });
-            }
-            return Json(new { success = false });
+            var goal = await _db.PersonalGoals
+                .Include(g => g.Project)
+                .Include(g => g.GoalProgressHistories)
+                .Include(g => g.GoalTasks)
+                    .ThenInclude(gt => gt.WorkTask)
+                .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
+
+            if (goal == null) return NotFound();
+            return View(goal);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CompletePomodoroSession(int id, double progressValue = 1)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var goal = await _goalRepo.GetByIdAsync(id, userId);
-            if (goal != null)
-            {
-                goal.CurrentValue += progressValue;
-                if (goal.CurrentValue > goal.TargetValue) goal.CurrentValue = goal.TargetValue;
-                
-                UpdateStreak(goal);
-
-                _goalRepo.Update(goal);
-                await _goalRepo.SaveAsync();
-                
-                var forecast = ForecastGoal(goal);
-                return Json(new { success = true, newValue = goal.CurrentValue, forecastStatus = forecast, streak = goal.CurrentStreak });
-            }
-            return Json(new { success = false, message = "Goal not found" });
-        }
-
-        private void UpdateStreak(PersonalGoal goal)
-        {
-            var today = DateTime.Now.Date;
-            if (goal.LastUpdated.HasValue)
-            {
-                var lastDate = goal.LastUpdated.Value.Date;
-                if (lastDate == today.AddDays(-1))
-                {
-                    goal.CurrentStreak++;
-                }
-                else if (lastDate < today.AddDays(-1))
-                {
-                    // KHẮC PHỤC BUG (4): Quá hạn hoặc đứt chuỗi thì reset về 1 (vì đang hoàn thành hôm nay)
-                    goal.CurrentStreak = 1;
-                }
-            }
-            else
-            {
-                // KHẮC PHỤC BUG (4): Mục tiêu mới, lần đầu tiên hoàn thành -> Streak = 1
-                goal.CurrentStreak = 1;
-            }
-            goal.LastUpdated = DateTime.Now;
-        }
-
-        private string ForecastGoal(PersonalGoal goal)
-        {
-            if (goal.CurrentValue >= goal.TargetValue) return "Achieved";
-            
-            var daysPassed = (DateTime.Now - goal.StartDate).TotalDays;
-            if (daysPassed < 1) return "On Track"; // Chưa đủ dữ liệu
-            
-            double velocity = goal.CurrentValue / daysPassed;
-            if (velocity <= 0) return "At Risk"; 
-            
-            var daysRemaining = (goal.TargetValue - goal.CurrentValue) / velocity;
-            var estimatedFinishDate = DateTime.Now.AddDays(daysRemaining);
-            
-            return estimatedFinishDate > goal.TargetDate ? "At Risk" : "On Track";
-        }
-
+        // GET: Goal/Delete/5
+        [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var goal = await _goalRepo.GetByIdAsync(id, userId);
+            var goal = await _db.PersonalGoals
+                .Include(g => g.Project)
+                .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
             
             if (goal == null) return NotFound();
             return View(goal);
         }
 
+        // POST: Goal/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var goal = await _goalRepo.GetByIdAsync(id, userId);
+            var goal = await _db.PersonalGoals.FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
             
-            if (goal != null)
+            if (goal == null)
             {
-                _goalRepo.Delete(goal);
-                await _goalRepo.SaveAsync();
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, message = "Goal not found." });
+                return NotFound();
             }
-            return RedirectToAction(nameof(Index));
+
+            try
+            {
+                _db.PersonalGoals.Remove(goal);
+                await _db.SaveChangesAsync();
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = true });
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, message = ex.Message });
+                return View("Error");
+            }
+        }
+
+        // GET: Goal/Focus/5
+        public async Task<IActionResult> Focus(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var goal = await _db.PersonalGoals
+                .Include(g => g.GoalTasks)
+                    .ThenInclude(gt => gt.WorkTask)
+                .Include(g => g.Project)
+                    .ThenInclude(p => p.Tasks)
+                .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
+
+            if (goal == null) return NotFound();
+
+            // Auto-populate tasks if none are linked but project exists
+            if (!goal.GoalTasks.Any() && goal.ProjectId.HasValue && goal.Project != null)
+            {
+                foreach (var task in goal.Project.Tasks)
+                {
+                    goal.GoalTasks.Add(new GoalTask { GoalId = goal.Id, WorkTaskId = task.Id, WorkTask = task });
+                }
+            }
+
+            return View(goal);
+        }
+
+        // AJAX: Sync goal status for Index view
+        [HttpGet]
+        public async Task<IActionResult> GetAllGoalsStatus()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var goals = await _db.PersonalGoals
+                .AsNoTracking()
+                .Where(g => g.UserId == userId)
+                .ToListAsync();
+
+            var list = goals.Select(g => new
+            {
+                id = g.Id,
+                goalName = g.Title,
+                currentValue = g.Type == GoalType.TimeBased ? g.CompletedHours : g.CompletedTasks,
+                targetValue = g.Type == GoalType.TimeBased ? g.TargetHours ?? 0 : (double?)(g.TargetTasks ?? 0),
+                streak = g.CurrentStreak,
+                aiPrediction = _goalService.GetAIPrediction(g),
+                aiStatus = _goalService.GetAIShortStatus(g)
+            });
+
+            return Json(list);
+        }
+
+        // AJAX: Get progress history for charts
+        [HttpGet]
+        public async Task<IActionResult> GetGoalHistory(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var history = await _db.GoalProgressHistories
+                .Where(h => h.GoalId == id && h.Goal.UserId == userId)
+                .OrderBy(h => h.RecordedAt)
+                .Take(20)
+                .Select(h => new {
+                    date = h.RecordedAt.ToString("dd/MM HH:mm"),
+                    progress = Math.Round(h.Progress, 1)
+                })
+                .ToListAsync();
+
+            return Json(history);
+        }
+
+        [HttpGet]
+        public IActionResult GetGlobalStreak()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var goals = _db.PersonalGoals.Where(g => g.UserId == userId).ToList();
+            var streak = goals.Any() ? goals.Max(g => g.CurrentStreak) : 0;
+            return Json(new { streak });
         }
     }
 }

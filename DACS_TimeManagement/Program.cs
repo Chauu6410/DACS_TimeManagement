@@ -1,10 +1,11 @@
+using DACS_TimeManagement.Data;
+using DACS_TimeManagement.Hubs;
 using DACS_TimeManagement.Models;
 using DACS_TimeManagement.Repositories;
+using DACS_TimeManagement.Services;
+using DACS_TimeManagement.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using DACS_TimeManagement.Data;
-using DACS_TimeManagement.Services;
-using DACS_TimeManagement.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,6 +52,7 @@ builder.Services.AddScoped<ICalendarRepository, CalendarRepository>();
 builder.Services.AddScoped<IGoalRepository, GoalRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddSingleton<ICryptoService, CryptoService>();
+builder.Services.AddScoped<IGoalService, GoalService>();
 
 var app = builder.Build();
 
@@ -75,6 +77,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<GoalHub>("/goalHub");
 app.MapRazorPages();
 
 // 6. CHẠY SEED DATA (Tự động tạo Role và Tài khoản mẫu)

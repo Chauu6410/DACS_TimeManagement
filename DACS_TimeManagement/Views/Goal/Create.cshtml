@@ -1,90 +1,53 @@
-@model DACS_TimeManagement.Models.PersonalGoal
+@model DACS_TimeManagement.DTOs.CreateGoalDto
 @{
-    ViewData["Title"] = "Set Personal Goal";
+    ViewData["Title"] = "Tạo Goal";
+    var projects = (IEnumerable<dynamic>)ViewBag.Projects;
 }
 
-<div class="goal-container" data-aos="fade-up">
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8 col-md-10">
-            <div class="card border-0 shadow-xl rounded-4 overflow-hidden transition-all hover-lift">
-                <!-- Header Gradient -->
-                <div class="card-header bg-gradient-primary text-white border-0 py-4 px-4">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="icon-circle bg-white bg-opacity-25 text-white">
-                            <i class="fas fa-bullseye fs-4"></i>
+        <div class="col-md-7">
+            <div class="card glass p-4 rounded-4 shadow-lg">
+                <h3 class="fw-bold mb-3"><i class="fas fa-plus-circle me-2 text-primary"></i>Tạo Goal Mới</h3>
+                <form asp-action="Create" method="post" id="goalForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Chọn Dự Án Liên Kết</label>
+                        <select name="ProjectId" id="ProjectId" class="form-select" required>
+                            <option value="">-- Chọn một dự án --</option>
+                            @foreach(var p in projects)
+                            {
+                                <option value="@p.Id" data-deadline="@(p.EndDate?.ToString("yyyy-MM-dd"))">@p.Name</option>
+                            }
+                        </select>
+                        <div id="projectDeadlineInfo" class="mt-2 small text-muted d-none">
+                             Dự án này có hạn chót là <span id="deadlineDisplay" class="fw-bold"></span>
                         </div>
-                        <div>
-                            <h4 class="mb-0 fw-bold">Set New Personal Goal</h4>
-                            <p class="opacity-75 small mb-0">Define what you want to achieve</p>
-                        </div>
+                        <span asp-validation-for="ProjectId" class="text-danger small"></span>
                     </div>
-                </div>
 
-                <!-- Form Body -->
-                <div class="card-body p-4 p-lg-5">
-                    <form asp-action="Create" id="createGoalForm">
-                        <div asp-validation-summary="ModelOnly" class="alert alert-pastel-danger rounded-3 border-0" role="alert"></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả mục tiêu</label>
+                        <textarea name="Description" class="form-control" rows="3" placeholder="Bạn muốn đạt được điều gì cho dự án này?"></textarea>
+                    </div>
 
-                        <div class="row g-4">
-                            <!-- Goal Name -->
-                            <div class="col-12">
-                                <label asp-for="GoalName" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-tag text-pastel-primary me-1"></i> Goal Title <span class="text-danger">*</span>
-                                </label>
-                                <input asp-for="GoalName" class="form-control form-control-lg rounded-3" placeholder="e.g., Read 12 Books" required />
-                                <span asp-validation-for="GoalName" class="text-danger small"></span>
-                            </div>
-
-                            <!-- Description -->
-                            <div class="col-12">
-                                <label asp-for="Description" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-align-left text-pastel-primary me-1"></i> Description
-                                </label>
-                                <textarea asp-for="Description" class="form-control rounded-3" rows="3" placeholder="Briefly describe why this goal is important..."></textarea>
-                                <span asp-validation-for="Description" class="text-danger small"></span>
-                            </div>
-
-                            <!-- Target & Current Value -->
-                            <div class="col-md-6">
-                                <label asp-for="TargetValue" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-chart-line text-pastel-primary me-1"></i> Target Value <span class="text-danger">*</span>
-                                </label>
-                                <input asp-for="TargetValue" class="form-control rounded-3" type="number" min="1" value="10" required />
-                                <small class="text-muted d-block mt-1">Quantitative target (e.g., 12, 10000)</small>
-                                <span asp-validation-for="TargetValue" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label asp-for="CurrentValue" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-hourglass-start text-pastel-primary me-1"></i> Starting Value
-                                </label>
-                                <input asp-for="CurrentValue" class="form-control rounded-3" type="number" min="0" value="0" />
-                                <small class="text-muted d-block mt-1">Where are you starting from?</small>
-                                <span asp-validation-for="CurrentValue" class="text-danger small"></span>
-                            </div>
-
-                            <!-- Target Date -->
-                            <div class="col-md-12">
-                                <label asp-for="TargetDate" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-calendar-alt text-pastel-primary me-1"></i> Target Date <span class="text-danger">*</span>
-                                </label>
-                                <input asp-for="TargetDate" type="date" class="form-control rounded-3" required />
-                                <span asp-validation-for="TargetDate" class="text-danger small"></span>
-                            </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Ngày hoàn thành mong muốn</label>
+                        <input type="date" name="TargetDate" id="TargetDate" class="form-control" value="@Model.TargetDate.ToString("yyyy-MM-dd")" required />
+                        <div id="dateWarning" class="mt-2 small text-danger d-none">
+                            ⚠️ Ngày hoàn thành không thể muộn hơn hạn chót của dự án!
                         </div>
+                        <span asp-validation-for="TargetDate" class="text-danger small"></span>
+                    </div>
 
-                        <hr class="my-4 opacity-25" />
-
-                        <!-- Form Actions -->
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                            <a asp-action="Index" class="btn btn-outline-pastel rounded-pill px-4 py-2">
-                                <i class="fas fa-arrow-left me-2"></i>Cancel
-                            </a>
-                            <button type="submit" class="btn btn-pastel-primary rounded-pill px-5 py-2 shadow-sm">
-                                <i class="fas fa-check-circle me-2"></i>Save Goal
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">Hủy</a>
+                        <button type="submit" id="submitBtn" class="btn btn-primary rounded-pill px-4 bg-gradient">
+                            <i class="fas fa-check me-1"></i> Tạo Goal
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -92,129 +55,54 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const projectSelect = document.getElementById('ProjectId');
+            const targetDateInput = document.getElementById('TargetDate');
+            const deadlineInfo = document.getElementById('projectDeadlineInfo');
+            const deadlineDisplay = document.getElementById('deadlineDisplay');
+            const dateWarning = document.getElementById('dateWarning');
+            const submitBtn = document.getElementById('submitBtn');
+
+            function validateDates() {
+                const selectedOption = projectSelect.options[projectSelect.selectedIndex];
+                const projectDeadline = selectedOption.getAttribute('data-deadline');
+                const targetDate = targetDateInput.value;
+
+                if (projectDeadline) {
+                    deadlineDisplay.textContent = new Date(projectDeadline).toLocaleDateString('vi-VN');
+                    deadlineInfo.classList.remove('d-none');
+
+                    if (targetDate && new Date(targetDate) > new Date(projectDeadline)) {
+                        dateWarning.classList.remove('d-none');
+                        submitBtn.disabled = true;
+                        submitBtn.style.opacity = '0.5';
+                        targetDateInput.classList.add('is-invalid');
+                    } else {
+                        dateWarning.classList.add('d-none');
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '1';
+                        targetDateInput.classList.remove('is-invalid');
+                    }
+                } else {
+                    deadlineInfo.classList.add('d-none');
+                    dateWarning.classList.add('d-none');
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    targetDateInput.classList.remove('is-invalid');
+                }
+            }
+
+            projectSelect.addEventListener('change', validateDates);
+            targetDateInput.addEventListener('change', validateDates);
+        });
+    </script>
 }
 
 <style>
-    /* Goal page pastel styles */
-    .goal-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 1rem;
-    }
-
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--primary, #6366f1), var(--primary-dark, #4f46e5));
-    }
-
-    .icon-circle {
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 60px;
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(4px);
-    }
-
-    .hover-lift {
-        transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-    .hover-lift:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2) !important;
-    }
-
-    /* Form controls */
-    .form-control {
-        border: 1px solid var(--border-color, #e2e8f0);
-        background-color: var(--card-bg, #ffffff);
-        color: var(--text-dark, #0f172a);
-        transition: all 0.2s ease;
-        font-size: 0.95rem;
-        padding: 0.7rem 1rem;
-    }
-    .form-control:focus {
-        border-color: var(--primary, #6366f1);
-        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-        outline: none;
-    }
-    .form-label {
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--text-muted, #64748b);
-    }
-
-    /* Alert pastel */
-    .alert-pastel-danger {
-        background: rgba(239, 68, 68, 0.1);
-        border-left: 4px solid #ef4444;
-        color: #b91c1c;
-    }
-
-    /* Buttons pastel */
-    .btn-pastel-primary {
-        background: var(--primary, #6366f1);
-        color: white;
-        border: none;
-        transition: all 0.2s;
-    }
-    .btn-pastel-primary:hover {
-        background: var(--primary-dark, #4f46e5);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
-    .btn-outline-pastel {
-        border: 1px solid var(--primary, #6366f1);
-        color: var(--primary, #6366f1);
-        background: transparent;
-        transition: all 0.2s;
-    }
-    .btn-outline-pastel:hover {
-        background: var(--primary, #6366f1);
-        color: white;
-    }
-
-    /* Dark mode overrides */
-    body.theme-dark .form-control {
-        background-color: var(--card-bg, #1e293b);
-        border-color: var(--border-color, #334155);
-        color: #f1f5f9;
-    }
-    body.theme-dark .alert-pastel-danger {
-        background: rgba(239, 68, 68, 0.2);
-        color: #fca5a5;
-        border-left-color: #ef4444;
-    }
-    body.theme-dark .btn-outline-pastel {
-        border-color: #818cf8;
-        color: #a5b4fc;
-    }
-    body.theme-dark .btn-outline-pastel:hover {
-        background: #818cf8;
-        color: #1e293b;
-    }
-
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .goal-container {
-            padding: 0 0.5rem;
-        }
-        .card-body {
-            padding: 1.5rem !important;
-        }
-        .icon-circle {
-            width: 40px;
-            height: 40px;
-        }
-        .btn {
-            width: 100%;
-            text-align: center;
-            justify-content: center;
-        }
-        .d-flex.flex-wrap {
-            flex-direction: column-reverse;
-        }
-    }
+    .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(12px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.3); }
+    .btn-primary.bg-gradient { background: linear-gradient(135deg, #6366f1, #a855f7); border: none; }
+    .btn-primary.bg-gradient:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.4); }
+    .form-select, .form-control { border-radius: 12px; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; }
+    .form-select:focus, .form-control:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
 </style>

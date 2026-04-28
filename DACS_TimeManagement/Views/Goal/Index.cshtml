@@ -1,59 +1,72 @@
 @model IEnumerable<DACS_TimeManagement.Models.PersonalGoal>
+@inject DACS_TimeManagement.Services.Interfaces.IGoalService GoalService
 @{
-    ViewData["Title"] = "Personal Goals";
+    ViewData["Title"] = "Goal Management";
     var totalGoals = Model.Count();
-    var completedGoals = Model.Count(g => g.CurrentValue >= g.TargetValue);
+    var completedGoals = Model.Count(g => g.Status == DACS_TimeManagement.Models.GoalStatus.Completed);
     var overallProgress = totalGoals == 0 ? 0 : (completedGoals * 100 / totalGoals);
 }
 
-<div class="container goals-container py-4" data-aos="fade-up">
-    <!-- Premium Header Stats -->
+<div class="container py-4">
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">🎯 Your Goals</h2>
+            <p class="text-muted mb-0">Track and manage your project objectives efficiently.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-light rounded-pill px-3 shadow-sm" id="refreshBtn">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+            <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 py-2 shadow-sm fw-semibold">
+                <i class="fas fa-plus-circle me-2"></i>Set Up New Goal
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
     <div class="row g-4 mb-5">
         <div class="col-md-3 col-6">
-            <div class="stat-card premium-glass rounded-4 p-4 text-center position-relative overflow-hidden shadow-sm">
-                <div class="stat-icon-bg text-primary"><i class="fas fa-flag-checkered"></i></div>
-                <h2 class="fw-black mt-2 mb-0 text-gradient-primary">@completedGoals / @totalGoals</h2>
-                <span class="text-uppercase fw-bold text-muted small tracking-wide">Goals Achieved</span>
+            <div class="stat-card glass-premium">
+                <span class="stat-icon-bg"><i class="fas fa-bullseye"></i></span>
+                <div class="stat-value">@totalGoals</div>
+                <div class="stat-label">Total Goals</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card premium-glass rounded-4 p-4 text-center position-relative overflow-hidden shadow-sm">
-                <div class="stat-icon-bg text-danger"><i class="fas fa-fire"></i></div>
-                <h2 class="fw-black mt-2 mb-0 text-gradient-danger" id="globalStreak">@(ViewBag.GlobalStreak ?? 0)</h2>
-                <span class="text-uppercase fw-bold text-muted small tracking-wide">Day Streak</span>
+            <div class="stat-card glass-premium highlight-success">
+                <span class="stat-icon-bg"><i class="fas fa-check-double"></i></span>
+                <div class="stat-value">@completedGoals</div>
+                <div class="stat-label">Completed</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card premium-glass rounded-4 p-4 text-center position-relative overflow-hidden shadow-sm">
-                <div class="stat-icon-bg text-info"><i class="fas fa-chart-pie"></i></div>
-                <h2 class="fw-black mt-2 mb-0 text-gradient-info counter" data-target="@overallProgress">0%</h2>
-                <span class="text-uppercase fw-bold text-muted small tracking-wide">Overall Progress</span>
+            <div class="stat-card glass-premium highlight-warning">
+                <span class="stat-icon-bg"><i class="fas fa-fire"></i></span>
+                <div class="stat-value" id="globalStreak">@(ViewBag.GlobalStreak ?? 0)</div>
+                <div class="stat-label">Day Streak</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card premium-glass rounded-4 p-4 text-center position-relative overflow-hidden shadow-sm">
-                <div class="stat-icon-bg text-warning"><i class="fas fa-exclamation-triangle"></i></div>
-                <h2 class="fw-black mt-2 mb-0 text-gradient-warning" id="atRiskCount">0</h2>
-                <span class="text-uppercase fw-bold text-muted small tracking-wide">At Risk Goals</span>
+            <div class="stat-card glass-premium highlight-info">
+                <span class="stat-icon-bg"><i class="fas fa-chart-pie"></i></span>
+                <div class="stat-value">@overallProgress%</div>
+                <div class="stat-label">Overall Progress</div>
             </div>
         </div>
     </div>
 
-    <!-- Action Bar & Filters -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3 bg-white p-2 p-md-3 rounded-pill shadow-sm border">
-        <div class="filter-pills d-flex gap-1 overflow-auto hide-scrollbar w-100 w-md-auto">
-            <button class="btn btn-filter active rounded-pill px-4" data-filter="all">All</button>
-            <button class="btn btn-filter rounded-pill px-4" data-filter="active">Active</button>
-            <button class="btn btn-filter rounded-pill px-4" data-filter="completed">Completed</button>
-            <button class="btn btn-filter rounded-pill px-4" data-filter="risk">At Risk</button>
+    <!-- Toolbar: Search and Filters -->
+    <div class="toolbar glass-premium p-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="search-box position-relative flex-grow-1" style="max-width: 400px;">
+            <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            <input type="text" id="goalSearch" class="form-control rounded-pill ps-5 border-0 bg-light" placeholder="Search goals...">
         </div>
-        <div class="d-flex gap-2 w-100 w-md-auto justify-content-end">
-            <button class="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center" id="refreshBtn" title="Sync Goals" style="width: 42px; height: 42px;">
-                <i class="fas fa-sync-alt text-secondary"></i>
-            </button>
-            <a asp-action="Create" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold bg-gradient-primary border-0 d-flex align-items-center gap-2 text-white text-decoration-none">
-                <i class="fas fa-plus"></i> New Goal
-            </a>
+        <div class="filter-group d-flex gap-2 overflow-auto pb-1">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="Active">Active</button>
+            <button class="filter-btn" data-filter="Completed">Completed</button>
+            <button class="filter-btn" data-filter="Behind">Behind</button>
         </div>
     </div>
 
@@ -61,14 +74,12 @@
     <div class="row g-4" id="goalsGrid">
         @if (!Model.Any())
         {
-            <div class="col-12">
-                <div class="empty-state-card premium-glass border-0 shadow-sm rounded-4 p-5 text-center mt-3">
-                    <div class="empty-icon-wrapper mb-4">
-                        <i class="fas fa-rocket fa-4x text-gradient-primary"></i>
-                    </div>
-                    <h3 class="fw-black text-dark mb-2">Your Journey Starts Here</h3>
-                    <p class="text-muted mb-4 fs-5">Set a clear goal and let the smart engine guide you to success.</p>
-                    <a asp-action="Create" class="btn btn-primary btn-lg rounded-pill px-5 shadow-sm bg-gradient-primary border-0 fw-bold text-white text-decoration-none">Set First Goal</a>
+            <div class="col-12 text-center py-5">
+                <div class="empty-state p-5 rounded-5 glass-premium">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2026/2026655.png" width="120" class="mb-4 opacity-75" alt="No Goals">
+                    <h3 class="fw-bold">No goals yet</h3>
+                    <p class="text-muted">Start your journey by creating a goal linked to a project.</p>
+                    <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 mt-3 fw-semibold">Get Started</a>
                 </div>
             </div>
         }
@@ -76,123 +87,103 @@
         {
             @foreach (var goal in Model)
             {
-                var isAchieved = goal.CurrentValue >= goal.TargetValue;
                 var progressPercent = goal.TargetValue == 0 ? 0 : (int)Math.Min(100, (double)goal.CurrentValue / goal.TargetValue * 100);
-                var daysLeft = (goal.TargetDate - DateTime.Now).Days;
+                var isCompleted = goal.Status == DACS_TimeManagement.Models.GoalStatus.Completed;
+                var daysRemaining = (goal.TargetDate.Date - DateTime.Now.Date).Days;
+                var aiShortStatus = GoalService.GetAIShortStatus(goal);
                 
-                <div class="col-md-6 col-lg-4 goal-card-wrapper animate__animated animate__fadeInUp" data-goal-id="@goal.Id" data-status="@(isAchieved ? "completed" : "active")" data-risk="false">
-                    <div class="goal-card premium-glass border-0 shadow-sm rounded-4 overflow-hidden position-relative h-100 d-flex flex-column" id="goal-card-@goal.Id"
-                         data-id="@goal.Id"
-                         data-target="@goal.TargetValue"
-                         data-current="@goal.CurrentValue"
-                         data-start="@goal.StartDate.ToString("o")"
-                         data-deadline="@goal.TargetDate.ToString("o")"
-                         data-streak="@goal.CurrentStreak">
-                        
-                        <!-- Card Header -->
-                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
-                            <div class="badge-container">
-                                @if (isAchieved)
-                                {
-                                    <span class="badge bg-success-soft text-success rounded-pill px-3 py-2 fw-bold shadow-sm">
-                                        <i class="fas fa-trophy me-1"></i> Achieved
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge risk-badge bg-danger-soft text-danger rounded-pill px-3 py-2 fw-bold shadow-sm" id="risk-badge-@goal.Id" style="display: none;">
-                                        <i class="fas fa-exclamation-circle me-1"></i> At Risk
-                                    </span>
-                                }
+                // Determine CSS class for AI Status
+                var aiStatusClass = aiShortStatus switch {
+                    "At Risk" => "text-danger fw-bold",
+                    "Finishing" => "text-success fw-bold",
+                    "Excellent" => "text-primary fw-bold",
+                    "Ahead" => "text-info fw-bold",
+                    "On Track" => "text-primary fw-semibold",
+                    "Starting Up" => "text-muted italic",
+                    "Initializing" => "text-info italic",
+                    _ => "text-muted"
+                };
+
+                <div class="col-lg-6 col-xl-4 goal-item" data-status="@goal.Status" data-title="@goal.Title">
+                    <div class="goal-card-premium glass-premium h-100">
+                        <div class="card-header-custom">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="project-tag">
+                                    <i class="fas fa-folder-open me-1"></i> @(goal.Project?.Name ?? "Solo Goal")
+                                </span>
+                                <div class="card-actions-top d-flex gap-2">
+                                    <a href="#" class="action-btn-mini delete-btn delete-goal-btn" data-id="@goal.Id" title="Delete Goal">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
                             </div>
-                            <div class="dropdown">
-                                <button class="btn btn-light rounded-circle btn-icon-sm border-0" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v text-secondary"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4 p-2">
-                                    <li><a class="dropdown-item rounded-3 py-2 fw-semibold" asp-action="Edit" asp-route-id="@goal.Id"><i class="fas fa-edit text-primary me-2"></i> Edit Goal</a></li>
-                                    <li><hr class="dropdown-divider my-1"></li>
-                                    <li><a class="dropdown-item rounded-3 py-2 fw-semibold text-danger delete-goal-btn" href="#" data-id="@goal.Id" data-name="@goal.GoalName"><i class="fas fa-trash-alt me-2"></i> Delete</a></li>
-                                </ul>
+                            <h4 class="goal-title-custom">@goal.Title</h4>
+                        </div>
+
+                        <div class="progress-section mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="progress-label">Completion Progress</span>
+                                <span class="progress-value">@progressPercent%</span>
+                            </div>
+                            <div class="progress-container-custom">
+                                <div class="progress-bar-custom" style="width: @progressPercent%"></div>
+                            </div>
+                            <div class="progress-stats mt-2 d-flex justify-content-between align-items-center">
+                                <span class="small @aiStatusClass">
+                                    <i class="fas fa-robot me-1"></i> @aiShortStatus
+                                </span>
+                                <span class="small @(daysRemaining < 0 ? "text-danger fw-bold" : "text-primary fw-semibold")">
+                                    <i class="far fa-clock me-1"></i>
+                                    @if (daysRemaining < 0) {
+                                        @:Overdue
+                                    } else if (daysRemaining == 0) {
+                                        @:Due Today
+                                    } else {
+                                        @daysRemaining @:days left
+                                    }
+                                </span>
                             </div>
                         </div>
 
-                        <!-- Card Body -->
-                        <div class="card-body p-4 text-center flex-grow-1 d-flex flex-column justify-content-between">
-                            <div>
-                                <h4 class="fw-black text-dark mb-1 text-truncate" title="@goal.GoalName">@goal.GoalName</h4>
-                                <p class="text-muted small fw-medium mb-4">
-                                    <i class="far fa-calendar me-1"></i> Due: @goal.TargetDate.ToString("dd MMM yyyy")
-                                </p>
-
-                                <!-- Circular Progress -->
-                                <div class="progress-ring-container mb-4 position-relative hover-show-days mx-auto" data-id="@goal.Id" style="width: 140px; height: 140px; cursor: pointer;">
-                                    <svg width="140" height="140">
-                                        <defs>
-                                            <linearGradient id="grad-@goal.Id" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                <stop offset="0%" stop-color="#6366f1" />
-                                                <stop offset="100%" stop-color="#a855f7" />
-                                            </linearGradient>
-                                            <linearGradient id="grad-success-@goal.Id" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                <stop offset="0%" stop-color="#10b981" />
-                                                <stop offset="100%" stop-color="#059669" />
-                                            </linearGradient>
-                                        </defs>
-                                        <!-- Background ring -->
-                                        <circle cx="70" cy="70" r="60" fill="none" stroke="#f1f5f9" stroke-width="10"></circle>
-                                        <!-- Progress ring -->
-                                        <circle cx="70" cy="70" r="60" fill="none" 
-                                                stroke="@(isAchieved ? $"url(#grad-success-{goal.Id})" : $"url(#grad-{goal.Id})")" 
-                                                stroke-width="10" stroke-linecap="round" id="goal-ring-@goal.Id"
-                                                stroke-dasharray="376.99" stroke-dashoffset="@(376.99 - (376.99 * progressPercent / 100))" 
-                                                style="transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1); transform: rotate(-90deg); transform-origin: 50% 50%;"></circle>
-                                    </svg>
-                                    <div class="position-absolute top-50 start-50 translate-middle text-center w-100">
-                                        <h2 class="mb-0 fw-black text-dark" id="goal-pct-@goal.Id" style="font-size: 1.8rem;">@progressPercent%</h2>
-                                        <div class="text-primary small fw-bold" id="goal-days-@goal.Id" style="display: none; font-size: 0.95rem;">
-                                            @(daysLeft >= 0 ? $"{daysLeft} days left" : $"{-daysLeft} overdue")
-                                        </div>
-                                    </div>
+                        <!-- AI Action Plan Section -->
+                        <div class="ai-action-box mb-4">
+                            <div class="ai-header mb-2 d-flex align-items-center">
+                                <div class="ai-icon-container me-2">
+                                    <i class="fas fa-robot text-primary"></i>
                                 </div>
-
-                                <!-- Modern Stats Row -->
-                                <div class="row g-2 mb-4">
-                                    <div class="col-4">
-                                        <div class="stat-box bg-light rounded-4 p-2 h-100">
-                                            <h5 class="fw-black mb-0 text-primary" id="goal-curr-@goal.Id">@goal.CurrentValue</h5>
-                                            <small class="text-muted fw-bold" style="font-size:0.65rem; letter-spacing: 1px;">CURRENT</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="stat-box bg-light rounded-4 p-2 h-100">
-                                            <h5 class="fw-black mb-0 text-dark">@goal.TargetValue</h5>
-                                            <small class="text-muted fw-bold" style="font-size:0.65rem; letter-spacing: 1px;">TARGET</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="stat-box bg-light rounded-4 p-2 h-100 @(goal.CurrentStreak > 0 ? "streak-active" : "")" id="streak-container-@goal.Id">
-                                            <h5 class="fw-black mb-0 text-danger d-flex align-items-center justify-content-center gap-1">
-                                                <i class="fas fa-fire"></i> <span id="streak-@goal.Id">@goal.CurrentStreak</span>
-                                            </h5>
-                                            <small class="text-muted fw-bold" style="font-size:0.65rem; letter-spacing: 1px;">STREAK</small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- ETA Insight -->
-                                <div class="eta-box bg-primary-soft rounded-pill py-2 px-3 mb-4 text-primary fw-semibold" style="font-size: 0.85rem;" id="eta-info-@goal.Id">
-                                    <i class="fas fa-magic me-1"></i> ETA: <span class="fw-bold text-dark" id="eta-date-@goal.Id">--</span>
-                                </div>
+                                <span class="fw-bold text-dark small text-uppercase letter-spacing-1">AI Strategy</span>
                             </div>
+                            <div class="ai-content-wrapper">
+                                <div class="ai-content-inner" id="aiContent-@goal.Id">
+                                    @if (!string.IsNullOrEmpty(goal.AIActionPlan))
+                                    {
+                                        <div class="ai-text-formatted">
+                                            @Html.Raw(goal.AIActionPlan.Replace("\n", "<br/>"))
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted small mb-0 italic">AI is analyzing the optimal strategy for this project...</p>
+                                    }
+                                </div>
+                                <div class="ai-fade-overlay"></div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(goal.AIActionPlan))
+                            {
+                                <button class="btn-toggle-ai mt-2" onclick="toggleAIPlan(@goal.Id, this)">
+                                    <span>Read more</span> <i class="fas fa-chevron-down ms-1"></i>
+                                </button>
+                            }
+                        </div>
 
-                            <!-- Action Buttons -->
-                            <div class="d-flex gap-2 mt-auto">
-                                <button class="btn btn-soft-danger flex-grow-1 rounded-pill fw-bold py-2 shadow-sm pomo-trigger" data-id="@goal.Id">
-                                    <i class="fas fa-stopwatch me-1"></i> Pomodoro
-                                </button>
-                                <button class="btn btn-soft-success flex-grow-1 rounded-pill fw-bold py-2 shadow-sm task-trigger" data-id="@goal.Id">
-                                    <i class="fas fa-check me-1"></i> Task Done
-                                </button>
+                        <div class="goal-footer-actions mt-auto">
+                            <div class="d-flex gap-3">
+                                <a asp-action="Focus" asp-route-id="@goal.Id" class="btn btn-focus-mode flex-grow-1">
+                                    <i class="fas fa-brain me-2"></i>Focus Mode
+                                </a>
+                                <a asp-action="Details" asp-route-id="@goal.Id" class="btn btn-outline-light-custom flex-grow-1">
+                                    <i class="fas fa-chart-line me-2"></i>Chi tiết
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -202,450 +193,274 @@
     </div>
 </div>
 
-<!-- Anti-forgery token -->
-@Html.AntiForgeryToken()
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
     <script>
-        const getToken = () => document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
-        let pollInterval = null;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search Functionality
+            const searchInput = document.getElementById('goalSearch');
+            const goalItems = document.querySelectorAll('.goal-item');
 
-        // Modern Toast Notification
-        function showToast(message, type = 'success') {
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                background: '#ffffff',
-                color: '#1e293b',
-                iconColor: type === 'success' ? '#10b981' : '#ef4444',
-                customClass: { popup: 'rounded-4 shadow-lg border' }
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                goalItems.forEach(item => {
+                    const title = item.dataset.title.toLowerCase();
+                    item.style.display = title.includes(query) ? '' : 'none';
+                });
             });
-            Toast.fire({ icon: type, title: message });
-        }
 
-        // Animate counter on load
-        document.querySelectorAll('.counter').forEach(el => {
-            const targetStr = el.getAttribute('data-target');
-            if(!targetStr) return;
-            const target = parseInt(targetStr);
-            let count = 0;
-            const inc = target / 40;
-            if(target > 0) {
-                const updateCount = () => {
-                    count += inc;
-                    if(count < target) {
-                        el.innerText = Math.ceil(count) + '%';
-                        requestAnimationFrame(updateCount);
-                    } else {
-                        el.innerText = target + '%';
-                    }
-                };
-                updateCount();
-            }
+            // Filter Functionality
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const filter = this.dataset.filter;
+                    
+                    goalItems.forEach(item => {
+                        if (filter === 'all' || item.dataset.status === filter) {
+                            item.style.display = '';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // Delete Functionality
+            document.querySelectorAll('.delete-goal-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const id = this.dataset.id;
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "This goal will be permanently deleted!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Yes, delete it',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                            const body = new URLSearchParams();
+                            body.append('id', id);
+                            body.append('__RequestVerificationToken', token);
+
+                            fetch('/Goal/Delete', { 
+                                method: 'POST', 
+                                headers: { 
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: body
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    location.reload();
+                                } else {
+                                    Swal.fire('Error!', data.message || 'Could not delete goal', 'error');
+                                }
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                location.reload(); // Fallback reload
+                            });
+                        }
+                    })
+                });
+            });
+
+
+            // Refresh Button
+            document.getElementById('refreshBtn').addEventListener('click', () => location.reload());
         });
 
-        // Update UI Logic
-        function updateGoalUI(goalData) {
-            const id = goalData.id;
-            const card = document.getElementById(`goal-card-${id}`);
-            const wrapper = document.querySelector(`.goal-card-wrapper[data-goal-id="${id}"]`);
-            if (!card || !wrapper) return;
+        function toggleAIPlan(id, btn) {
+            const wrapper = document.getElementById(`aiContent-${id}`).parentElement;
+            const content = document.getElementById(`aiContent-${id}`);
+            const span = btn.querySelector('span');
+            const icon = btn.querySelector('i');
             
-            const target = parseFloat(card.getAttribute('data-target'));
-            const current = goalData.currentValue;
-            const percent = target === 0 ? 0 : Math.min(100, Math.floor((current / target) * 100));
-            const isAchieved = current >= target;
-
-            // Update filters metadata
-            wrapper.setAttribute('data-status', isAchieved ? 'completed' : 'active');
-            wrapper.setAttribute('data-risk', goalData.isAtRisk ? 'true' : 'false');
-
-            const currSpan = document.getElementById(`goal-curr-${id}`);
-            if (currSpan) currSpan.innerText = current;
-            const pctSpan = document.getElementById(`goal-pct-${id}`);
-            if (pctSpan) pctSpan.innerText = percent + '%';
-            
-            const ring = document.getElementById(`goal-ring-${id}`);
-            if (ring) {
-                const circumference = 376.99;
-                ring.style.strokeDashoffset = circumference - (circumference * percent / 100);
-                if (isAchieved) ring.setAttribute('stroke', `url(#grad-success-${id})`);
-                else if (goalData.isAtRisk) ring.setAttribute('stroke', '#ef4444');
-                else ring.setAttribute('stroke', `url(#grad-${id})`);
-            }
-
-            const streakSpan = document.getElementById(`streak-${id}`);
-            const streakContainer = document.getElementById(`streak-container-${id}`);
-            if (streakSpan) streakSpan.innerText = goalData.streak;
-            if (streakContainer) {
-                if (goalData.streak > 0) streakContainer.classList.add('streak-active');
-                else streakContainer.classList.remove('streak-active');
-            }
-
-            const riskBadge = document.getElementById(`risk-badge-${id}`);
-            if (riskBadge) {
-                if (goalData.isAtRisk && !isAchieved) riskBadge.style.display = 'inline-block';
-                else riskBadge.style.display = 'none';
-            }
-
-            const etaSpan = document.getElementById(`eta-date-${id}`);
-            if (etaSpan && goalData.estimatedCompletionDate) {
-                const etaDate = new Date(goalData.estimatedCompletionDate);
-                etaSpan.innerText = etaDate.toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'});
-            } else if (etaSpan) etaSpan.innerText = '--';
-
-            const oldPercent = parseFloat(card.getAttribute('data-old-pct') || '0');
-            if (percent === 100 && oldPercent < 100) {
-                canvasConfetti({ particleCount: 200, spread: 90, origin: { y: 0.6 }, colors: ['#6366f1', '#10b981', '#fbbf24'] });
-                showToast(`🎉 Goal "${goalData.goalName}" achieved! Great job!`, 'success');
-            }
-            card.setAttribute('data-old-pct', percent);
-            applyFilters(); // Re-apply current filter in case status changed
-        }
-
-        async function syncAllGoals() {
-            try {
-                const refreshIcon = document.querySelector('#refreshBtn i');
-                refreshIcon?.classList.add('fa-spin-fast');
-                
-                const response = await fetch('/Goal/GetAllGoalsStatus', { headers: { 'RequestVerificationToken': getToken() } });
-                if (!response.ok) throw new Error('Sync failed');
-                const goals = await response.json();
-                
-                let atRiskCount = 0;
-                for (const g of goals) {
-                    updateGoalUI(g);
-                    if (g.isAtRisk && g.currentValue < g.targetValue) atRiskCount++;
-                }
-                const riskCounter = document.getElementById('atRiskCount');
-                if (riskCounter) {
-                    // trigger animation if changed
-                    if(parseInt(riskCounter.innerText) !== atRiskCount) {
-                        riskCounter.innerText = atRiskCount;
-                        riskCounter.classList.add('animate__animated', 'animate__bounceIn');
-                        setTimeout(() => riskCounter.classList.remove('animate__bounceIn'), 1000);
-                    }
-                }
-                
-                const streakResp = await fetch('/Goal/GetGlobalStreak');
-                if (streakResp.ok) {
-                    const streakData = await streakResp.json();
-                    const globalSpan = document.getElementById('globalStreak');
-                    if (globalSpan) globalSpan.innerText = streakData.streak;
-                }
-                setTimeout(() => refreshIcon?.classList.remove('fa-spin-fast'), 600);
-            } catch (err) {
-                console.warn('Sync error:', err);
-                document.querySelector('#refreshBtn i')?.classList.remove('fa-spin-fast');
+            if (wrapper.classList.contains('expanded')) {
+                wrapper.classList.remove('expanded');
+                span.textContent = 'Read more';
+                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+            } else {
+                wrapper.classList.add('expanded');
+                span.textContent = 'Collapse';
+                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
             }
         }
-
-        async function recordAction(goalId, actionType) {
-            try {
-                const response = await fetch('/Goal/RecordProgressAction', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': getToken() },
-                    body: JSON.stringify({ goalId: goalId, action: actionType })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    showToast(`✅ ${actionType === 'pomodoro' ? 'Pomodoro session' : 'Task completion'} recorded! +${data.incrementValue}`, 'success');
-                    updateGoalUI(data.updatedGoal);
-                } else {
-                    showToast(data.message || 'Action rejected', 'error');
-                }
-            } catch (err) {
-                showToast('Network error. Please try again.', 'error');
-            }
-        }
-
-        document.querySelectorAll('.pomo-trigger').forEach(btn => {
-            btn.addEventListener('click', () => recordAction(btn.getAttribute('data-id'), 'pomodoro'));
-        });
-        document.querySelectorAll('.task-trigger').forEach(btn => {
-            btn.addEventListener('click', () => recordAction(btn.getAttribute('data-id'), 'task'));
-        });
-
-        document.querySelectorAll('.delete-goal-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                const id = btn.getAttribute('data-id');
-                const name = btn.getAttribute('data-name');
-                const result = await Swal.fire({
-                    title: 'Delete Goal?',
-                    text: `Are you sure you want to permanently delete "${name}"?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#94a3b8',
-                    confirmButtonText: 'Yes, delete it!',
-                    customClass: { popup: 'rounded-4 border-0 shadow-lg' }
-                });
-                if (result.isConfirmed) {
-                    try {
-                        const response = await fetch(`/Goal/Delete/${id}`, { method: 'POST', headers: { 'RequestVerificationToken': getToken() } });
-                        if (response.ok) {
-                            const wrapper = document.querySelector(`.goal-card-wrapper[data-goal-id="${id}"]`);
-                            if(wrapper) {
-                                wrapper.classList.replace('animate__fadeInUp', 'animate__zoomOut');
-                                setTimeout(() => wrapper.remove(), 500);
-                            }
-                            showToast('Goal deleted successfully', 'success');
-                            // Re-calculate stats manually
-                            setTimeout(() => syncAllGoals(), 600);
-                        } else showToast('Delete failed. Unauthorized.', 'error');
-                    } catch (err) { showToast('Error deleting goal', 'error'); }
-                }
-            });
-        });
-
-        document.getElementById('refreshBtn')?.addEventListener('click', () => {
-            syncAllGoals();
-        });
-
-        // Hover effect for days left in ring
-        document.querySelectorAll('.hover-show-days').forEach(el => {
-            const id = el.getAttribute('data-id');
-            const pctDiv = document.getElementById(`goal-pct-${id}`);
-            const daysDiv = document.getElementById(`goal-days-${id}`);
-            if(!pctDiv || !daysDiv) return;
-            el.addEventListener('mouseenter', () => { 
-                pctDiv.style.opacity = '0'; 
-                setTimeout(() => {pctDiv.style.display='none'; daysDiv.style.display='block'; setTimeout(()=>daysDiv.style.opacity='1', 50);}, 150); 
-            });
-            el.addEventListener('mouseleave', () => { 
-                daysDiv.style.opacity = '0'; 
-                setTimeout(() => {daysDiv.style.display='none'; pctDiv.style.display='block'; setTimeout(()=>pctDiv.style.opacity='1', 50);}, 150); 
-            });
-        });
-
-        // Goal Filtering
-        let currentFilter = 'all';
-        document.querySelectorAll('.btn-filter').forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Update active state
-                document.querySelectorAll('.btn-filter').forEach(b => {
-                    b.classList.remove('active', 'bg-primary', 'text-white', 'shadow');
-                });
-                btn.classList.add('active', 'bg-primary', 'text-white', 'shadow');
-                currentFilter = btn.getAttribute('data-filter');
-                applyFilters();
-            });
-        });
-
-        function applyFilters() {
-            document.querySelectorAll('.goal-card-wrapper').forEach(wrapper => {
-                const status = wrapper.getAttribute('data-status');
-                const risk = wrapper.getAttribute('data-risk') === 'true';
-                let show = true;
-                
-                if (currentFilter === 'active' && status === 'completed') show = false;
-                if (currentFilter === 'completed' && status !== 'completed') show = false;
-                if (currentFilter === 'risk' && !risk) show = false;
-                
-                if (show) {
-                    wrapper.style.display = 'block';
-                    // Re-trigger animation
-                    wrapper.classList.remove('animate__fadeInUp');
-                    void wrapper.offsetWidth; // trigger reflow
-                    wrapper.classList.add('animate__fadeInUp');
-                } else {
-                    wrapper.style.display = 'none';
-                }
-            });
-        }
-
-        // Initialize
-        syncAllGoals();
-        pollInterval = setInterval(syncAllGoals, 30000); // 30s polling
-        window.addEventListener('beforeunload', () => clearInterval(pollInterval));
     </script>
 }
 
 <style>
     :root {
-        --primary-gradient: linear-gradient(135deg, #6366f1, #a855f7);
-        --danger-gradient: linear-gradient(135deg, #ef4444, #f97316);
-        --success-gradient: linear-gradient(135deg, #10b981, #059669);
-        --info-gradient: linear-gradient(135deg, #0ea5e9, #3b82f6);
-        --warning-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.4);
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        --ai-bg: rgba(99, 102, 241, 0.08);
     }
 
     body {
-        background-color: #f8fafc;
-    }
-
-    .fw-black { font-weight: 900; }
-    .tracking-wide { letter-spacing: 0.05em; }
-
-    /* Gradients for text */
-    .text-gradient-primary { background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .text-gradient-danger { background: var(--danger-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .text-gradient-info { background: var(--info-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .text-gradient-warning { background: var(--warning-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .bg-gradient-primary { background: var(--primary-gradient) !important; }
-
-    /* Glassmorphism Card Style */
-    .premium-glass {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 1);
-    }
-    
-    body.theme-dark .premium-glass {
-        background: rgba(30, 41, 59, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    body.theme-dark .bg-white { background-color: #1e293b !important; }
-    body.theme-dark .bg-light { background-color: #0f172a !important; }
-    body.theme-dark .text-dark { color: #f8fafc !important; }
-    body.theme-dark .text-muted { color: #94a3b8 !important; }
-
-    /* Header Stat Cards */
-    .stat-card {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        min-height: 140px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        z-index: 1;
-    }
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px -15px rgba(0,0,0,0.1) !important;
-    }
-    .stat-icon-bg {
-        position: absolute;
-        top: -20px;
-        right: -20px;
-        font-size: 7rem;
-        opacity: 0.06;
-        transform: rotate(15deg);
-        pointer-events: none;
-        z-index: -1;
-    }
-
-    /* Filters */
-    .filter-pills {
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-    .filter-pills::-webkit-scrollbar { display: none; }
-    
-    .btn-filter {
-        background: transparent;
-        color: #64748b;
-        border: none;
-        font-weight: 700;
-        transition: all 0.2s;
-        white-space: nowrap;
-    }
-    .btn-filter:hover:not(.active) {
         background: #f1f5f9;
-        color: #0f172a;
-    }
-    .btn-filter.active {
-        background: var(--primary-gradient);
-        color: white !important;
+        background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%), 
+                          radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
     }
 
-    .btn-icon-sm {
-        width: 35px;
-        height: 35px;
-        display: inline-flex;
+    .glass-premium {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    .stat-card { padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s ease; }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-icon-bg { position: absolute; right: -10px; bottom: -10px; font-size: 4rem; opacity: 0.05; transform: rotate(-15deg); }
+    .stat-value { font-size: 1.75rem; font-weight: 800; color: #1e293b; }
+    .stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .highlight-success .stat-value { color: #10b981; }
+    .highlight-warning .stat-value { color: #f59e0b; }
+    .highlight-info .stat-value { color: #0ea5e9; }
+
+    .filter-btn { border: none; background: transparent; padding: 0.4rem 1.2rem; border-radius: 50px; font-weight: 600; color: #64748b; transition: 0.3s; white-space: nowrap; }
+    .filter-btn:hover { background: rgba(99, 102, 241, 0.05); color: #6366f1; }
+    .filter-btn.active { background: var(--primary-gradient); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
+
+    .goal-card-premium { padding: 1.5rem; display: flex; flex-direction: column; transition: all 0.3s ease; }
+    .goal-card-premium:hover { box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.12); transform: translateY(-5px); }
+
+    .project-tag { background: #e2e8f0; color: #475569; padding: 4px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+    .goal-title-custom { font-weight: 800; color: #1e293b; margin-bottom: 1.25rem; line-height: 1.3; }
+
+    .progress-container-custom { height: 10px; background: #e2e8f0; border-radius: 50px; overflow: hidden; }
+    .progress-bar-custom { height: 100%; background: var(--primary-gradient); border-radius: 50px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+    
+    .status-indicator-active { color: #3b82f6; }
+    .status-indicator-completed { color: #10b981; }
+    .status-indicator-behind { color: #ef4444; }
+    .status-indicator-overdue { color: #92400e; }
+
+    .ai-action-box { 
+        background: #f8fafc; 
+        border-radius: 16px; 
+        padding: 1rem; 
+        border: 1px solid rgba(99, 102, 241, 0.05); 
+        position: relative;
+    }
+    
+    .ai-icon-container {
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 6px;
+        display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .letter-spacing-1 { letter-spacing: 0.5px; }
+
+    .ai-content-wrapper {
+        position: relative;
+        max-height: 4.8rem; /* Approx 3 lines of 1.6 line-height */
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .ai-content-wrapper.expanded {
+        max-height: 1000px; /* Large enough to show all content */
+    }
+
+    .ai-text-formatted { 
+        font-size: 0.85rem; 
+        line-height: 1.6; 
+        color: #475569; /* Dark gray */
+    }
+
+    .ai-fade-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1.5rem;
+        background: linear-gradient(transparent, #f8fafc);
+        pointer-events: none;
+        transition: opacity 0.3s;
+    }
+
+    .expanded .ai-fade-overlay {
+        opacity: 0;
+    }
+
+    .btn-toggle-ai {
         background: transparent;
-    }
-    .btn-icon-sm:hover {
-        background: #f1f5f9;
-        transform: scale(1.1);
-    }
-
-    /* Goal Cards */
-    .goal-card {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .goal-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15) !important;
+        border: none;
+        color: #6366f1;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: 0.2s;
     }
 
-    /* Soft Background Badges */
-    .bg-success-soft { background: rgba(16, 185, 129, 0.1); }
-    .bg-danger-soft { background: rgba(239, 68, 68, 0.1); }
-    .bg-primary-soft { background: rgba(99, 102, 241, 0.08); }
+    .btn-toggle-ai:hover {
+        color: #4f46e5;
+        transform: translateX(2px);
+    }
 
-    /* Action Buttons */
-    .btn-soft-danger {
-        background: rgba(239, 68, 68, 0.1);
-        color: #ef4444;
+    .btn-pastel-primary {
+        background: #e0e7ff;
+        color: #4f46e5;
         border: none;
         transition: all 0.2s;
     }
-    .btn-soft-danger:hover {
-        background: var(--danger-gradient);
-        color: white;
+    .btn-pastel-primary:hover {
+        background: #c7d2fe;
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(239, 68, 68, 0.2);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
     }
 
-    .btn-soft-success {
-        background: rgba(16, 185, 129, 0.1);
-        color: #10b981;
-        border: none;
+    .goal-card-premium { 
+        padding: 1.5rem; 
+        display: flex; 
+        flex-direction: column; 
+        transition: all 0.3s ease; 
+        border-radius: 1.5rem !important; /* rounded-4 equivalent */
+    }
+    .goal-card-premium:hover { box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.12); transform: translateY(-5px); }
+
+    .btn-focus-mode { background: var(--primary-gradient); border: none; color: white; font-weight: 600; border-radius: 12px; padding: 10px; transition: 0.3s; }
+    .btn-focus-mode:hover { opacity: 0.9; transform: scale(1.02); color: white; }
+    .btn-outline-light-custom { border: 1px solid #e2e8f0; color: #475569; font-weight: 600; border-radius: 12px; padding: 10px; background: white; }
+    .btn-outline-light-custom:hover { background: #f8fafc; color: #1e293b; }
+
+
+    .card-actions-top .action-btn-mini {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 0.9rem;
         transition: all 0.2s;
+        text-decoration: none;
     }
-    .btn-soft-success:hover {
-        background: var(--success-gradient);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2);
-    }
+    .edit-btn { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+    .edit-btn:hover { background: #6366f1; color: white; }
+    .delete-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .delete-btn:hover { background: #ef4444; color: white; }
 
-    /* Stat Boxes */
-    .stat-box {
-        transition: all 0.2s;
-        border: 1px solid transparent;
-    }
-    .goal-card:hover .stat-box {
-        background: #ffffff !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        border-color: #f1f5f9;
-    }
-
-    /* Streak Animation */
-    .streak-active {
-        animation: pulseStreak 2s infinite alternate;
-        border-color: rgba(239, 68, 68, 0.2) !important;
-        background: rgba(239, 68, 68, 0.05) !important;
-    }
-    @@keyframes pulseStreak {
-        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.2); }
-        100% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
-    }
-
-    .fa-spin-fast {
-        animation: fa-spin 0.6s infinite linear;
-    }
-
-    .hover-show-days h2, .hover-show-days div {
-        transition: opacity 0.2s ease;
-    }
-
-    /* Dropdown customization */
-    .dropdown-menu {
-        min-width: 150px;
-    }
-    .dropdown-item:hover {
-        background-color: #f8fafc;
-        transform: translateX(3px);
-        transition: all 0.2s;
-    }
+    @@media (max-width: 768px) { .stat-card { padding: 1rem; } .stat-value { font-size: 1.5rem; } }
 </style>

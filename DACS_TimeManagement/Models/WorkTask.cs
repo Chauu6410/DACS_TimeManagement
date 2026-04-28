@@ -59,6 +59,7 @@ namespace DACS_TimeManagement.Models
 
         public ICollection<TimeLog> TimeLogs { get; set; } = new List<TimeLog>();
         public ICollection<ScheduledEvent> ScheduledEvents { get; set; } = new List<ScheduledEvent>();
+        public ICollection<GoalTask> GoalTasks { get; set; } = new List<GoalTask>();
 
     }
 }
