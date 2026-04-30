@@ -5,7 +5,7 @@
 
 <div id="focusApp" class="focus-app">
     <!-- Step 1: Task Selection -->
-    <div id="selectionScreen" class="selection-screen container py-5">
+    <div id="selectionScreen" class="selection-screen container py-5 @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? "d-none" : "")">
         <div class="row justify-content-center">
             <div class="col-md-8 text-center">
                 <div class="glass-premium p-5 rounded-5 shadow-lg">
@@ -43,12 +43,7 @@
                             <div class="text-center py-4 bg-light rounded-4 border border-dashed">
                                 <i class="fas fa-clipboard-list fa-2x text-muted mb-2"></i>
                                 <p class="text-muted mb-0">Không tìm thấy công việc nào liên kết.</p>
-                                <p class="small text-muted">Bạn vẫn có thể tiếp tục tập trung vào mục tiêu chung.</p>
-                            </div>
-                            <div class="task-option p-3 mt-3 rounded-4 border d-flex align-items-center gap-3 active border-primary bg-primary bg-opacity-10" data-task-id="" data-title="Mục tiêu chung">
-                                <div class="task-icon-circle bg-primary text-white"><i class="fas fa-bullseye"></i></div>
-                                <div class="flex-grow-1 fw-bold text-primary">Tập trung vào Goal chính</div>
-                                <div class="selection-indicator opacity-100 text-primary"><i class="fas fa-check-circle"></i></div>
+                                <p class="small text-muted">Vui lòng thêm task vào Project trước khi sử dụng Focus.</p>
                             </div>
                         }
                     </div>
@@ -65,7 +60,7 @@
     </div>
 
     <!-- Step 2: Zen Mode Overlay -->
-    <div id="zenOverlay" class="zen-overlay d-none">
+    <div id="zenOverlay" class="zen-overlay @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? "" : "d-none")">
         <div class="zen-content text-center">
             <h1 class="zen-task-title mb-2 text-white"></h1>
             <p class="text-white-50">Đang thực hiện phiên Pomodoro...</p>
@@ -113,12 +108,13 @@
             const zenTaskTitle = document.querySelector('.zen-task-title');
             
             let selectedTaskId = null;
-            let selectedTaskTitle = "";
+            let selectedTaskTitle = "@(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? Model.Title : "")";
             let timerInterval = null;
             let timeLeft = 25 * 60; // 25 minutes
             let isRunning = false;
             let sessionStartTime = null;
             let totalElapsedSeconds = 0;
+            let sessionSaved = false;
             const initialTime = 25 * 60;
 
             // Task Selection
@@ -133,8 +129,8 @@
 
             // Enter Zen Mode
             document.getElementById('btnEnterZen').addEventListener('click', function() {
-                if (!selectedTaskTitle && taskOptions.length > 0) {
-                     Swal.fire({ icon: 'warning', title: 'Vui lòng chọn một Task' });
+                if ("@Model.Type" === "TaskBased" && !selectedTaskId) {
+                     Swal.fire({ icon: 'warning', title: 'Vui lòng chọn một Task', text: 'Mục tiêu dự án yêu cầu bạn chọn task trước khi bắt đầu.' });
                      return;
                 }
                 
@@ -144,8 +140,16 @@
                     zenOverlay.classList.remove('d-none');
                     zenOverlay.classList.add('fade-in');
                     zenTaskTitle.textContent = selectedTaskTitle || "Tập trung hoàn thành mục tiêu";
+                    // Show tomato menu by default in Zen mode
+                    tomatoMenu.classList.remove('d-none');
                 }, 500);
             });
+
+            // Auto-set title and show menu for personal goals
+            if ("@Model.Type" === "TimeBased") {
+                zenTaskTitle.textContent = "@Model.Title";
+                tomatoMenu.classList.remove('d-none');
+            }
 
             // Tomato Widget Toggle
             tomatoTrigger.addEventListener('click', () => {
@@ -168,7 +172,7 @@
             }
 
             function startTimer() {
-                if (isRunning) return;
+                if (isRunning || sessionSaved) return;
                 isRunning = true;
                 
                 if (!sessionStartTime) {
@@ -195,98 +199,176 @@
             function pauseTimer() {
                 isRunning = false;
                 clearInterval(timerInterval);
-                startBtn.classList.remove('d-none');
                 pauseBtn.classList.add('d-none');
-                startBtn.innerHTML = '<i class="fas fa-play"></i> Tiếp tục';
+                
+                // Show "Tiếp tục" ONLY if we haven't saved yet
+                if (!sessionSaved) {
+                    startBtn.classList.remove('d-none');
+                    startBtn.innerHTML = '<i class="fas fa-play"></i> Tiếp tục';
+                }
             }
 
-            function saveSession() {
-                const elapsedMinutes = totalElapsedSeconds / 60;
-                const elapsedHours = totalElapsedSeconds / 3600;
-                const elapsedMins = Math.floor(totalElapsedSeconds / 60);
-                const elapsedSecs = totalElapsedSeconds % 60;
+            async function saveSession() {
+                if (sessionSaved) return;
+
+                const elapsedSeconds = initialTime - timeLeft;
+                const elapsedHours = elapsedSeconds / 3600;
+                const elapsedMins = Math.floor(elapsedSeconds / 60);
+                const elapsedSecs = elapsedSeconds % 60;
                 
-                if (totalElapsedSeconds < 1) {
-                    Swal.fire('Thông báo', 'Bạn chưa bắt đầu thời gian.', 'info');
+                if (elapsedSeconds < 5) {
+                    Swal.fire('Thông báo', 'Bạn cần tập trung ít nhất 5 giây trước khi lưu.', 'info');
                     return;
                 }
 
-                const startTimeStr = sessionStartTime ? sessionStartTime.toLocaleTimeString() : "";
+                // Pause and prepare for save
+                isRunning = false;
+                clearInterval(timerInterval);
+                pauseBtn.classList.add('d-none');
+                startBtn.classList.add('d-none');
 
-                Swal.fire({
-                    title: 'Lưu tiến độ?',
-                    text: `Bạn đã tập trung được ${Math.floor(elapsedMinutes)} phút ${totalElapsedSeconds % 60} giây. Bạn muốn lưu thời gian này?`,
-                    icon: 'question',
+                const { value: note } = await Swal.fire({
+                    title: 'Ghi chú công việc',
+                    input: 'textarea',
+                    inputLabel: 'Bạn đã hoàn thành những gì?',
+                    inputPlaceholder: 'Nhập ghi chú tại đây...',
                     showCancelButton: true,
-                    confirmButtonText: 'Lưu và Thoát',
-                    cancelButtonText: 'Tiếp tục'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                        const body = new URLSearchParams();
-                        body.append('goalId', '@Model.Id');
-                        body.append('taskId', selectedTaskId || "");
-                        body.append('durationHours', elapsedHours.toString());
-                        body.append('note', `Tập trung Goal (${elapsedMins} phút ${elapsedSecs} giây). Bắt đầu lúc: ${startTimeStr}`);
-                        body.append('__RequestVerificationToken', token);
+                    confirmButtonText: 'Lưu kết quả',
+                    cancelButtonText: 'Quay lại',
+                    inputValidator: (value) => {
+                        if (!value) return 'Vui lòng nhập ghi chú công việc!';
+                    }
+                });
 
-                        fetch('/Goal/RecordFocusSession', {
+                if (note) {
+                    // Block all UI interaction during save
+                    sessionSaved = true;
+                    saveBtn.disabled = true;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+                    document.getElementById('exitZen').disabled = true;
+                    document.getElementById('exitZen').style.opacity = "0.5";
+
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    const body = new URLSearchParams();
+                    body.append('goalId', '@Model.Id');
+                    body.append('taskId', selectedTaskId || "");
+                    body.append('durationHours', elapsedHours.toFixed(4));
+                    
+                    const finalNote = "@Model.Type" === "TimeBased" 
+                        ? `[Focus ${elapsedMins}m ${elapsedSecs}s] ${note}`
+                        : note;
+                    
+                    body.append('note', finalNote);
+                    body.append('__RequestVerificationToken', token);
+
+                    try {
+                        const response = await fetch('/Goal/RecordFocusSession', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                             body: body
-                        })
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire('Đã lưu!', 'Thời gian tập trung đã được ghi nhận.', 'success')
-                                    .then(() => location.href = '/Goal/Index');
-                            }
                         });
+                        const data = await response.json();
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Đã lưu!',
+                                text: 'Dữ liệu đã được cập nhật thành công.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.href = '/Goal/Index');
+                        } else {
+                            throw new Error(data.message || 'Lỗi không xác định');
+                        }
+                    } catch (error) {
+                        console.error('Save error:', error);
+                        sessionSaved = false;
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = '<i class="fas fa-save"></i> Thử lại';
+                        document.getElementById('exitZen').disabled = false;
+                        document.getElementById('exitZen').style.opacity = "1";
+                        Swal.fire('Lỗi', 'Không thể lưu dữ liệu. Vui lòng thử lại.', 'error');
                     }
-                });
+                } else {
+                    // If cancelled, restore the "Tiếp tục" button
+                    if (!sessionSaved) {
+                        startBtn.classList.remove('d-none');
+                        startBtn.innerHTML = '<i class="fas fa-play"></i> Tiếp tục';
+                    }
+                }
             }
 
-            function completeSession() {
+            async function completeSession() {
                 isRunning = false;
-                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                
-                const body = new URLSearchParams();
-                body.append('goalId', '@Model.Id');
-                body.append('taskId', selectedTaskId || "");
-                body.append('durationHours', '0.416');
-                body.append('note', 'Hoàn thành 25 phút Pomodoro');
-                body.append('__RequestVerificationToken', token);
+                clearInterval(timerInterval);
+                sessionSaved = true;
+                saveBtn.disabled = true;
+                pauseBtn.classList.add('d-none');
+                startBtn.classList.add('d-none');
+                document.getElementById('exitZen').disabled = true;
 
-                fetch('/Goal/RecordFocusSession', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: body
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Tuyệt vời!',
-                            text: 'Bạn đã hoàn thành 25 phút tập trung. Thời gian đã được ghi nhận vào Task Log.',
-                            confirmButtonText: 'Tuyệt!'
-                        }).then(() => location.href = '/Goal/Index');
+                const { value: note } = await Swal.fire({
+                    title: 'Hoàn thành Pomodoro!',
+                    input: 'textarea',
+                    inputLabel: 'Chúc mừng! Bạn đã đạt được gì trong 25 phút qua?',
+                    inputPlaceholder: 'Nhập ghi chú tại đây...',
+                    confirmButtonText: 'Lưu và Kết thúc',
+                    allowOutsideClick: false,
+                    inputValidator: (value) => {
+                        if (!value) return 'Vui lòng nhập ghi chú để ghi nhận!';
                     }
                 });
+
+                if (note) {
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    const body = new URLSearchParams();
+                    body.append('goalId', '@Model.Id');
+                    body.append('taskId', selectedTaskId || "");
+                    body.append('durationHours', '0.4167'); // 25 mins
+                    
+                    const finalNote = "@Model.Type" === "TimeBased" 
+                        ? `[Hoàn thành 25m] ${note}`
+                        : note;
+
+                    body.append('note', finalNote);
+                    body.append('__RequestVerificationToken', token);
+
+                    try {
+                        const response = await fetch('/Goal/RecordFocusSession', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: body
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Tuyệt vời!',
+                                text: 'Phiên làm việc đã được lưu thành công.',
+                                confirmButtonText: 'Xong'
+                            }).then(() => location.href = '/Goal/Index');
+                        }
+                    } catch (error) {
+                        saveBtn.innerHTML = '<i class="fas fa-save"></i> Lỗi';
+                        Swal.fire('Lỗi', 'Không thể lưu kết quả.', 'error');
+                    }
+                }
             }
 
             startBtn.addEventListener('click', startTimer);
             pauseBtn.addEventListener('click', pauseTimer);
             saveBtn.addEventListener('click', saveSession);
-            document.getElementById('exitZen').addEventListener('click', () => {
-                if (isRunning) {
+            document.getElementById('exitZen').addEventListener('click', function() {
+                if (this.disabled) return;
+                
+                if (isRunning && !sessionSaved) {
                     Swal.fire({
                         title: 'Dừng phiên tập trung?',
-                        text: "Tiến độ hiện tại sẽ không được lưu lại.",
+                        text: "Tiến độ hiện tại sẽ bị hủy bỏ.",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonText: 'Đồng ý thoát',
-                        cancelButtonText: 'Tiếp tục làm'
+                        cancelButtonText: 'Tiếp tục'
                     }).then((result) => {
                         if (result.isConfirmed) location.href = '/Goal/Index';
                     });

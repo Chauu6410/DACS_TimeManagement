@@ -207,6 +207,8 @@ namespace DACS_TimeManagement.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var goal = await _db.PersonalGoals
                 .Include(g => g.Project)
+                    .ThenInclude(p => p.Tasks)
+                        .ThenInclude(t => t.TimeLogs)
                 .Include(g => g.GoalProgressHistories)
                 .Include(g => g.GoalTasks)
                     .ThenInclude(gt => gt.WorkTask)

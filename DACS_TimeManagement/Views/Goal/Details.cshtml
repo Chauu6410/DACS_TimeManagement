@@ -16,10 +16,13 @@
                             <span class="text-muted"><i class="far fa-calendar"></i> Due @Model.TargetDate.ToString("dd MMM yyyy")</span>
                         </div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-outline-custom"><i class="fas fa-edit"></i> Edit</a>
-                        <a asp-action="Focus" asp-route-id="@Model.Id" class="btn-primary-custom"><i class="fas fa-stopwatch"></i> Focus</a>
-                    </div>
+                    @if (Model.Type != DACS_TimeManagement.Models.GoalType.TaskBased)
+                    {
+                        <div class="d-flex gap-2">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-outline-custom"><i class="fas fa-edit"></i> Edit</a>
+                            <a asp-action="Focus" asp-route-id="@Model.Id" class="btn-primary-custom"><i class="fas fa-stopwatch"></i> Focus</a>
+                        </div>
+                    }
                 </div>
 
                 <!-- Progress Section -->
@@ -100,31 +103,34 @@
 
                 <!-- Linked Tasks -->
                 <div>
-                    <h5 class="fw-semibold"><i class="fas fa-tasks me-2"></i>Linked Tasks</h5>
-                    <div class="task-list mb-4">
-                        @foreach(var gt in Model.GoalTasks)
-                        {
-                            <div class="task-item glass d-flex justify-content-between align-items-center p-3 mb-2 rounded-3">
-                                <div>
-                                    <strong>@gt.WorkTask.Title</strong>
-                                    <div class="small text-muted">@gt.WorkTask.Progress% - @gt.WorkTask.Status</div>
+                    @if (Model.Type != DACS_TimeManagement.Models.GoalType.TaskBased)
+                    {
+                        <h5 class="fw-semibold"><i class="fas fa-tasks me-2"></i>Linked Tasks</h5>
+                        <div class="task-list mb-4">
+                            @foreach(var gt in Model.GoalTasks)
+                            {
+                                <div class="task-item glass d-flex justify-content-between align-items-center p-3 mb-2 rounded-3">
+                                    <div>
+                                        <strong>@gt.WorkTask.Title</strong>
+                                        <div class="small text-muted">@gt.WorkTask.Progress% - @gt.WorkTask.Status</div>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input task-complete-toggle" type="checkbox" data-task-id="@gt.WorkTaskId" @(gt.WorkTask.Status == DACS_TimeManagement.Models.TaskStatus.Completed ? "checked" : "")>
+                                    </div>
                                 </div>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input task-complete-toggle" type="checkbox" data-task-id="@gt.WorkTaskId" @(gt.WorkTask.Status == DACS_TimeManagement.Models.TaskStatus.Completed ? "checked" : "")>
-                                </div>
-                            </div>
-                        }
-                        @if (!Model.GoalTasks.Any())
-                        {
-                            <div class="text-muted text-center p-4">No tasks linked. Add tasks to track progress.</div>
-                        }
-                    </div>
+                            }
+                            @if (!Model.GoalTasks.Any())
+                            {
+                                <div class="text-muted text-center p-4">No tasks linked. Add tasks to track progress.</div>
+                            }
+                        </div>
+                    }
 
                     <h5 class="fw-semibold"><i class="fas fa-history me-2"></i>Time History</h5>
                     <div class="time-history-list">
                         @{
                             var now = DateTime.UtcNow;
-                            // Kết hợp TimeLogs từ các task và GoalProgressHistory của goal chính
+                            // 1. Logs from specifically linked tasks
                             var taskLogs = Model.GoalTasks
                                 .SelectMany(gt => gt.WorkTask.TimeLogs)
                                 .Select(tl => new { 
@@ -133,8 +139,29 @@
                                     Duration = (double?)tl.DurationHours, 
                                     Note = tl.Note,
                                     Type = "Task Focus"
-                                });
+                                }).ToList();
 
+                            // 2. If it's a project goal, include all logs from all tasks in that project
+                            if (Model.ProjectId.HasValue && Model.Project != null)
+                            {
+                                var projectTaskLogs = Model.Project.Tasks
+                                    .SelectMany(t => t.TimeLogs)
+                                    .Select(tl => new {
+                                        Title = tl.WorkTask.Title,
+                                        Date = tl.LogDate,
+                                        Duration = (double?)tl.DurationHours,
+                                        Note = tl.Note,
+                                        Type = "Project Focus"
+                                    }).ToList();
+                                
+                                // Avoid duplicates if some tasks are also in GoalTasks
+                                taskLogs = taskLogs.Concat(projectTaskLogs)
+                                    .GroupBy(x => new { x.Date, x.Title, x.Note })
+                                    .Select(g => g.First())
+                                    .ToList();
+                            }
+
+                            // 3. Focus logs for personal (time-based) goals
                             var historyLogs = Model.GoalProgressHistories
                                 .Where(h => !string.IsNullOrEmpty(h.Note) && !h.Note.Contains("Auto update"))
                                 .Select(h => new { 
@@ -143,7 +170,7 @@
                                     Duration = (double?)null, 
                                     Note = h.Note,
                                     Type = "Goal Focus"
-                                });
+                                }).ToList();
 
                             var allHistory = taskLogs.Concat(historyLogs)
                                 .OrderByDescending(x => x.Date)
@@ -152,35 +179,51 @@
                         @foreach(var item in allHistory)
                         {
                             var isJustNow = (now - item.Date).TotalMinutes < 1;
-                            <div class="time-log-item glass p-3 mb-2 rounded-3 border-start border-4 @(item.Type == "Task Focus" ? "border-primary" : "border-success")">
+                            <div class="timeline-item p-3 border-bottom transition-all">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <div class="fw-bold text-dark">@item.Title <span class="badge bg-light text-muted fw-normal ms-1" style="font-size: 0.6rem;">@item.Type</span></div>
-                                        <div class="small @(isJustNow ? "text-success fw-bold" : "text-muted")">
-                                            <i class="far fa-calendar-alt me-1"></i> @(isJustNow ? "Just now" : item.Date.ToString("dd/MM/yyyy HH:mm"))
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <i class="fas fa-play-circle text-primary small"></i>
+                                            <span class="fw-bold">
+                                                @if (item.Duration.HasValue)
+                                                {
+                                                    var totalSecs = (int)Math.Round(item.Duration.Value * 3600);
+                                                    var m = totalSecs / 60;
+                                                    var s = totalSecs % 60;
+                                                    @:@(m > 0 ? m + "m " : "")@(s)s
+                                                }
+                                                else if (!string.IsNullOrEmpty(item.Note) && item.Note.Contains("[") && item.Note.Contains("]"))
+                                                {
+                                                    // Extract duration from note prefix like [Focus 15m 30s]
+                                                    var start = item.Note.IndexOf("[");
+                                                    var end = item.Note.IndexOf("]");
+                                                    var durationText = item.Note.Substring(start + 1, end - start - 1);
+                                                    if (durationText.Contains("Focus ")) durationText = durationText.Replace("Focus ", "");
+                                                    if (durationText.Contains("Hoàn thành ")) durationText = durationText.Replace("Hoàn thành ", "");
+                                                    @durationText
+                                                }
+                                                else
+                                                {
+                                                    @:Focus
+                                                }
+                                            </span>
+                                            <span class="badge bg-light text-muted fw-normal ms-1" style="font-size: 0.7rem;">@item.Title</span>
                                         </div>
+                                        @if (!string.IsNullOrEmpty(item.Note))
+                                        {
+                                            var displayNote = item.Note;
+                                            if (displayNote.Contains("]") && displayNote.IndexOf("]") < 30) 
+                                            {
+                                                displayNote = displayNote.Substring(displayNote.IndexOf("]") + 1).Trim();
+                                            }
+                                            if (!string.IsNullOrEmpty(displayNote))
+                                            {
+                                                <p class="small text-muted mb-0 fst-italic">“@displayNote”</p>
+                                            }
+                                        }
                                     </div>
-                                    @if (item.Duration.HasValue)
-                                    {
-                                        var totalSecs = (int)Math.Round(item.Duration.Value * 3600);
-                                        var m = totalSecs / 60;
-                                        var s = totalSecs % 60;
-                                        <div class="badge bg-primary rounded-pill">
-                                            @if(m > 0) { @(m)@:m 
-                                            } @(s)s
-                                        </div>
-                                    }
-                                    else if (item.Note.Contains("giây") || item.Note.Contains("phút"))
-                                    {
-                                        <div class="badge bg-success rounded-pill">Focus</div>
-                                    }
+                                    <small class="text-muted">@(isJustNow ? "Just now" : item.Date.ToString("MMM dd, HH:mm"))</small>
                                 </div>
-                                @if (!string.IsNullOrEmpty(item.Note))
-                                {
-                                    <div class="mt-2 p-2 bg-light rounded-2 x-small text-muted italic">
-                                        <i class="fas fa-info-circle me-1"></i> @item.Note
-                                    </div>
-                                }
                             </div>
                         }
                         @if (!allHistory.Any())
@@ -371,6 +414,9 @@
     .chart-container { position: relative; margin: auto; height: 250px; width: 100%; }
     .x-small { font-size: 0.75rem; }
     .italic { font-style: italic; }
+    
+    .timeline-item { transition: background 0.2s ease; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .timeline-item:hover { background: rgba(99, 102, 241, 0.05); transform: translateX(4px); }
     
     .status-badge { padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
     .status-badge.active { background: #e0f2fe; color: #0284c7; }
