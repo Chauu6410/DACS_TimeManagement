@@ -84,35 +84,73 @@ namespace DACS_TimeManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetGoalContributions(int projectId)
         {
-            // Find goal-task pairs for tasks in this project
-            var pairs = await _context.GoalTasks
-                .Where(gt => gt.WorkTask.ProjectId == projectId)
-                .Select(gt => new { gt.GoalId, TaskStatus = gt.WorkTask.Status })
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+
+            // 1. Get goals linked directly via ProjectId
+            var directGoals = await _context.PersonalGoals
+                .Where(g => g.ProjectId == projectId && g.UserId == userId)
+                .Select(g => new { 
+                    g.Id, 
+                    g.Title, 
+                    g.CurrentValue, 
+                    g.TargetValue,
+                    IsDirect = true
+                })
                 .ToListAsync();
 
-            var grouped = pairs.GroupBy(p => p.GoalId).ToList();
+            // 2. Get goals linked via GoalTasks (for tasks in this project)
+            var goalTaskPairs = await _context.GoalTasks
+                .Where(gt => gt.WorkTask.ProjectId == projectId)
+                .Select(gt => new { gt.GoalId, gt.Goal.Title, gt.Goal.UserId, TaskStatus = gt.WorkTask.Status })
+                .ToListAsync();
+
             var result = new List<object>();
-            foreach (var g in grouped)
+
+            // Process direct project goals
+            foreach (var g in directGoals)
             {
-                var goalId = g.Key;
-                var total = g.Count();
-                var completed = g.Count(x => x.TaskStatus == Models.TaskStatus.Completed);
-                var pct = total == 0 ? 0 : (double)completed / total * 100.0;
+                var goalEntity = await _context.PersonalGoals.FindAsync(g.Id);
+                string aiDetail = _goalService != null && goalEntity != null ? _goalService.GetAIPrediction(goalEntity) : "";
+                string aiStatus = _goalService != null && goalEntity != null ? _goalService.GetAIShortStatus(goalEntity).ToLower().Replace(" ", "-") : "info";
+
+                double progress = g.TargetValue > 0 ? (double)g.CurrentValue / g.TargetValue * 100.0 : 0;
+
+                result.Add(new { 
+                    goalId = g.Id, 
+                    goalName = g.Title, 
+                    contributionPct = progress, 
+                    progress = Math.Round(progress, 1), 
+                    aiStatus = aiStatus, 
+                    aiDetail = aiDetail 
+                });
+            }
+
+            // Process task-linked goals that aren't already in the direct list
+            var indirectGroups = goalTaskPairs
+                .Where(p => !directGoals.Any(dg => dg.Id == p.GoalId))
+                .GroupBy(p => p.GoalId);
+
+            foreach (var group in indirectGroups)
+            {
+                var goalId = group.Key;
+                var total = group.Count();
+                var completed = group.Count(x => x.TaskStatus == Models.TaskStatus.Completed);
+                var progress = total == 0 ? 0 : (double)completed / total * 100.0;
+                
                 var goal = await _context.PersonalGoals.FirstOrDefaultAsync(pg => pg.Id == goalId);
-                var title = goal?.Title ?? "Goal";
+                if (goal == null) continue;
 
-                // Get AI prediction text (may be long) and derive a short status for color coding
-                string aiDetail = _goalService != null && goal != null ? _goalService.GetAIPrediction(goal) : "";
-                string aiStatus = "unknown";
-                if (!string.IsNullOrEmpty(aiDetail))
-                {
-                    var lower = aiDetail.ToLower();
-                    if (lower.Contains("trễ") || lower.Contains("trễ hạn") || lower.Contains("⚠️") || lower.Contains("at risk") || lower.Contains("risk")) aiStatus = "at-risk";
-                    else if (lower.Contains("sớm") || lower.Contains("✅") || lower.Contains("achieve") || lower.Contains("hoàn thành sớm")) aiStatus = "on-track";
-                    else aiStatus = "info";
-                }
+                string aiDetail = _goalService != null ? _goalService.GetAIPrediction(goal) : "";
+                string aiStatus = _goalService != null ? _goalService.GetAIShortStatus(goal).ToLower().Replace(" ", "-") : "info";
 
-                result.Add(new { goalId = goalId, goalName = title, contributionPct = pct, progress = Math.Round(pct, 1), aiStatus = aiStatus, aiDetail = aiDetail });
+                result.Add(new { 
+                    goalId = goalId, 
+                    goalName = goal.Title, 
+                    contributionPct = progress, 
+                    progress = Math.Round(progress, 1), 
+                    aiStatus = aiStatus, 
+                    aiDetail = aiDetail 
+                });
             }
 
             return Json(result);

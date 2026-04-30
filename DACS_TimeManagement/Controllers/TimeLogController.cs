@@ -1,6 +1,7 @@
 using DACS_TimeManagement.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace DACS_TimeManagement.Controllers
@@ -21,9 +22,20 @@ namespace DACS_TimeManagement.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             
-            // Validate task belongs to user
-            var task = await _context.WorkTasks.FindAsync(workTaskId);
-            if (task == null || task.UserId != userId)
+            // Validate task exists and user has permission
+            var task = await _context.WorkTasks.Include(t => t.Project).FirstOrDefaultAsync(t => t.Id == workTaskId);
+            if (task == null) return NotFound();
+
+            bool isOwner = task.UserId == userId;
+            bool isAssignee = task.AssigneeId == userId;
+            bool isProjectMember = false;
+            
+            if (task.ProjectId.HasValue)
+            {
+                isProjectMember = await _context.ProjectMembers.AnyAsync(pm => pm.ProjectId == task.ProjectId.Value && pm.UserId == userId);
+            }
+
+            if (!isOwner && !isAssignee && !isProjectMember)
             {
                 return Unauthorized();
             }

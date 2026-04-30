@@ -19,6 +19,7 @@ builder.Services.AddControllersWithViews()
 
 builder.Services.AddSignalR();
 builder.Services.AddRazorPages();
+builder.Services.AddHttpClient();
 
 // 2. CẤU HÌNH DATABASE
 var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection");

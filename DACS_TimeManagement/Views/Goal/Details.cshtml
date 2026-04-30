@@ -35,25 +35,57 @@
 
                 <!-- Stats Cards -->
                 <div class="row g-3 mb-4">
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="stat-mini glass text-center p-3">
-                            <div class="stat-mini-icon"><i class="fas fa-chart-simple"></i></div>
-                            <h4 class="mb-0">@((Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased) ? Model.CompletedHours.ToString("0.##") + "h" : Model.CompletedTasks.ToString())</h4>
-                            <small>Completed</small>
+                            <div class="stat-mini-icon text-primary"><i class="fas fa-chart-simple"></i></div>
+                            <h4 class="mb-0">@((Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased) ? (Model.CompletedHours < (1.0/60.0) ? (Math.Round(Model.CompletedHours * 3600)) + "s" : (Model.CompletedHours < 1 ? (Math.Round(Model.CompletedHours * 60)) + "m" : Model.CompletedHours.ToString("0.##") + "h")) : Model.CompletedTasks.ToString())</h4>
+                            <small class="text-muted">Completed</small>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="stat-mini glass text-center p-3">
-                            <div class="stat-mini-icon"><i class="fas fa-bullseye"></i></div>
+                            <div class="stat-mini-icon text-info"><i class="fas fa-bullseye"></i></div>
                             <h4 class="mb-0">@((Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased) ? (Model.TargetHours?.ToString("0.##") + "h") : (Model.TargetTasks?.ToString() ?? "-"))</h4>
-                            <small>Target</small>
+                            <small class="text-muted">Target</small>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-6 col-md-3">
                         <div class="stat-mini glass text-center p-3">
-                            <div class="stat-mini-icon"><i class="fas fa-fire"></i></div>
+                            <div class="stat-mini-icon text-warning"><i class="fas fa-fire"></i></div>
                             <h4 class="mb-0">@Model.CurrentStreak</h4>
-                            <small>Day streak</small>
+                            <small class="text-muted">Streak</small>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="stat-mini glass text-center p-3">
+                            @{
+                                var daysLeft = (Model.TargetDate.Date - DateTime.Now.Date).Days;
+                            }
+                            <div class="stat-mini-icon text-danger"><i class="fas fa-clock"></i></div>
+                            <h4 class="mb-0 @(daysLeft < 0 ? "text-danger" : "")">@(daysLeft < 0 ? "Overdue" : daysLeft + "d")</h4>
+                            <small class="text-muted">Left</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Strategy Section -->
+                <div class="mb-5">
+                    <div class="glass p-4 rounded-4 border-start border-4 border-primary">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0"><i class="fas fa-robot text-primary me-2"></i>AI Action Plan</h5>
+                            <button class="btn btn-sm btn-light rounded-pill regenerate-ai-btn" data-goal-id="@Model.Id">
+                                <i class="fas fa-sync-alt me-1"></i> Update
+                            </button>
+                        </div>
+                        <div class="ai-strategy-content small text-dark" id="aiContent-@Model.Id">
+                            @if (!string.IsNullOrEmpty(Model.AIActionPlan))
+                            {
+                                @Html.Raw(Model.AIActionPlan.Replace("\n", "<br/>"))
+                            }
+                            else
+                            {
+                                <span class="text-muted italic">No strategy generated yet. Click update to analyze your goal.</span>
+                            }
                         </div>
                     </div>
                 </div>
@@ -69,7 +101,7 @@
                 <!-- Linked Tasks -->
                 <div>
                     <h5 class="fw-semibold"><i class="fas fa-tasks me-2"></i>Linked Tasks</h5>
-                    <div class="task-list">
+                    <div class="task-list mb-4">
                         @foreach(var gt in Model.GoalTasks)
                         {
                             <div class="task-item glass d-flex justify-content-between align-items-center p-3 mb-2 rounded-3">
@@ -85,6 +117,75 @@
                         @if (!Model.GoalTasks.Any())
                         {
                             <div class="text-muted text-center p-4">No tasks linked. Add tasks to track progress.</div>
+                        }
+                    </div>
+
+                    <h5 class="fw-semibold"><i class="fas fa-history me-2"></i>Time History</h5>
+                    <div class="time-history-list">
+                        @{
+                            var now = DateTime.UtcNow;
+                            // Kết hợp TimeLogs từ các task và GoalProgressHistory của goal chính
+                            var taskLogs = Model.GoalTasks
+                                .SelectMany(gt => gt.WorkTask.TimeLogs)
+                                .Select(tl => new { 
+                                    Title = tl.WorkTask.Title, 
+                                    Date = tl.LogDate, 
+                                    Duration = (double?)tl.DurationHours, 
+                                    Note = tl.Note,
+                                    Type = "Task Focus"
+                                });
+
+                            var historyLogs = Model.GoalProgressHistories
+                                .Where(h => !string.IsNullOrEmpty(h.Note) && !h.Note.Contains("Auto update"))
+                                .Select(h => new { 
+                                    Title = Model.Title, 
+                                    Date = h.RecordedAt, 
+                                    Duration = (double?)null, 
+                                    Note = h.Note,
+                                    Type = "Goal Focus"
+                                });
+
+                            var allHistory = taskLogs.Concat(historyLogs)
+                                .OrderByDescending(x => x.Date)
+                                .ToList();
+                        }
+                        @foreach(var item in allHistory)
+                        {
+                            var isJustNow = (now - item.Date).TotalMinutes < 1;
+                            <div class="time-log-item glass p-3 mb-2 rounded-3 border-start border-4 @(item.Type == "Task Focus" ? "border-primary" : "border-success")">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-bold text-dark">@item.Title <span class="badge bg-light text-muted fw-normal ms-1" style="font-size: 0.6rem;">@item.Type</span></div>
+                                        <div class="small @(isJustNow ? "text-success fw-bold" : "text-muted")">
+                                            <i class="far fa-calendar-alt me-1"></i> @(isJustNow ? "Just now" : item.Date.ToString("dd/MM/yyyy HH:mm"))
+                                        </div>
+                                    </div>
+                                    @if (item.Duration.HasValue)
+                                    {
+                                        var totalSecs = (int)Math.Round(item.Duration.Value * 3600);
+                                        var m = totalSecs / 60;
+                                        var s = totalSecs % 60;
+                                        <div class="badge bg-primary rounded-pill">
+                                            @if(m > 0) { @(m)@:m 
+                                            } @(s)s
+                                        </div>
+                                    }
+                                    else if (item.Note.Contains("giây") || item.Note.Contains("phút"))
+                                    {
+                                        <div class="badge bg-success rounded-pill">Focus</div>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(item.Note))
+                                {
+                                    <div class="mt-2 p-2 bg-light rounded-2 x-small text-muted italic">
+                                        <i class="fas fa-info-circle me-1"></i> @item.Note
+                                    </div>
+                                }
+                            </div>
+                        }
+                        @if (!allHistory.Any())
+                        {
+                            <div class="text-muted text-center p-4">No focus sessions recorded yet.</div>
                         }
                     </div>
                 </div>
@@ -118,34 +219,165 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // Giữ nguyên toàn bộ JS hiện có (loadHistory, toggle task, delete goal)
-        // Chỉ cần đảm bảo các id và class selectors đúng.
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProgressChart();
+            updateProgressDisplays();
+
+            // Task completion toggle
+            document.querySelectorAll('.task-complete-toggle').forEach(toggle => {
+                toggle.addEventListener('change', async function() {
+                    const taskId = this.dataset.taskId;
+                    const isDone = this.checked;
+                    
+                    try {
+                        const response = await fetch(`/Task/UpdateStatus?taskId=${taskId}&isDone=${isDone}`, {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Updated',
+                                toast: true,
+                                position: 'top-end',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                            setTimeout(() => location.reload(), 1500);
+                        }
+                    } catch (error) {
+                        console.error('Error updating task:', error);
+                        this.checked = !isDone;
+                    }
+                });
+            });
+
+            // AI Regeneration
+            document.querySelectorAll('.regenerate-ai-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const goalId = this.dataset.goalId;
+                    const contentDiv = document.getElementById(`aiContent-${goalId}`);
+                    
+                    this.classList.add('fa-spin');
+                    contentDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Analyzing...</div>';
+
+                    try {
+                        const response = await fetch(`/Goal/RegenerateAIStrategy?goalId=${goalId}`, { method: 'POST' });
+                        const data = await response.json();
+                        if (data.success) {
+                            contentDiv.innerHTML = data.newStrategy.replace(/\n/g, '<br/>');
+                        } else {
+                            Swal.fire('Error', 'Failed to regenerate AI strategy.', 'error');
+                        }
+                    } catch (e) {
+                        contentDiv.innerHTML = '<span class="text-danger">Error connecting to AI service.</span>';
+                    } finally {
+                        this.classList.remove('fa-spin');
+                    }
+                });
+            });
+
+            // Delete Goal
+            document.querySelector('.delete-goal-btn')?.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const name = this.dataset.name;
+                Swal.fire({
+                    title: 'Delete Goal?',
+                    text: `Are you sure you want to delete "${name}"?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    confirmButtonText: 'Yes, delete'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '/Goal/Delete/' + id;
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                        if (token) form.appendChild(token.cloneNode(true));
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        function updateProgressDisplays() {
+            const completed = @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? Model.CompletedHours : Model.CompletedTasks);
+            const target = @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? (Model.TargetHours ?? 0) : (Model.TargetTasks ?? 0));
+            const pct = target > 0 ? Math.round((completed / target) * 100) : 0;
+            
+            const fill = document.getElementById('mainProgress');
+            const label = document.getElementById('pctLarge');
+            if (fill) fill.style.width = pct + '%';
+            if (label) label.innerText = pct + '%';
+        }
+
+        async function loadProgressChart() {
+            const res = await fetch(`/Goal/GetGoalHistory/@Model.Id`);
+            const data = await res.json();
+            
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.date),
+                    datasets: [{
+                        label: 'Progress %',
+                        data: data.map(d => d.progress),
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { callback: value => value + '%' } }
+                    }
+                }
+            });
+        }
     </script>
 }
 
 <style>
-    .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-radius: 28px; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
-    .progress-bar-large { background: #e2e8f0; border-radius: 20px; height: 12px; overflow: hidden; }
-    .progress-fill { background: linear-gradient(90deg, #6366f1, #a855f7); height: 100%; transition: width 0.3s; }
-    .stat-mini { transition: 0.2s; }
-    .stat-mini:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
-    .stat-mini-icon { font-size: 1.8rem; opacity: 0.5; margin-bottom: 0.5rem; }
-    .task-item { transition: 0.2s; }
-    .task-item:hover { background: #f1f5f9; }
-    .btn-outline-custom, .btn-primary-custom, .btn-danger-custom {
-        padding: 0.5rem 1rem; border-radius: 40px; font-weight: 600; text-align: center; text-decoration: none; display: block; transition: 0.2s;
-    }
-    .btn-outline-custom { background: transparent; border: 1px solid #cbd5e1; color: #1e293b; }
-    .btn-outline-custom:hover { background: #f1f5f9; transform: translateY(-2px); }
-    .btn-primary-custom { background: linear-gradient(135deg, #6366f1, #a855f7); color: white; border: none; }
-    .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99,102,241,0.3); }
-    .btn-danger-custom { background: #fee2e2; color: #dc2626; border: none; }
-    .btn-danger-custom:hover { background: #ef4444; color: white; transform: translateY(-2px); }
-    .status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; }
-    .status-badge.active { background: #dbeafe; color: #2563eb; }
-    .status-badge.completed { background: #d1fae5; color: #059669; }
-    .status-badge.behind { background: #fed7aa; color: #ea580c; }
-    .status-badge.overdue { background: #ffe4e2; color: #dc2626; }
+    .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .progress-bar-large { background: #f1f5f9; border-radius: 50px; height: 14px; overflow: hidden; }
+    .progress-fill { background: linear-gradient(90deg, #6366f1, #a855f7); height: 100%; transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    
+    .stat-mini { border-radius: 20px; transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.05); background: white; }
+    .stat-mini:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+    .stat-mini-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    
+    .ai-strategy-content { line-height: 1.6; color: #334155; }
+    .task-item { transition: all 0.2s; border: 1px solid transparent; }
+    .task-item:hover { background: #f8fafc; border-color: #6366f1; transform: scale(1.01); }
+
+    .btn-primary-custom { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 10px 24px; border-radius: 50px; font-weight: 600; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; justify-content: center; }
+    .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3); color: white; }
+    
+    .btn-outline-custom { background: white; color: #475569; border: 1px solid #e2e8f0; padding: 10px 24px; border-radius: 50px; font-weight: 600; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; justify-content: center; }
+    .btn-outline-custom:hover { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
+    
+    .btn-danger-custom { background: #fee2e2; color: #dc2626; border: none; padding: 10px 24px; border-radius: 50px; font-weight: 600; transition: all 0.3s; width: 100%; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
+    .btn-danger-custom:hover { background: #fecaca; }
+
+    .chart-container { position: relative; margin: auto; height: 250px; width: 100%; }
+    .x-small { font-size: 0.75rem; }
+    .italic { font-style: italic; }
+    
+    .status-badge { padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+    .status-badge.active { background: #e0f2fe; color: #0284c7; }
+    .status-badge.completed { background: #dcfce7; color: #166534; }
+    .status-badge.overdue { background: #fee2e2; color: #991b1b; }
+    .status-badge.behind { background: #fef3c7; color: #92400e; }
+    .status-badge.ontrack { background: #f0fdf4; color: #15803d; }
+    
     @@media (max-width: 768px) { .sticky-top { position: relative; } }
 </style>

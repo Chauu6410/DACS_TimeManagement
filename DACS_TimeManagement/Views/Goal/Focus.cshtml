@@ -74,8 +74,9 @@
         <!-- Floating Tomato Widget -->
         <div id="tomatoWidget" class="tomato-widget">
             <div class="tomato-container" id="tomatoTrigger">
-                <img src="https://cdn-icons-png.flaticon.com/512/2907/2907214.png" alt="Tomato" class="tomato-img">
+                <img src="https://cdn-icons-png.flaticon.com/512/2907/2907214.png" alt="Tomato" class="tomato-img pulse-tomato">
                 <div class="timer-bubble" id="timerDisplay">25:00</div>
+                <div class="click-hint small text-white-50">Click me</div>
             </div>
             
             <div class="tomato-controls shadow-lg p-3 rounded-4 d-none" id="tomatoMenu">
@@ -85,10 +86,13 @@
                         <div id="timerProgress" class="progress-bar bg-danger" style="width: 100%"></div>
                     </div>
                 </div>
-                <div class="d-flex gap-2">
-                    <button id="startBtn" class="btn btn-danger btn-sm rounded-pill flex-grow-1"><i class="fas fa-play"></i> Bắt đầu</button>
-                    <button id="pauseBtn" class="btn btn-outline-secondary btn-sm rounded-pill d-none"><i class="fas fa-pause"></i> Tạm dừng</button>
-                    <button id="exitZen" class="btn btn-light btn-sm rounded-pill"><i class="fas fa-times"></i> Thoát</button>
+                <div class="d-flex flex-column gap-2">
+                    <div class="d-flex gap-2">
+                        <button id="startBtn" class="btn btn-danger btn-sm rounded-pill flex-grow-1"><i class="fas fa-play"></i> Bắt đầu</button>
+                        <button id="pauseBtn" class="btn btn-outline-secondary btn-sm rounded-pill d-none flex-grow-1"><i class="fas fa-pause"></i> Tạm dừng</button>
+                    </div>
+                    <button id="saveBtn" class="btn btn-success btn-sm rounded-pill w-100 shadow-sm" disabled style="opacity: 0.5;"><i class="fas fa-save"></i> Lưu thời gian này</button>
+                    <button id="exitZen" class="btn btn-light btn-sm rounded-pill w-100"><i class="fas fa-times"></i> Thoát</button>
                 </div>
             </div>
         </div>
@@ -113,6 +117,9 @@
             let timerInterval = null;
             let timeLeft = 25 * 60; // 25 minutes
             let isRunning = false;
+            let sessionStartTime = null;
+            let totalElapsedSeconds = 0;
+            const initialTime = 25 * 60;
 
             // Task Selection
             taskOptions.forEach(opt => {
@@ -148,6 +155,7 @@
             // Timer Logic
             const startBtn = document.getElementById('startBtn');
             const pauseBtn = document.getElementById('pauseBtn');
+            const saveBtn = document.getElementById('saveBtn');
             const timerDisplay = document.getElementById('timerDisplay');
             const timerProgressBar = document.getElementById('timerProgress');
 
@@ -162,11 +170,19 @@
             function startTimer() {
                 if (isRunning) return;
                 isRunning = true;
+                
+                if (!sessionStartTime) {
+                    sessionStartTime = new Date();
+                }
+
                 startBtn.classList.add('d-none');
                 pauseBtn.classList.remove('d-none');
+                saveBtn.disabled = false;
+                saveBtn.style.opacity = "1";
 
                 timerInterval = setInterval(() => {
                     timeLeft--;
+                    totalElapsedSeconds++;
                     updateDisplay();
 
                     if (timeLeft <= 0) {
@@ -184,6 +200,52 @@
                 startBtn.innerHTML = '<i class="fas fa-play"></i> Tiếp tục';
             }
 
+            function saveSession() {
+                const elapsedMinutes = totalElapsedSeconds / 60;
+                const elapsedHours = totalElapsedSeconds / 3600;
+                const elapsedMins = Math.floor(totalElapsedSeconds / 60);
+                const elapsedSecs = totalElapsedSeconds % 60;
+                
+                if (totalElapsedSeconds < 1) {
+                    Swal.fire('Thông báo', 'Bạn chưa bắt đầu thời gian.', 'info');
+                    return;
+                }
+
+                const startTimeStr = sessionStartTime ? sessionStartTime.toLocaleTimeString() : "";
+
+                Swal.fire({
+                    title: 'Lưu tiến độ?',
+                    text: `Bạn đã tập trung được ${Math.floor(elapsedMinutes)} phút ${totalElapsedSeconds % 60} giây. Bạn muốn lưu thời gian này?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Lưu và Thoát',
+                    cancelButtonText: 'Tiếp tục'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        const body = new URLSearchParams();
+                        body.append('goalId', '@Model.Id');
+                        body.append('taskId', selectedTaskId || "");
+                        body.append('durationHours', elapsedHours.toString());
+                        body.append('note', `Tập trung Goal (${elapsedMins} phút ${elapsedSecs} giây). Bắt đầu lúc: ${startTimeStr}`);
+                        body.append('__RequestVerificationToken', token);
+
+                        fetch('/Goal/RecordFocusSession', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: body
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire('Đã lưu!', 'Thời gian tập trung đã được ghi nhận.', 'success')
+                                    .then(() => location.href = '/Goal/Index');
+                            }
+                        });
+                    }
+                });
+            }
+
             function completeSession() {
                 isRunning = false;
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
@@ -192,6 +254,7 @@
                 body.append('goalId', '@Model.Id');
                 body.append('taskId', selectedTaskId || "");
                 body.append('durationHours', '0.416');
+                body.append('note', 'Hoàn thành 25 phút Pomodoro');
                 body.append('__RequestVerificationToken', token);
 
                 fetch('/Goal/RecordFocusSession', {
@@ -214,6 +277,7 @@
 
             startBtn.addEventListener('click', startTimer);
             pauseBtn.addEventListener('click', pauseTimer);
+            saveBtn.addEventListener('click', saveSession);
             document.getElementById('exitZen').addEventListener('click', () => {
                 if (isRunning) {
                     Swal.fire({
@@ -267,10 +331,20 @@
     .tomato-widget { position: fixed; bottom: 40px; right: 40px; z-index: 2100; }
     .tomato-container { position: relative; cursor: pointer; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .tomato-container:hover { transform: scale(1.1); }
-    .tomato-img { width: 80px; height: 80px; filter: drop-shadow(0 10px 15px rgba(239, 68, 68, 0.4)); }
-    .timer-bubble { position: absolute; top: -10px; right: -10px; background: white; color: #ef4444; font-weight: 800; padding: 4px 10px; border-radius: 50px; border: 2px solid #ef4444; font-size: 0.85rem; }
+    .tomato-img { width: 80px; height: 80px; filter: drop-shadow(0 10px 15px rgba(239, 68, 68, 0.4)); transition: transform 0.3s; }
+    
+    .pulse-tomato { animation: pulse 2s infinite; }
+    @@keyframes pulse { 
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
 
-    .tomato-controls { position: absolute; bottom: 100px; right: 0; width: 220px; background: white; border: 1px solid #e2e8f0; animation: slideUp 0.3s; }
+    .click-hint { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 0.7rem; pointer-events: none; }
+
+    .timer-bubble { position: absolute; top: -10px; right: -10px; background: white; color: #ef4444; font-weight: 800; padding: 4px 10px; border-radius: 50px; border: 2px solid #ef4444; font-size: 0.85rem; }
+    
+    .tomato-controls { position: absolute; bottom: 100px; right: 0; width: 220px; background: white; border: 1px solid #e2e8f0; animation: slideUp 0.3s; z-index: 10; }
     @@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     @@media (max-width: 768px) {

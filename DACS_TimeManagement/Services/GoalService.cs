@@ -5,6 +5,12 @@ using DACS_TimeManagement.Services.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
+using System.Text;
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using System.Net.Http;
 
 namespace DACS_TimeManagement.Services
 {
@@ -14,12 +20,16 @@ namespace DACS_TimeManagement.Services
         private readonly ApplicationDbContext _db;
         private readonly IHubContext<GoalHub> _hubContext;
         private readonly IMemoryCache _cache;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _config;
 
-        public GoalService(ApplicationDbContext db, IHubContext<GoalHub> hubContext, IMemoryCache cache)
+        public GoalService(ApplicationDbContext db, IHubContext<GoalHub> hubContext, IMemoryCache cache, IHttpClientFactory httpClientFactory, IConfiguration config)
         {
             _db = db;
             _hubContext = hubContext;
             _cache = cache;
+            _httpClientFactory = httpClientFactory;
+            _config = config;
         }
 
         public async Task<GoalDetailDto> CreateAsync(CreateGoalDto dto, string userId)
@@ -31,6 +41,7 @@ namespace DACS_TimeManagement.Services
                 Title = (project != null ? project.Name + " - Goal" : "Project Goal"),
                 Description = dto.Description,
                 ProjectId = dto.ProjectId,
+                Type = dto.ProjectId > 0 ? GoalType.TaskBased : GoalType.TimeBased,
                 StartDate = DateTime.UtcNow,
                 TargetDate = dto.TargetDate,
                 UserId = userId,
@@ -80,36 +91,50 @@ namespace DACS_TimeManagement.Services
             return true;
         }
 
-        public async Task RecalculateProgressForGoalAsync(int goalId, string userId)
+        public async Task RecalculateProgressForGoalAsync(int goalId, string userId, string? note = null)
         {
-            int maxRetries = 3;
+            const int maxRetries = 3;
             for (int i = 0; i < maxRetries; i++)
             {
                 try
                 {
-                    // Lấy Goal (Không cần Include toàn bộ TimeLogs/Tasks để tránh N+1 và Cartesian explosion)
-                    var goal = await _db.PersonalGoals
-                        .FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId);
-
+                    var goal = await _db.PersonalGoals.FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId);
                     if (goal == null) return;
 
-                    // Aggregate directly in DB: Hiệu suất cao, tránh load hàng ngàn TimeLogs vào RAM
                     if (goal.Type == GoalType.TimeBased)
                     {
-                        goal.CompletedHours = await _db.GoalTasks
-                            .Where(gt => gt.GoalId == goalId)
-                            .SelectMany(gt => gt.WorkTask.TimeLogs)
-                            .SumAsync(tl => tl.DurationHours);
+                        // Time-based goal: Progress is based on CompletedHours (which are synced from TimeLogs or manual entries)
+                        goal.TargetValue = goal.TargetHours ?? 0;
+                        goal.CurrentValue = goal.CompletedHours;
+                    }
+                    else if (goal.ProjectId.HasValue)
+                    {
+                        // Task-based (Project) goal: Progress is based on project tasks assigned to user
+                        var projectTasks = _db.WorkTasks.Where(t => t.ProjectId == goal.ProjectId.Value && t.AssigneeId == goal.UserId);
+                        int total = await projectTasks.CountAsync();
+                        int completed = await projectTasks.CountAsync(t => t.Status == Models.TaskStatus.Completed);
+                        
+                        goal.TargetTasks = total;
+                        goal.CompletedTasks = completed;
+                        
+                        goal.TargetValue = total;
+                        goal.CurrentValue = completed;
                     }
                     else
                     {
+                        // Task-based (Linked) goal: Progress is based on specifically linked tasks
                         goal.CompletedTasks = await _db.GoalTasks
                             .Where(gt => gt.GoalId == goalId)
                             .CountAsync(gt => gt.WorkTask.Status == Models.TaskStatus.Completed);
+                        
+                        goal.TargetTasks = await _db.GoalTasks.CountAsync(gt => gt.GoalId == goalId);
+                        
+                        goal.TargetValue = goal.TargetTasks ?? 0;
+                        goal.CurrentValue = goal.CompletedTasks;
                     }
 
                     // update status and records
-                    await UpdateStatusAndHistoryAsync(goal);
+                    await UpdateStatusAndHistoryAsync(goal, note);
                     await _db.SaveChangesAsync();
                     
                     break; // Thành công thì thoát vòng lặp
@@ -117,6 +142,9 @@ namespace DACS_TimeManagement.Services
                 catch (DbUpdateConcurrencyException ex)
                 {
                     // Xử lý Race Condition: Nếu có 2 luồng cùng update, luồng sau sẽ retry
+                    // Quan trọng: Clear tracker để xóa các bản ghi History bị kẹt do lỗi Save trước đó
+                    _db.ChangeTracker.Clear();
+
                     if (i == maxRetries - 1)
                     {
                         throw new Exception("Hệ thống đang bận. Quá trình cập nhật bị xung đột dữ liệu, vui lòng thử lại sau.", ex);
@@ -155,18 +183,65 @@ namespace DACS_TimeManagement.Services
                 await RecalculateProgressForGoalAsync(goal.Id, goal.UserId);
             }
         }
+
+        public async Task SyncProjectGoalsAsync(int projectId)
+        {
+            var goals = await _db.PersonalGoals
+                .Where(g => g.ProjectId == projectId)
+                .ToListAsync();
+
+            foreach (var goal in goals)
+            {
+                await RecalculateProgressForGoalAsync(goal.Id, goal.UserId);
+            }
+        }
+
+        public async Task SyncTaskGoalsAsync(int taskId)
+        {
+            // 1. Find goals linked via GoalTasks
+            var goalIdsFromTasks = await _db.GoalTasks
+                .Where(gt => gt.WorkTaskId == taskId)
+                .Select(gt => gt.GoalId)
+                .ToListAsync();
+
+            // 2. Find goals linked via Project
+            var task = await _db.WorkTasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == taskId);
+            if (task != null && task.ProjectId.HasValue)
+            {
+                var projectGoalIds = await _db.PersonalGoals
+                    .Where(g => g.ProjectId == task.ProjectId.Value)
+                    .Select(g => g.Id)
+                    .ToListAsync();
+                
+                goalIdsFromTasks.AddRange(projectGoalIds);
+            }
+
+            var uniqueGoalIds = goalIdsFromTasks.Distinct().ToList();
+            foreach (var gid in uniqueGoalIds)
+            {
+                var goal = await _db.PersonalGoals.AsNoTracking().FirstOrDefaultAsync(g => g.Id == gid);
+                if (goal != null)
+                {
+                    await RecalculateProgressForGoalAsync(gid, goal.UserId);
+                }
+            }
+        }
         public string GetAIPrediction(PersonalGoal goal)
         {
             string cacheKey = $"AIPrediction_Goal_{goal.Id}";
 
             if (!_cache.TryGetValue(cacheKey, out string cachedPrediction))
             {
+                // Caching prediction trong 5 phút để tránh CPU spikes do tính toán liên tục
+                var cacheOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+
                 if (goal.CurrentValue <= 0) 
                     cachedPrediction = "Hãy bắt đầu làm việc để AI có thể phân tích tốc độ của bạn.";
                 else
                 {
                     var timeTotal = (goal.TargetDate - goal.StartDate).TotalDays;
-                    var timePassed = (DateTime.Now - goal.StartDate).TotalDays;
+                    var timePassed = (DateTime.UtcNow - goal.StartDate).TotalDays;
 
                     if (timePassed < 0.5) 
                         cachedPrediction = "AI đang thu thập thêm dữ liệu điểm tin...";
@@ -175,9 +250,19 @@ namespace DACS_TimeManagement.Services
                         // Tốc độ trung bình: Giá trị/Ngày
                         double velocity = goal.CurrentValue / timePassed;
                         double remainingValue = goal.TargetValue - goal.CurrentValue;
-                        double daysNeeded = remainingValue / velocity;
+                        
+                        if (velocity <= 0 || remainingValue <= 0)
+                        {
+                            cachedPrediction = "Dữ liệu hiện tại cho thấy bạn đang đi đúng lộ trình. Hãy duy trì phong độ!";
+                            _cache.Set(cacheKey, cachedPrediction, cacheOptions);
+                            return cachedPrediction;
+                        }
 
-                        DateTime estimatedFinishDate = DateTime.Now.AddDays(daysNeeded);
+                        double daysNeeded = remainingValue / velocity;
+                        // Clamp daysNeeded to avoid DateTime overflow
+                        if (daysNeeded > 3650) daysNeeded = 3650; 
+
+                        DateTime estimatedFinishDate = DateTime.UtcNow.AddDays(daysNeeded);
 
                         if (estimatedFinishDate > goal.TargetDate)
                         {
@@ -191,10 +276,6 @@ namespace DACS_TimeManagement.Services
                     }
                 }
 
-                // Caching prediction trong 5 phút để tránh CPU spikes do tính toán liên tục
-                var cacheOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
-                
                 _cache.Set(cacheKey, cachedPrediction, cacheOptions);
             }
 
@@ -205,17 +286,18 @@ namespace DACS_TimeManagement.Services
         {
             if (goal.CurrentValue <= 0) return "Starting Up";
 
-            var timePassed = (DateTime.Now - goal.StartDate).TotalDays;
+            var timePassed = (DateTime.UtcNow - goal.StartDate).TotalDays;
             if (timePassed < 0.2) return "Initializing";
 
             double velocity = goal.CurrentValue / Math.Max(0.1, timePassed);
             double remainingValue = goal.TargetValue - goal.CurrentValue;
             double daysNeeded = remainingValue / Math.Max(0.01, velocity);
-            DateTime estimatedFinishDate = DateTime.Now.AddDays(daysNeeded);
+            DateTime estimatedFinishDate = DateTime.UtcNow.AddDays(daysNeeded);
 
             if (estimatedFinishDate > goal.TargetDate) return "At Risk";
             
             var progress = (goal.CurrentValue / Math.Max(1, goal.TargetValue)) * 100;
+            if (progress >= 100) return "Completed";
             if (progress > 90) return "Finishing";
             if (estimatedFinishDate < goal.TargetDate.AddDays(-3)) return "Excellent";
             if (estimatedFinishDate < goal.TargetDate.AddDays(-1)) return "Ahead";
@@ -223,17 +305,17 @@ namespace DACS_TimeManagement.Services
             return "On Track";
         }
 
-        private async Task UpdateStatusAndHistoryAsync(PersonalGoal goal)
+        private async Task UpdateStatusAndHistoryAsync(PersonalGoal goal, string? note = null)
         {
-            // Calculate progress percent
+            // Calculate progress percent based on tasks
             double progress = 0;
-            if (goal.Type == GoalType.TimeBased && goal.TargetHours.GetValueOrDefault() > 0)
-            {
-                progress = (goal.CompletedHours / goal.TargetHours.Value) * 100.0;
-            }
-            else if (goal.Type == GoalType.TaskBased && goal.TargetTasks.GetValueOrDefault() > 0)
+            if (goal.TargetTasks.GetValueOrDefault() > 0)
             {
                 progress = (double)goal.CompletedTasks / goal.TargetTasks.Value * 100.0;
+            }
+            else if (goal.TargetValue > 0)
+            {
+                progress = (goal.CurrentValue / goal.TargetValue) * 100.0;
             }
 
             // clamp
@@ -266,7 +348,7 @@ namespace DACS_TimeManagement.Services
                 GoalId = goal.Id,
                 Progress = progress,
                 RecordedAt = DateTime.UtcNow,
-                Note = $"Auto update: status={goal.Status}"
+                Note = note ?? $"Auto update: status={goal.Status}"
             };
             _db.Add(hist);
 
@@ -278,7 +360,9 @@ namespace DACS_TimeManagement.Services
                 goalId = goal.Id,
                 newProgress = progress,
                 status = goal.Status.ToString(),
-                currentValue = goal.CurrentValue
+                currentValue = goal.CurrentValue,
+                completedTasks = goal.CompletedTasks,
+                targetTasks = goal.TargetTasks ?? 0
             });
         }
  
@@ -310,109 +394,159 @@ namespace DACS_TimeManagement.Services
             };
         }
 
-        internal async Task<string> GenerateSmartAIStrategy(int projectId, DateTime targetDate)
+        public async Task<string> RegenerateSmartAIStrategyAsync(int goalId, string userId)
         {
-            // Load project and tasks
-            var project = await _db.Projects
-                .AsNoTracking()
-                .Include(p => p.Tasks)
-                .FirstOrDefaultAsync(p => p.Id == projectId);
+            var goal = await _db.PersonalGoals
+                .FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId);
+                
+            if (goal == null) return "Không tìm thấy mục tiêu.";
 
-            if (project == null) return "Dự án không tồn tại.";
-
-            var tasks = project.Tasks ?? new List<WorkTask>();
-            var totalTasks = tasks.Count;
-            var urgentCount = tasks.Count(t => t.Priority == Priority.Urgent);
-            var highCount = tasks.Count(t => t.Priority == Priority.High);
-
-            // Time windows
-            var now = DateTime.UtcNow.Date;
-            var start = DateTime.UtcNow.Date; // assume starting now for simplicity
-            var totalWindow = (targetDate.Date - start).TotalDays;
-            if (totalWindow <= 0)
-            {
-                return "TargetDate đã qua hoặc là hôm nay. Vui lòng chọn ngày hợp lệ.";
-            }
-
-            // Determine progress fraction by comparing elapsed time since start of goal to full window.
-            // If we have a StartDate on the project use that, otherwise use created date.
-            double elapsed = 0;
-            if (project.CreatedDate != DateTime.MinValue)
-            {
-                elapsed = (now - project.CreatedDate.Date).TotalDays;
-            }
-
-            var fraction = Math.Max(0.0, Math.Min(1.0, elapsed / Math.Max(1.0, totalWindow)));
-
-            // Strategy phases
-            string phase;
-            if (fraction < 0.33)
-            {
-                phase = "Khởi động"; // setup phase
-            }
-            else if (fraction < 0.75)
-            {
-                phase = "Tăng tốc"; // acceleration
-            }
-            else
-            {
-                phase = "Về đích"; // finishing
-            }
-
-            // Compute daily target for middle phase
-            double daysLeft = (targetDate.Date - now).TotalDays;
+            var now = DateTime.UtcNow;
+            var target = goal.TargetDate;
+            double daysLeft = (target.Date - now.Date).TotalDays;
             daysLeft = Math.Max(1.0, daysLeft);
-            var tasksPerDay = Math.Ceiling((double)totalTasks / daysLeft);
 
-            // Build human-friendly recommendation
-            var pieces = new List<string>();
-            pieces.Add($"🤖 **AI ACTION PLAN - GIAI ĐOẠN: {phase.ToUpper()}**");
-            pieces.Add($"------------------------------------------");
-            pieces.Add($"📊 **Tổng quan:** Dự án hiện có {totalTasks} công việc cần hoàn thành.");
-            
-            if (phase == "Khởi động")
-            {
-                pieces.Add("🚀 **Chiến lược:** Tập trung thiết lập nền tảng. Hãy xác định các task then chốt và đảm bảo mọi mục tiêu được định nghĩa rõ ràng.");
-                pieces.Add("💡 *Lời khuyên:* Đừng vội vã, sự chuẩn bị kỹ lưỡng sẽ giúp bạn tăng tốc ở giai đoạn sau.");
-            }
-            else if (phase == "Tăng tốc")
-            {
-                pieces.Add($"⚡ **Chiến lược:** Cần duy trì hiệu suất khoảng **{tasksPerDay} task/ngày** để bám sát mục tiêu.");
-                if (highCount + urgentCount > 0)
-                {
-                    pieces.Add($"🔥 **Ưu tiên:** Tập trung xử lý {urgentCount} task Khẩn cấp và {highCount} task Quan trọng trước.");
-                }
-            }
-            else // Về đích
-            {
-                pieces.Add("🏁 **Chiến lược:** Giai đoạn nước rút! Ưu tiên tuyệt đối các task Khẩn cấp để đảm bảo chất lượng bàn giao.");
-                if (urgentCount > 0)
-                {
-                    pieces.Add($"⚠️ **Cảnh báo:** Còn {urgentCount} task Khẩn cấp cần giải quyết ngay lập tức.");
-                }
-            }
+            string promptData = "";
+            var localPieces = new List<string>();
 
-            // Motivational predictive sentence
-            var velocity = totalTasks / Math.Max(1.0, Math.Max(1.0, elapsed)); // rough tasks/day so far
-            if (velocity > 0)
+            if (goal.Type == GoalType.TimeBased)
             {
-                var estDays = Math.Ceiling((totalTasks) / velocity);
-                var diff = Math.Round(daysLeft - estDays);
-                if (diff > 0)
+                double remainingHours = Math.Max(0, (goal.TargetHours ?? 0) - goal.CompletedHours);
+                
+                // Chuẩn bị Prompt cho OpenAI
+                promptData = $"Mục tiêu cá nhân: {goal.Title}\n" +
+                             $"Mô tả: {goal.Description ?? "Không có"}\n" +
+                             $"Tổng số giờ mục tiêu: {goal.TargetHours}\n" +
+                             $"Số giờ đã hoàn thành: {goal.CompletedHours}\n" +
+                             $"Số giờ còn lại: {remainingHours}\n" +
+                             $"Số ngày còn lại: {daysLeft} ngày (Hạn chót: {goal.TargetDate:dd/MM/yyyy}).\n" +
+                             $"Hãy đóng vai một chuyên gia quản lý thời gian, đưa ra chiến lược làm việc (như số giờ mỗi ngày, chia nhỏ phiên làm việc, cảnh báo rủi ro nếu có) để hoàn thành mục tiêu này.";
+
+                // Fallback cục bộ
+                localPieces.Add($"📊 **Tổng quan:** Bạn còn {remainingHours:F1} giờ phải hoàn thành trong {daysLeft} ngày tới.");
+                if (remainingHours <= 0)
                 {
-                    pieces.Add($"\n✨ **Dự báo:** Với tốc độ hiện tại, bạn có thể về đích sớm **{diff} ngày**. Tuyệt vời!");
-                }
-                else if (diff < 0)
-                {
-                    pieces.Add($"\n📉 **Dự báo:** Bạn có nguy cơ trễ hạn **{Math.Abs(diff)} ngày**. Hãy cân nhắc tăng năng suất hoặc điều chỉnh phạm vi.");
+                    localPieces.Add("🎉 **Tuyệt vời!** Bạn đã hoàn thành hoặc vượt mục tiêu thời gian đề ra.");
                 }
                 else
                 {
-                    pieces.Add("\n🎯 **Dự báo:** Bạn đang đi đúng lộ trình đề ra.");
+                    double hoursPerDay = remainingHours / daysLeft;
+                    localPieces.Add($"⚡ **Kế hoạch Cụ thể:** Để kịp tiến độ, bạn cần duy trì **{hoursPerDay:F1} giờ / ngày**.");
+                    if (hoursPerDay > 8)
+                        localPieces.Add("⚠️ **Cảnh báo Khả thi:** Số giờ yêu cầu mỗi ngày quá cao (>8 giờ). Bạn nên cân nhắc gia hạn thêm thời gian.");
+                    else if (hoursPerDay > 4)
+                        localPieces.Add("🔥 **Chiến thuật Pomodoro:** Gợi ý chia nhỏ thành 4-6 phiên làm việc, mỗi phiên 25-50 phút, xen kẽ nghỉ dài.");
+                    else
+                        localPieces.Add("💡 **Chiến thuật Dễ dàng:** Lịch trình hoàn toàn nằm trong tầm tay.");
+                }
+            }
+            else
+            {
+                int projectId = goal.ProjectId ?? 0;
+                var tasks = await _db.WorkTasks
+                    .AsNoTracking()
+                    .Where(t => t.ProjectId == projectId && t.AssigneeId == userId && t.Status != Models.TaskStatus.Completed)
+                    .ToListAsync();
+
+                var remainingTasks = tasks.Count;
+                var urgentTasks = tasks.Where(t => t.Priority == Priority.Urgent).Take(3).ToList();
+                var highTasks = tasks.Where(t => t.Priority == Priority.High).Take(3).ToList();
+                var overdueTasks = tasks.Where(t => t.EndDate < now).Take(3).ToList();
+
+                // Chuẩn bị Prompt cho OpenAI
+                var taskNames = string.Join(", ", tasks.Take(5).Select(t => t.Title));
+                promptData = $"Dự án liên kết có {remainingTasks} công việc chưa hoàn thành.\n" +
+                             $"Số ngày còn lại: {daysLeft} ngày (Hạn chót: {goal.TargetDate:dd/MM/yyyy}).\n" +
+                             $"Số task quá hạn: {overdueTasks.Count}\n" +
+                             $"Số task khẩn cấp (Urgent): {urgentTasks.Count}\n" +
+                             $"Một số task tiêu biểu: {taskNames}...\n" +
+                             $"Hãy đóng vai một chuyên gia quản lý dự án, đưa ra chiến lược phân bổ nguồn lực và thứ tự ưu tiên các công việc để hoàn thành dự án đúng hạn.";
+
+                // Fallback cục bộ
+                localPieces.Add($"📊 **Tổng quan:** Dự án còn {remainingTasks} công việc chưa hoàn thành.");
+                if (remainingTasks == 0)
+                {
+                    localPieces.Add("🎉 **Tuyệt vời!** Bạn không còn công việc nào tồn đọng trong dự án này.");
+                }
+                else
+                {
+                    double tasksPerDay = Math.Ceiling(remainingTasks / daysLeft);
+                    localPieces.Add($"⚡ **Chỉ tiêu:** Cần xử lý tối thiểu **{tasksPerDay} task / ngày** để đảm bảo đúng hạn.");
+                    if (overdueTasks.Any())
+                    {
+                        localPieces.Add("\n🚨 **XỬ LÝ KHẨN CẤP (QUÁ HẠN):**");
+                        foreach (var t in overdueTasks) localPieces.Add($"- Khắc phục ngay: *{t.Title}*");
+                    }
+                    if (urgentTasks.Any())
+                    {
+                        localPieces.Add("\n🔥 **ƯU TIÊN HÀNG ĐẦU (URGENT):**");
+                        foreach (var t in urgentTasks) 
+                            if (!overdueTasks.Any(ot => ot.Id == t.Id)) localPieces.Add($"- *{t.Title}*");
+                    }
+                    if (!overdueTasks.Any() && !urgentTasks.Any() && highTasks.Any())
+                    {
+                        localPieces.Add("\n⭐ **BƯỚC TIẾP THEO (HIGH PRIORITY):**");
+                        foreach (var t in highTasks) localPieces.Add($"- Cần làm: *{t.Title}*");
+                    }
                 }
             }
 
-            return string.Join("\n", pieces);
+            string aiResponse = "";
+            string apiKey = _config["OpenAI:ApiKey"];
+            
+            if (!string.IsNullOrEmpty(apiKey))
+            {
+                try
+                {
+                    var client = _httpClientFactory.CreateClient();
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+                    
+                    var model = _config["OpenAI:Model"] ?? "gpt-4o-mini";
+                    
+                    var payload = new
+                    {
+                        model = model,
+                        messages = new[]
+                        {
+                            new { role = "system", content = "Bạn là một trợ lý AI quản lý thời gian chuyên nghiệp. Phân tích dữ liệu người dùng cung cấp và đưa ra một kế hoạch hành động cụ thể, cá nhân hóa. Sử dụng tiếng Việt, định dạng Markdown (có gạch đầu dòng, in đậm) và thêm các emoji sinh động. Câu văn ngắn gọn, đi thẳng vào vấn đề (tối đa 200 từ)." },
+                            new { role = "user", content = promptData }
+                        },
+                        temperature = 0.7
+                    };
+                    
+                    var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync("https://api.openai.com/v1/chat/completions", content);
+                    
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseString = await response.Content.ReadAsStringAsync();
+                        using var doc = JsonDocument.Parse(responseString);
+                        var message = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+                        
+                        aiResponse = $"🤖 **AI ACTION PLAN (Powered by LLM)**\n" +
+                                     $"*Cập nhật lúc: {now:dd/MM/yyyy HH:mm}*\n\n" + message;
+                    }
+                }
+                catch (Exception)
+                {
+                    // Ignore exception to fallback to local pieces
+                }
+            }
+            
+            if (string.IsNullOrEmpty(aiResponse))
+            {
+                // Sử dụng kết quả tính toán cục bộ
+                aiResponse = $"🤖 **CHIẾN LƯỢC HÀNH ĐỘNG AI (Hệ thống phân tích)**\n" +
+                             $"*Cập nhật lúc: {now:dd/MM/yyyy HH:mm}*\n\n" + string.Join("\n", localPieces);
+            }
+
+            goal.AIActionPlan = aiResponse;
+            goal.UpdatedAt = DateTime.UtcNow;
+            
+            _db.PersonalGoals.Update(goal);
+            await _db.SaveChangesAsync();
+
+            return goal.AIActionPlan;
         }
     }
 }

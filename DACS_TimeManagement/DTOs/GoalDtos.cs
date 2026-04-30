@@ -6,13 +6,19 @@ namespace DACS_TimeManagement.DTOs
     public class CreateGoalDto
     {
         // Minimal Create DTO: link to Project, description and target date
-        [Required]
-        public int ProjectId { get; set; }
+        public int? ProjectId { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập tên mục tiêu")]
+        public string Title { get; set; }
 
         public string? Description { get; set; }
 
         [Required]
         public DateTime TargetDate { get; set; }
+
+        public double? TargetHours { get; set; }
+
+        public GoalType Type { get; set; } = GoalType.TaskBased;
     }
 
     public class UpdateGoalDto : CreateGoalDto

@@ -1015,6 +1015,18 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadComments();
             setInterval(loadComments, 10000);
+            
+            // SignalR for real-time goal updates on this page
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/goalHub")
+                .build();
+
+            connection.on("ReceiveGoalUpdate", function(data) {
+                console.log("Goal update received on Project Details:", data);
+                loadGoalContributions(); // Refresh the widget
+            });
+
+            connection.start().catch(err => console.error(err.toString()));
         });
 
         // Initialize Emojis

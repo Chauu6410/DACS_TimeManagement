@@ -7,48 +7,44 @@
     var overallProgress = totalGoals == 0 ? 0 : (completedGoals * 100 / totalGoals);
 }
 
-<div class="container py-4">
-    <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">🎯 Your Goals</h2>
-            <p class="text-muted mb-0">Track and manage your project objectives efficiently.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-light rounded-pill px-3 shadow-sm" id="refreshBtn">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-            <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 py-2 shadow-sm fw-semibold">
-                <i class="fas fa-plus-circle me-2"></i>Set Up New Goal
-            </a>
-        </div>
+@Html.AntiForgeryToken()
+
+<div class="goals-container" data-aos="fade-up">
+    <!-- Action Bar -->
+    <div class="d-flex justify-content-end align-items-center mb-4 flex-wrap gap-2">
+        <button class="btn btn-light rounded-pill px-3 shadow-sm hover-lift" id="refreshBtn" title="Refresh data">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+        <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift">
+            <i class="fas fa-plus-circle me-2"></i>Set Up New Goal
+        </a>
     </div>
 
-    <!-- Stats Grid -->
+    <!-- Stats Overview Grid -->
     <div class="row g-4 mb-5">
         <div class="col-md-3 col-6">
-            <div class="stat-card glass-premium">
+            <div class="stat-card-premium glass-premium">
                 <span class="stat-icon-bg"><i class="fas fa-bullseye"></i></span>
                 <div class="stat-value">@totalGoals</div>
                 <div class="stat-label">Total Goals</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card glass-premium highlight-success">
+            <div class="stat-card-premium glass-premium highlight-success">
                 <span class="stat-icon-bg"><i class="fas fa-check-double"></i></span>
                 <div class="stat-value">@completedGoals</div>
                 <div class="stat-label">Completed</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card glass-premium highlight-warning">
+            <div class="stat-card-premium glass-premium highlight-warning">
                 <span class="stat-icon-bg"><i class="fas fa-fire"></i></span>
                 <div class="stat-value" id="globalStreak">@(ViewBag.GlobalStreak ?? 0)</div>
                 <div class="stat-label">Day Streak</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card glass-premium highlight-info">
+            <div class="stat-card-premium glass-premium highlight-info">
                 <span class="stat-icon-bg"><i class="fas fa-chart-pie"></i></span>
                 <div class="stat-value">@overallProgress%</div>
                 <div class="stat-label">Overall Progress</div>
@@ -57,16 +53,23 @@
     </div>
 
     <!-- Toolbar: Search and Filters -->
-    <div class="toolbar glass-premium p-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="toolbar glass-premium p-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3 shadow-sm">
         <div class="search-box position-relative flex-grow-1" style="max-width: 400px;">
             <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
             <input type="text" id="goalSearch" class="form-control rounded-pill ps-5 border-0 bg-light" placeholder="Search goals...">
         </div>
-        <div class="filter-group d-flex gap-2 overflow-auto pb-1">
+        <div class="filter-group d-flex gap-2 overflow-auto pb-1 border-end pe-3 me-2">
+            <span class="small text-muted align-self-center me-2 d-none d-md-block">Status:</span>
             <button class="filter-btn active" data-filter="all">All</button>
             <button class="filter-btn" data-filter="Active">Active</button>
             <button class="filter-btn" data-filter="Completed">Completed</button>
             <button class="filter-btn" data-filter="Behind">Behind</button>
+        </div>
+        <div class="filter-group d-flex gap-2 overflow-auto pb-1">
+            <span class="small text-muted align-self-center me-2 d-none d-md-block">Type:</span>
+            <button class="type-filter-btn active" data-type-filter="all">All</button>
+            <button class="type-filter-btn" data-type-filter="TaskBased">Project</button>
+            <button class="type-filter-btn" data-type-filter="TimeBased">Personal</button>
         </div>
     </div>
 
@@ -74,19 +77,27 @@
     <div class="row g-4" id="goalsGrid">
         @if (!Model.Any())
         {
-            <div class="col-12 text-center py-5">
-                <div class="empty-state p-5 rounded-5 glass-premium">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2026/2026655.png" width="120" class="mb-4 opacity-75" alt="No Goals">
-                    <h3 class="fw-bold">No goals yet</h3>
-                    <p class="text-muted">Start your journey by creating a goal linked to a project.</p>
-                    <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 mt-3 fw-semibold">Get Started</a>
+            <div class="col-12">
+                <div class="empty-state-card card border-0 shadow-lg rounded-4 p-5 text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-bullseye fa-4x text-pastel-muted opacity-50"></i>
+                    </div>
+                    <h4 class="fw-bold">No goals defined yet</h4>
+                    <p class="text-muted mb-4">Start by creating a goal linked to one of your projects.</p>
+                    <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 fw-semibold mx-auto">Set Your First Goal</a>
                 </div>
             </div>
         }
         else
         {
-            @foreach (var goal in Model)
+            var pastelColors = new[] { "pastel-blue", "pastel-green", "pastel-yellow", "pastel-pink", "pastel-purple", "pastel-mint" };
+            var colorIndex = 0;
+
+            foreach (var goal in Model)
             {
+                var colorClass = pastelColors[colorIndex % pastelColors.Length];
+                colorIndex++;
+
                 var progressPercent = goal.TargetValue == 0 ? 0 : (int)Math.Min(100, (double)goal.CurrentValue / goal.TargetValue * 100);
                 var isCompleted = goal.Status == DACS_TimeManagement.Models.GoalStatus.Completed;
                 var daysRemaining = (goal.TargetDate.Date - DateTime.Now.Date).Days;
@@ -94,6 +105,7 @@
                 
                 // Determine CSS class for AI Status
                 var aiStatusClass = aiShortStatus switch {
+                    "Completed" => "text-success fw-bold",
                     "At Risk" => "text-danger fw-bold",
                     "Finishing" => "text-success fw-bold",
                     "Excellent" => "text-primary fw-bold",
@@ -104,85 +116,151 @@
                     _ => "text-muted"
                 };
 
-                <div class="col-lg-6 col-xl-4 goal-item" data-status="@goal.Status" data-title="@goal.Title">
-                    <div class="goal-card-premium glass-premium h-100">
-                        <div class="card-header-custom">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="project-tag">
-                                    <i class="fas fa-folder-open me-1"></i> @(goal.Project?.Name ?? "Solo Goal")
-                                </span>
-                                <div class="card-actions-top d-flex gap-2">
-                                    <a href="#" class="action-btn-mini delete-btn delete-goal-btn" data-id="@goal.Id" title="Delete Goal">
-                                        <i class="fas fa-trash-alt"></i>
+                <div class="col-lg-6 col-xl-4 goal-item" data-id="@goal.Id" data-status="@goal.Status" data-type="@goal.Type" data-title="@goal.Title">
+                    <div class="goal-card card border-0 shadow-md rounded-4 overflow-hidden hover-lift @colorClass h-100">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <!-- Card Actions -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="goal-title fw-bold mb-0 text-truncate" title="@goal.Title">@goal.Title</h5>
+                                <div class="d-flex gap-2">
+                                    <a asp-action="Details" asp-route-id="@goal.Id" class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-secondary hover-scale" title="View History">
+                                        <i class="fas fa-clock-rotate-left"></i>
                                     </a>
+                                    <a asp-action="Edit" asp-route-id="@goal.Id" class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-primary hover-scale" title="Edit">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </a>
+                                    <button class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-danger delete-goal-btn hover-scale" data-id="@goal.Id" title="Delete">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <h4 class="goal-title-custom">@goal.Title</h4>
-                        </div>
 
-                        <div class="progress-section mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="progress-label">Completion Progress</span>
-                                <span class="progress-value">@progressPercent%</span>
-                            </div>
-                            <div class="progress-container-custom">
-                                <div class="progress-bar-custom" style="width: @progressPercent%"></div>
-                            </div>
-                            <div class="progress-stats mt-2 d-flex justify-content-between align-items-center">
-                                <span class="small @aiStatusClass">
-                                    <i class="fas fa-robot me-1"></i> @aiShortStatus
-                                </span>
-                                <span class="small @(daysRemaining < 0 ? "text-danger fw-bold" : "text-primary fw-semibold")">
-                                    <i class="far fa-clock me-1"></i>
-                                    @if (daysRemaining < 0) {
-                                        @:Overdue
-                                    } else if (daysRemaining == 0) {
-                                        @:Due Today
-                                    } else {
-                                        @daysRemaining @:days left
-                                    }
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- AI Action Plan Section -->
-                        <div class="ai-action-box mb-4">
-                            <div class="ai-header mb-2 d-flex align-items-center">
-                                <div class="ai-icon-container me-2">
-                                    <i class="fas fa-robot text-primary"></i>
+                            <!-- Progress Info -->
+                            <div class="progress-info mb-4">
+                                @if (goal.Type == DACS_TimeManagement.Models.GoalType.TaskBased)
+                                {
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small text-muted fw-medium"><i class="fas fa-tasks me-1"></i> Tasks</span>
+                                        <span class="small fw-bold text-dark task-counter">@goal.CompletedTasks / @(goal.TargetTasks ?? 0)</span>
+                                    </div>
+                                }
+                                @if (goal.TargetHours.HasValue)
+                                {
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="small text-muted fw-medium"><i class="fas fa-clock me-1"></i> Effort</span>
+                                        <span class="small fw-bold text-dark effort-counter">@(goal.CompletedHours < (1.0/60.0) ? (Math.Round(goal.CompletedHours * 3600)) + "s" : (goal.CompletedHours < 1 ? (Math.Round(goal.CompletedHours * 60)) + "m" : goal.CompletedHours.ToString("F1") + "h")) / @goal.TargetHours.Value.ToString("F1")h</span>
+                                    </div>
+                                }
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted fw-medium"><i class="far fa-calendar-alt me-1"></i> Deadline</span>
+                                    <span class="small fw-bold text-dark">@goal.TargetDate.ToString("dd/MM/yyyy")</span>
                                 </div>
-                                <span class="fw-bold text-dark small text-uppercase letter-spacing-1">AI Strategy</span>
+
+                                <!-- Progress Bar -->
+                                <div class="progress rounded-pill mb-2" style="height: 8px; background: rgba(0,0,0,0.05);">
+                                    <div class="progress-bar rounded-pill @(isCompleted ? "bg-success" : "")" 
+                                         role="progressbar" 
+                                         style="width: @progressPercent%; transition: width 1s ease;" 
+                                         aria-valuenow="@progressPercent" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100"></div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="x-small @aiStatusClass"><i class="fas fa-robot me-1"></i> @aiShortStatus</span>
+                                    <span class="x-small fw-bold @(daysRemaining < 0 ? "text-danger" : "text-primary")">
+                                        @if (daysRemaining < 0) {
+                                            @:Overdue
+                                        } else if (daysRemaining == 0) {
+                                            @:Due Today
+                                        } else {
+                                            @:@daysRemaining days left
+                                        }
+                                    </span>
+                                </div>
                             </div>
-                            <div class="ai-content-wrapper">
-                                <div class="ai-content-inner" id="aiContent-@goal.Id">
+
+                            <!-- AI Strategy Box -->
+                            <div class="ai-strategy-box rounded-3 p-3 mb-4 flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="ai-icon bg-white rounded-2 p-1 me-2 shadow-sm">
+                                            <i class="fas fa-robot text-primary small"></i>
+                                        </div>
+                                        <span class="x-small fw-bold text-uppercase letter-spacing-1">AI Strategy</span>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-primary p-0 regenerate-ai-btn" data-goal-id="@goal.Id" title="Update Strategy">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                                <div class="ai-content-scroll" id="aiContent-@goal.Id">
                                     @if (!string.IsNullOrEmpty(goal.AIActionPlan))
                                     {
-                                        <div class="ai-text-formatted">
+                                        <div class="ai-text small">
                                             @Html.Raw(goal.AIActionPlan.Replace("\n", "<br/>"))
                                         </div>
                                     }
                                     else
                                     {
-                                        <p class="text-muted small mb-0 italic">AI is analyzing the optimal strategy for this project...</p>
+                                        <p class="text-muted x-small mb-0 italic">Analyzing project data for optimal strategy...</p>
                                     }
                                 </div>
-                                <div class="ai-fade-overlay"></div>
                             </div>
-                            @if (!string.IsNullOrEmpty(goal.AIActionPlan))
-                            {
-                                <button class="btn-toggle-ai mt-2" onclick="toggleAIPlan(@goal.Id, this)">
-                                    <span>Read more</span> <i class="fas fa-chevron-down ms-1"></i>
-                                </button>
-                            }
-                        </div>
 
-                        <div class="goal-footer-actions mt-auto">
-                            <div class="d-flex gap-3">
-                                <a asp-action="Focus" asp-route-id="@goal.Id" class="btn btn-focus-mode flex-grow-1">
-                                    <i class="fas fa-brain me-2"></i>Focus Mode
+                            <!-- Recent Activity Mini Log -->
+                            <div class="recent-activity mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-clock-rotate-left text-muted x-small me-2"></i>
+                                    <span class="x-small fw-bold text-muted text-uppercase letter-spacing-1">Recent Activity</span>
+                                </div>
+                                <div class="activity-list">
+                                    @{
+                                        var now = DateTime.UtcNow;
+                                        var recentLogs = goal.GoalTasks
+                                            .SelectMany(gt => gt.WorkTask.TimeLogs)
+                                            .Select(tl => new { Date = tl.LogDate, Note = tl.Note, Duration = (double?)tl.DurationHours, IsTask = true })
+                                            .Concat(goal.GoalProgressHistories
+                                                .Where(h => !string.IsNullOrEmpty(h.Note) && !h.Note.Contains("Auto update"))
+                                                .Select(h => new { Date = h.RecordedAt, Note = h.Note, Duration = (double?)null, IsTask = false }))
+                                            .OrderByDescending(x => x.Date)
+                                            .Take(3)
+                                            .ToList();
+                                    }
+                                    @foreach (var log in recentLogs)
+                                    {
+                                        var isJustNow = (now - log.Date).TotalMinutes < 1;
+                                        <div class="activity-item d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+                                            <div class="text-truncate me-2" style="max-width: 150px;">
+                                                <span class="xx-small d-block @(isJustNow ? "text-success fw-bold" : "text-muted")">
+                                                    @(isJustNow ? "Just now" : log.Date.ToString("dd/MM HH:mm"))
+                                                </span>
+                                                <span class="x-small text-dark">@log.Note</span>
+                                            </div>
+                                            @if (log.Duration.HasValue)
+                                            {
+                                                var s = (int)Math.Round(log.Duration.Value * 3600);
+                                                <span class="badge bg-light text-primary border xx-small">@(s < 60 ? s + "s" : (s / 60) + "m")</span>
+                                            }
+                                            else if (log.Note.Contains("giây"))
+                                            {
+                                                <span class="badge bg-light text-success border xx-small">Focus</span>
+                                            }
+                                        </div>
+                                    }
+                                    @if (!recentLogs.Any())
+                                    {
+                                        <div class="text-muted xx-small italic">No recent focus sessions.</div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Footer Actions -->
+                            <div class="d-flex gap-2 mt-auto">
+                                <a asp-action="Focus" asp-route-id="@goal.Id" class="btn btn-primary btn-sm flex-grow-1 rounded-pill fw-bold shadow-sm">
+                                    <i class="fas fa-brain me-1"></i> Focus
                                 </a>
-                                <a asp-action="Details" asp-route-id="@goal.Id" class="btn btn-outline-light-custom flex-grow-1">
-                                    <i class="fas fa-chart-line me-2"></i>Chi tiết
+                                <a asp-action="Details" asp-route-id="@goal.Id" class="btn btn-outline-secondary btn-sm flex-grow-1 rounded-pill fw-bold">
+                                    Details & History
                                 </a>
                             </div>
                         </div>
@@ -194,36 +272,72 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Fetch Global Streak
+            fetch('/Goal/GetGlobalStreak')
+                .then(res => res.json())
+                .then(data => {
+                    const streakEl = document.getElementById('globalStreak');
+                    if (streakEl) streakEl.innerText = data.streak;
+                })
+                .catch(err => console.error("Error fetching streak:", err));
+
             // Search Functionality
             const searchInput = document.getElementById('goalSearch');
             const goalItems = document.querySelectorAll('.goal-item');
 
-            searchInput.addEventListener('input', function() {
-                const query = this.value.toLowerCase();
-                goalItems.forEach(item => {
-                    const title = item.dataset.title.toLowerCase();
-                    item.style.display = title.includes(query) ? '' : 'none';
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase();
+                    goalItems.forEach(item => {
+                        const title = item.dataset.title.toLowerCase();
+                        item.style.display = title.includes(query) ? '' : 'none';
+                    });
                 });
-            });
+            }
 
             // Filter Functionality
             const filterBtns = document.querySelectorAll('.filter-btn');
+            const typeFilterBtns = document.querySelectorAll('.type-filter-btn');
+            
+            function applyFilters() {
+                const query = searchInput.value.toLowerCase();
+                const activeStatusFilter = document.querySelector('.filter-btn.active').dataset.filter;
+                const activeTypeFilter = document.querySelector('.type-filter-btn.active').dataset.typeFilter;
+                
+                goalItems.forEach(item => {
+                    const matchesSearch = item.dataset.title.toLowerCase().includes(query);
+                    const matchesStatus = activeStatusFilter === 'all' || item.dataset.status === activeStatusFilter;
+                    const matchesType = activeTypeFilter === 'all' || item.dataset.type === activeTypeFilter;
+                    
+                    if (matchesSearch && matchesStatus && matchesType) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', applyFilters);
+            }
+
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
                     filterBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    const filter = this.dataset.filter;
-                    
-                    goalItems.forEach(item => {
-                        if (filter === 'all' || item.dataset.status === filter) {
-                            item.style.display = '';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
+                    applyFilters();
+                });
+            });
+
+            typeFilterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    typeFilterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    applyFilters();
                 });
             });
 
@@ -232,21 +346,24 @@
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
                     const id = this.dataset.id;
+                    const title = this.closest('.goal-item').dataset.title;
+
                     Swal.fire({
-                        title: 'Are you sure?',
-                        text: "This goal will be permanently deleted!",
+                        title: 'Delete Goal?',
+                        text: `Are you sure you want to delete "${title}"? This action cannot be undone.`,
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ef4444',
                         cancelButtonColor: '#64748b',
                         confirmButtonText: 'Yes, delete it',
-                        cancelButtonText: 'Cancel'
+                        cancelButtonText: 'Cancel',
+                        customClass: { popup: 'rounded-4' }
                     }).then((result) => {
                         if (result.isConfirmed) {
                             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                             const body = new URLSearchParams();
                             body.append('id', id);
-                            body.append('__RequestVerificationToken', token);
+                            if (token) body.append('__RequestVerificationToken', token);
 
                             fetch('/Goal/Delete', { 
                                 method: 'POST', 
@@ -266,62 +383,135 @@
                             })
                             .catch(err => {
                                 console.error(err);
-                                location.reload(); // Fallback reload
+                                location.reload();
                             });
                         }
                     })
                 });
             });
 
+            // Regenerate AI Strategy
+            document.querySelectorAll('.regenerate-ai-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const goalId = this.dataset.goalId;
+                    const contentBox = document.getElementById(`aiContent-${goalId}`);
+                    const icon = this.querySelector('i');
+                    
+                    if (icon.classList.contains('fa-spin')) return;
+                    
+                    icon.classList.add('fa-spin');
+                    contentBox.innerHTML = '<p class="text-muted x-small mb-0 italic">AI đang phân tích dữ liệu mới nhất...</p>';
+                    
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    const body = new URLSearchParams();
+                    body.append('goalId', goalId);
+                    if (token) body.append('__RequestVerificationToken', token);
+
+                    fetch('/Goal/RegenerateAIStrategy', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: body
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        icon.classList.remove('fa-spin');
+                        if (data.success) {
+                            contentBox.innerHTML = `<div class="ai-text small">${data.actionPlan.replace(/\\n/g, '<br/>')}</div>`;
+                        } else {
+                            contentBox.innerHTML = '<p class="text-danger x-small mb-0">Không thể tạo kế hoạch lúc này.</p>';
+                        }
+                    })
+                    .catch(err => {
+                        icon.classList.remove('fa-spin');
+                        contentBox.innerHTML = '<p class="text-danger x-small mb-0">Đã xảy ra lỗi kết nối.</p>';
+                    });
+                });
+            });
 
             // Refresh Button
-            document.getElementById('refreshBtn').addEventListener('click', () => location.reload());
-        });
-
-        function toggleAIPlan(id, btn) {
-            const wrapper = document.getElementById(`aiContent-${id}`).parentElement;
-            const content = document.getElementById(`aiContent-${id}`);
-            const span = btn.querySelector('span');
-            const icon = btn.querySelector('i');
-            
-            if (wrapper.classList.contains('expanded')) {
-                wrapper.classList.remove('expanded');
-                span.textContent = 'Read more';
-                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
-            } else {
-                wrapper.classList.add('expanded');
-                span.textContent = 'Collapse';
-                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+            const refreshBtn = document.getElementById('refreshBtn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    const icon = refreshBtn.querySelector('i');
+                    if (icon) icon.classList.add('fa-spin');
+                    location.reload();
+                });
             }
-        }
+
+            // SignalR Real-time Updates
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/goalHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveGoalUpdate", function (data) {
+                const goalItem = document.querySelector(`.goal-item[data-id="${data.goalId}"]`);
+                if (goalItem) {
+                    const pct = Math.round(data.newProgress);
+                    const bar = goalItem.querySelector('.progress-bar');
+                    const taskVal = goalItem.querySelector('.task-counter');
+                    const effortVal = goalItem.querySelector('.effort-counter');
+                    
+                    if (bar) bar.style.width = pct + '%';
+                    if (taskVal) taskVal.innerHTML = `${data.completedTasks} / ${data.targetTasks}`;
+                    if (effortVal && data.currentValue !== undefined) {
+                        // Assuming targetHours is static or we'd need to send it too
+                        const currentEffortText = effortVal.innerText;
+                        const targetPart = currentEffortText.split('/')[1] || "0 hrs";
+                        effortVal.innerHTML = `${parseFloat(data.currentValue).toFixed(1)} / ${targetPart}`;
+                    }
+                    goalItem.dataset.status = data.status;
+                }
+            });
+
+            connection.start().catch(err => console.log("SignalR connection error:", err));
+        });
     </script>
 }
 
 <style>
     :root {
-        --glass-bg: rgba(255, 255, 255, 0.7);
-        --glass-border: rgba(255, 255, 255, 0.4);
+        /* Pastel Palette */
+        --pastel-blue-bg: #e0f2fe;
+        --pastel-blue-border: #7dd3fc;
+        --pastel-blue-text: #0284c7;
+        --pastel-green-bg: #dcfce7;
+        --pastel-green-border: #86efac;
+        --pastel-green-text: #16a34a;
+        --pastel-yellow-bg: #fef9c3;
+        --pastel-yellow-border: #fde047;
+        --pastel-yellow-text: #ca8a04;
+        --pastel-pink-bg: #fce7f3;
+        --pastel-pink-border: #f9a8d4;
+        --pastel-pink-text: #db2777;
+        --pastel-purple-bg: #f3e8ff;
+        --pastel-purple-border: #d8b4fe;
+        --pastel-purple-text: #9333ea;
+        --pastel-mint-bg: #ccfbf1;
+        --pastel-mint-border: #5eead4;
+        --pastel-mint-text: #0d9488;
+        
         --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-        --ai-bg: rgba(99, 102, 241, 0.08);
     }
 
-    body {
-        background: #f1f5f9;
-        background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%), 
-                          radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.05) 0px, transparent 50%);
+    .goals-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0;
     }
 
     .glass-premium {
-        background: var(--glass-bg);
+        background: rgba(255, 255, 255, 0.7);
         backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 1px solid var(--glass-border);
+        border: 1px solid rgba(255, 255, 255, 0.4);
         border-radius: 24px;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
     }
 
-    .stat-card { padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s ease; }
-    .stat-card:hover { transform: translateY(-5px); }
+    .stat-card-premium { padding: 1.5rem; position: relative; overflow: hidden; transition: transform 0.3s ease; }
+    .stat-card-premium:hover { transform: translateY(-5px); }
     .stat-icon-bg { position: absolute; right: -10px; bottom: -10px; font-size: 4rem; opacity: 0.05; transform: rotate(-15deg); }
     .stat-value { font-size: 1.75rem; font-weight: 800; color: #1e293b; }
     .stat-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -330,137 +520,61 @@
     .highlight-warning .stat-value { color: #f59e0b; }
     .highlight-info .stat-value { color: #0ea5e9; }
 
-    .filter-btn { border: none; background: transparent; padding: 0.4rem 1.2rem; border-radius: 50px; font-weight: 600; color: #64748b; transition: 0.3s; white-space: nowrap; }
-    .filter-btn:hover { background: rgba(99, 102, 241, 0.05); color: #6366f1; }
-    .filter-btn.active { background: var(--primary-gradient); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
+    .filter-btn, .type-filter-btn { border: none; background: transparent; padding: 0.4rem 1.2rem; border-radius: 50px; font-weight: 600; color: #64748b; transition: 0.3s; white-space: nowrap; font-size: 0.85rem; }
+    .filter-btn:hover, .type-filter-btn:hover { background: rgba(99, 102, 241, 0.05); color: #6366f1; }
+    .filter-btn.active, .type-filter-btn.active { background: var(--primary-gradient); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
 
-    .goal-card-premium { padding: 1.5rem; display: flex; flex-direction: column; transition: all 0.3s ease; }
-    .goal-card-premium:hover { box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.12); transform: translateY(-5px); }
+    /* Goal Card Pastel Variants */
+    .goal-card.pastel-blue { background: var(--pastel-blue-bg); border-left: 4px solid var(--pastel-blue-border); }
+    .goal-card.pastel-green { background: var(--pastel-green-bg); border-left: 4px solid var(--pastel-green-border); }
+    .goal-card.pastel-yellow { background: var(--pastel-yellow-bg); border-left: 4px solid var(--pastel-yellow-border); }
+    .goal-card.pastel-pink { background: var(--pastel-pink-bg); border-left: 4px solid var(--pastel-pink-border); }
+    .goal-card.pastel-purple { background: var(--pastel-purple-bg); border-left: 4px solid var(--pastel-purple-border); }
+    .goal-card.pastel-mint { background: var(--pastel-mint-bg); border-left: 4px solid var(--pastel-mint-border); }
 
-    .project-tag { background: #e2e8f0; color: #475569; padding: 4px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
-    .goal-title-custom { font-weight: 800; color: #1e293b; margin-bottom: 1.25rem; line-height: 1.3; }
+    .goal-card { transition: all 0.3s ease; }
+    .goal-card:hover { transform: translateY(-6px); box-shadow: 0 20px 30px -12px rgba(0, 0, 0, 0.15) !important; }
 
-    .progress-container-custom { height: 10px; background: #e2e8f0; border-radius: 50px; overflow: hidden; }
-    .progress-bar-custom { height: 100%; background: var(--primary-gradient); border-radius: 50px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+    .goal-title { font-size: 1.1rem; color: #1e293b; line-height: 1.3; }
     
-    .status-indicator-active { color: #3b82f6; }
-    .status-indicator-completed { color: #10b981; }
-    .status-indicator-behind { color: #ef4444; }
-    .status-indicator-overdue { color: #92400e; }
+    .ai-strategy-box { background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.5); }
+    .ai-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+    .ai-content-scroll { max-height: 80px; overflow-y: auto; padding-right: 5px; }
+    .ai-content-scroll::-webkit-scrollbar { width: 3px; }
+    .ai-content-scroll::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.2); border-radius: 10px; }
 
-    .ai-action-box { 
-        background: #f8fafc; 
-        border-radius: 16px; 
-        padding: 1rem; 
-        border: 1px solid rgba(99, 102, 241, 0.05); 
-        position: relative;
-    }
-    
-    .ai-icon-container {
-        width: 24px;
-        height: 24px;
-        background: white;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
+    .x-small { font-size: 0.75rem; }
+    .xx-small { font-size: 0.65rem; }
+    .italic { font-style: italic; }
+    .letter-spacing-1 { letter-spacing: 1px; }
 
-    .letter-spacing-1 { letter-spacing: 0.5px; }
+    .btn-pastel-primary { background: #e0e7ff; color: #4f46e5; border: none; transition: all 0.2s; }
+    .btn-pastel-primary:hover { background: #c7d2fe; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
 
-    .ai-content-wrapper {
-        position: relative;
-        max-height: 4.8rem; /* Approx 3 lines of 1.6 line-height */
-        overflow: hidden;
-        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
+    .hover-lift:hover { transform: translateY(-2px); }
+
+    .hover-scale { transition: transform 0.2s; }
+    .hover-scale:hover { transform: scale(1.2); background: white !important; }
+
+    .empty-state-card { background: white; border: 1px solid #e2e8f0; }
+
+    /* Fix progress bar default color */
+    .progress-bar {
+        background: var(--primary-gradient);
     }
 
-    .ai-content-wrapper.expanded {
-        max-height: 1000px; /* Large enough to show all content */
+    /* Dark mode overrides */
+    body.theme-dark .glass-premium { background: rgba(30, 41, 59, 0.7); border-color: rgba(255, 255, 255, 0.1); }
+    body.theme-dark .stat-value { color: #f1f5f9; }
+    body.theme-dark .empty-state-card { background: #1e293b; border-color: #334155; }
+    body.theme-dark .goal-card { background: #1e293b; border-left-color: var(--primary); color: #f1f5f9; }
+    body.theme-dark .goal-title { color: #f1f5f9; }
+    body.theme-dark .ai-strategy-box { background: rgba(15, 23, 42, 0.3); border-color: rgba(255,255,255,0.05); }
+
+    @@media (max-width: 768px) {
+        .stat-card-premium { padding: 1rem; }
+        .stat-value { font-size: 1.4rem; }
+        .goal-item { padding: 0.5rem; }
     }
-
-    .ai-text-formatted { 
-        font-size: 0.85rem; 
-        line-height: 1.6; 
-        color: #475569; /* Dark gray */
-    }
-
-    .ai-fade-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 1.5rem;
-        background: linear-gradient(transparent, #f8fafc);
-        pointer-events: none;
-        transition: opacity 0.3s;
-    }
-
-    .expanded .ai-fade-overlay {
-        opacity: 0;
-    }
-
-    .btn-toggle-ai {
-        background: transparent;
-        border: none;
-        color: #6366f1;
-        font-size: 0.75rem;
-        font-weight: 700;
-        padding: 0;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    .btn-toggle-ai:hover {
-        color: #4f46e5;
-        transform: translateX(2px);
-    }
-
-    .btn-pastel-primary {
-        background: #e0e7ff;
-        color: #4f46e5;
-        border: none;
-        transition: all 0.2s;
-    }
-    .btn-pastel-primary:hover {
-        background: #c7d2fe;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
-    }
-
-    .goal-card-premium { 
-        padding: 1.5rem; 
-        display: flex; 
-        flex-direction: column; 
-        transition: all 0.3s ease; 
-        border-radius: 1.5rem !important; /* rounded-4 equivalent */
-    }
-    .goal-card-premium:hover { box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.12); transform: translateY(-5px); }
-
-    .btn-focus-mode { background: var(--primary-gradient); border: none; color: white; font-weight: 600; border-radius: 12px; padding: 10px; transition: 0.3s; }
-    .btn-focus-mode:hover { opacity: 0.9; transform: scale(1.02); color: white; }
-    .btn-outline-light-custom { border: 1px solid #e2e8f0; color: #475569; font-weight: 600; border-radius: 12px; padding: 10px; background: white; }
-    .btn-outline-light-custom:hover { background: #f8fafc; color: #1e293b; }
-
-
-    .card-actions-top .action-btn-mini {
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 8px;
-        font-size: 0.9rem;
-        transition: all 0.2s;
-        text-decoration: none;
-    }
-    .edit-btn { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
-    .edit-btn:hover { background: #6366f1; color: white; }
-    .delete-btn { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-    .delete-btn:hover { background: #ef4444; color: white; }
-
-    @@media (max-width: 768px) { .stat-card { padding: 1rem; } .stat-value { font-size: 1.5rem; } }
 </style>

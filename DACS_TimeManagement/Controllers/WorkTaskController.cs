@@ -298,6 +298,12 @@ namespace DACS_TimeManagement.Controllers
                     await _context.SaveChangesAsync();
                     
                     await NotifyProjectUsersAboutNewTaskAsync(task, userId);
+
+                    // Sync goals
+                    if (task.ProjectId.HasValue)
+                    {
+                        await _goalService.SyncProjectGoalsAsync(task.ProjectId.Value);
+                    }
                 }
                 else
                 {
@@ -428,6 +434,9 @@ namespace DACS_TimeManagement.Controllers
 
                 await _taskRepo.AddAsync(task);
                 await _taskRepo.SaveAsync();
+
+                // Sync goals
+                await _goalService.SyncProjectGoalsAsync(projectId);
 
                 await NotifyProjectUsersAboutNewTaskAsync(task, userId);
 
@@ -658,23 +667,10 @@ namespace DACS_TimeManagement.Controllers
                 }
                 catch { /* swallow notification exceptions */ }
 
-                // Auto-sync: if task moved to Completed, recalculate related goals progress
+                // Auto-sync: recalculate all related goals (project-linked or task-linked)
                 try
                 {
-                    if (task.Status == Models.TaskStatus.Completed)
-                    {
-                        var relatedGoalIds = await _context.GoalTasks
-                            .Where(gt => gt.WorkTaskId == task.Id)
-                            .Select(gt => gt.GoalId)
-                            .Distinct()
-                            .ToListAsync();
-
-                        foreach (var gid in relatedGoalIds)
-                        {
-                            // Recalculate using GoalService to ensure history and status updated
-                            try { await _goalService.RecalculateProgressForGoalAsync(gid, task.Project?.UserId ?? task.UserId); } catch { }
-                        }
-                    }
+                    await _goalService.SyncTaskGoalsAsync(task.Id);
                 }
                 catch { /* non-critical */ }
 
@@ -898,6 +894,9 @@ namespace DACS_TimeManagement.Controllers
                         return NotFound();
                     }
 
+                    // Sync goals after update
+                    await _goalService.SyncTaskGoalsAsync(id);
+
                     // BẮN THÔNG BÁO SIGNALR NẾU ASSIGNEE KHÁC NGƯỜI SỬA
                     if (!string.IsNullOrEmpty(taskForm.AssigneeId) && taskForm.AssigneeId != userId)
                     {
@@ -986,15 +985,36 @@ namespace DACS_TimeManagement.Controllers
 
             try
             {
-                // Lấy thông tin task trước khi xóa để lấy projectId
+                // Lấy thông tin task trước khi xóa để lấy projectId và GoalId liên quan
                 var task = await _context.WorkTasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
                 int? projectId = task?.ProjectId;
+
+                var relatedGoalIds = await _context.GoalTasks
+                    .Where(gt => gt.WorkTaskId == id)
+                    .Select(gt => gt.GoalId)
+                    .ToListAsync();
 
                 var isAdmin = User.IsInRole("Admin");
                 var success = await _taskRepo.DeleteTaskAsync(id, userId, isAdmin);
                 if (!success)
                 {
                     return NotFound();
+                }
+
+                // 1. Sync goals linked via Project
+                if (projectId.HasValue)
+                {
+                    await _goalService.SyncProjectGoalsAsync(projectId.Value);
+                }
+
+                // 2. Sync goals linked specifically via GoalTasks
+                foreach (var gid in relatedGoalIds)
+                {
+                    var goal = await _context.PersonalGoals.AsNoTracking().FirstOrDefaultAsync(g => g.Id == gid);
+                    if (goal != null)
+                    {
+                        await _goalService.RecalculateProgressForGoalAsync(gid, goal.UserId);
+                    }
                 }
 
                 TempData["SuccessMessage"] = "Task deleted successfully!";

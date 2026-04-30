@@ -31,6 +31,10 @@ namespace DACS_TimeManagement.Controllers
             // Eager load Project and GoalTasks to avoid N+1 issues in the view
             var goals = await _db.PersonalGoals
                 .Include(g => g.Project)
+                .Include(g => g.GoalProgressHistories)
+                .Include(g => g.GoalTasks)
+                    .ThenInclude(gt => gt.WorkTask)
+                        .ThenInclude(wt => wt.TimeLogs)
                 .Where(g => g.UserId == userId)
                 .OrderByDescending(g => g.CreatedAt)
                 .ToListAsync();
@@ -59,17 +63,37 @@ namespace DACS_TimeManagement.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var project = await _db.Projects
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.UserId == userId);
+            if (dto.Type == GoalType.TaskBased)
+            {
+                var project = await _db.Projects
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.UserId == userId);
 
-            if (project == null)
-            {
-                ModelState.AddModelError(nameof(dto.ProjectId), "Project not found or access denied.");
+                if (project == null)
+                {
+                    ModelState.AddModelError(nameof(dto.ProjectId), "Vui lòng chọn Project cho mục tiêu Task-based.");
+                }
+                else if (project.EndDate.HasValue && dto.TargetDate.Date > project.EndDate.Value.Date)
+                {
+                    ModelState.AddModelError(nameof(dto.TargetDate), $"Target date cannot exceed project deadline ({project.EndDate.Value:dd/MM/yyyy}).");
+                }
             }
-            else if (project.EndDate.HasValue && dto.TargetDate.Date > project.EndDate.Value.Date)
+            else
             {
-                ModelState.AddModelError(nameof(dto.TargetDate), $"Target date cannot exceed project deadline ({project.EndDate.Value:dd/MM/yyyy}).");
+                // TimeBased (Personal)
+                if (dto.TargetHours <= 0 || dto.TargetHours == null)
+                {
+                    ModelState.AddModelError(nameof(dto.TargetHours), "Vui lòng nhập số giờ mục tiêu hợp lệ.");
+                }
+                if (string.IsNullOrWhiteSpace(dto.Title))
+                {
+                    ModelState.AddModelError(nameof(dto.Title), "Vui lòng nhập tên công việc.");
+                }
+            }
+
+            if (dto.Type == GoalType.TaskBased)
+            {
+                ModelState.Remove(nameof(dto.Title));
             }
 
             if (!ModelState.IsValid)
@@ -78,33 +102,39 @@ namespace DACS_TimeManagement.Controllers
                 return View(dto);
             }
 
-            // Auto compute TargetValue as total tasks in project
-            var totalTasks = await _db.WorkTasks.Where(t => t.ProjectId == dto.ProjectId).CountAsync();
-
             var goal = new PersonalGoal
             {
-                Title = project.Name + " - Commitment",
                 Description = dto.Description,
-                ProjectId = dto.ProjectId,
+                ProjectId = dto.Type == GoalType.TaskBased ? dto.ProjectId : null,
+                Type = dto.Type,
                 StartDate = DateTime.UtcNow,
                 TargetDate = dto.TargetDate,
+                TargetHours = dto.TargetHours,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                TargetValue = totalTasks,
                 CurrentValue = 0
             };
+
+            if (dto.Type == GoalType.TaskBased)
+            {
+                var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.UserId == userId);
+                goal.Title = project?.Name + " - Commitment";
+                var totalTasks = await _db.WorkTasks.Where(t => t.ProjectId == dto.ProjectId && t.AssigneeId == userId).CountAsync();
+                goal.TargetValue = totalTasks;
+                goal.TargetTasks = totalTasks;
+            }
+            else
+            {
+                goal.Title = dto.Title;
+                goal.TargetValue = dto.TargetHours ?? 0;
+            }
 
             await _goalRepo.AddAsync(goal);
             await _goalRepo.SaveAsync();
 
-            // Generate AI strategy
-            if (_goalService is DACS_TimeManagement.Services.GoalService concrete)
-            {
-                goal.AIActionPlan = await concrete.GenerateSmartAIStrategy(dto.ProjectId, dto.TargetDate);
-                _goalRepo.Update(goal);
-                await _goalRepo.SaveAsync();
-            }
+            // Generate AI strategy for both goal types
+            await _goalService.RegenerateSmartAIStrategyAsync(goal.Id, userId);
 
             _db.GoalProgressHistories.Add(new GoalProgressHistory
             {
@@ -148,10 +178,23 @@ namespace DACS_TimeManagement.Controllers
                 existingGoal.Title = goal.Title;
                 existingGoal.Description = goal.Description;
                 existingGoal.TargetDate = goal.TargetDate;
-                existingGoal.UpdatedAt = DateTime.Now;
+                
+                if (existingGoal.Type == GoalType.TimeBased && goal.TargetHours.HasValue)
+                {
+                    existingGoal.TargetValue = goal.TargetHours.Value;
+                }
+                else
+                {
+                    existingGoal.TargetHours = goal.TargetHours;
+                }
+
+                existingGoal.UpdatedAt = DateTime.UtcNow;
 
                 _db.PersonalGoals.Update(existingGoal);
                 await _db.SaveChangesAsync();
+
+                // Recalculate to ensure status and progress are in sync
+                await _goalService.RecalculateProgressForGoalAsync(existingGoal.Id, userId);
                 
                 return RedirectToAction(nameof(Index));
             }
@@ -167,6 +210,7 @@ namespace DACS_TimeManagement.Controllers
                 .Include(g => g.GoalProgressHistories)
                 .Include(g => g.GoalTasks)
                     .ThenInclude(gt => gt.WorkTask)
+                        .ThenInclude(wt => wt.TimeLogs)
                 .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 
             if (goal == null) return NotFound();
@@ -244,6 +288,54 @@ namespace DACS_TimeManagement.Controllers
             return View(goal);
         }
 
+        // POST: Goal/RecordFocusSession
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecordFocusSession(int goalId, int? taskId, double durationHours, string? note = null)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var goal = await _db.PersonalGoals.FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId);
+            
+            if (goal == null) 
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, message = "Goal not found." });
+                return NotFound();
+            }
+
+            if (taskId.HasValue && taskId.Value > 0)
+            {
+                // Task-based logging via TimeLog
+                var timeLog = new TimeLog
+                {
+                    WorkTaskId = taskId.Value,
+                    LogDate = DateTime.UtcNow,
+                    DurationHours = durationHours,
+                    Note = note ?? "Pomodoro Focus Session"
+                };
+                _db.TimeLogs.Add(timeLog);
+                await _db.SaveChangesAsync();
+
+                // Call GoalService to recalc everything related to this task
+                await _goalService.HandleTimeLogAsync(timeLog);
+            }
+            else
+            {
+                // Time-based (Personal) goal logging directly to goal
+                goal.CurrentValue += durationHours; // Note: setter of CurrentValue handles CompletedHours for TimeBased goals
+                goal.UpdatedAt = DateTime.UtcNow;
+                _db.PersonalGoals.Update(goal);
+                await _db.SaveChangesAsync();
+                
+                await _goalService.RecalculateProgressForGoalAsync(goal.Id, userId, note);
+            }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true });
+
+            return RedirectToAction(nameof(Index));
+        }
+
         // AJAX: Sync goal status for Index view
         [HttpGet]
         public async Task<IActionResult> GetAllGoalsStatus()
@@ -293,6 +385,17 @@ namespace DACS_TimeManagement.Controllers
             var goals = _db.PersonalGoals.Where(g => g.UserId == userId).ToList();
             var streak = goals.Any() ? goals.Max(g => g.CurrentStreak) : 0;
             return Json(new { streak });
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegenerateAIStrategy(int goalId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var strategy = await _goalService.RegenerateSmartAIStrategyAsync(goalId, userId);
+            
+            if (strategy == "Không tìm thấy mục tiêu.") return NotFound();
+
+            return Json(new { success = true, actionPlan = strategy });
         }
     }
 }
