@@ -399,5 +399,24 @@ namespace DACS_TimeManagement.Controllers
 
             return Json(new { success = true, actionPlan = strategy });
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteHistory(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var history = await _db.GoalProgressHistories
+                .Include(h => h.Goal)
+                .FirstOrDefaultAsync(h => h.Id == id && h.Goal.UserId == userId);
+                
+            if (history == null) return NotFound();
+
+            _db.GoalProgressHistories.Remove(history);
+            await _db.SaveChangesAsync();
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true });
+
+            return RedirectToAction(nameof(Details), new { id = history.GoalId });
+        }
     }
 }

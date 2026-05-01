@@ -1,6 +1,6 @@
 @model DACS_TimeManagement.Models.PersonalGoal
 @{
-    ViewData["Title"] = Model.Title;
+    ViewData["Title"] = "Goal Details";
 }
 
 <div class="container py-4">
@@ -101,32 +101,33 @@
                     </div>
                 </div>
 
-                <!-- Linked Tasks -->
+                <!-- Time History -->
                 <div>
-                    @if (Model.Type != DACS_TimeManagement.Models.GoalType.TaskBased)
-                    {
-                        <h5 class="fw-semibold"><i class="fas fa-tasks me-2"></i>Linked Tasks</h5>
-                        <div class="task-list mb-4">
-                            @foreach(var gt in Model.GoalTasks)
-                            {
-                                <div class="task-item glass d-flex justify-content-between align-items-center p-3 mb-2 rounded-3">
-                                    <div>
-                                        <strong>@gt.WorkTask.Title</strong>
-                                        <div class="small text-muted">@gt.WorkTask.Progress% - @gt.WorkTask.Status</div>
-                                    </div>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input task-complete-toggle" type="checkbox" data-task-id="@gt.WorkTaskId" @(gt.WorkTask.Status == DACS_TimeManagement.Models.TaskStatus.Completed ? "checked" : "")>
-                                    </div>
-                                </div>
-                            }
-                            @if (!Model.GoalTasks.Any())
-                            {
-                                <div class="text-muted text-center p-4">No tasks linked. Add tasks to track progress.</div>
-                            }
-                        </div>
-                    }
 
-                    <h5 class="fw-semibold"><i class="fas fa-history me-2"></i>Time History</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="icon-box-history">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <div class="lh-1">
+                                <h4 class="fw-bold mb-0" style="color: #1e293b;">Time</h4>
+                                <h4 class="fw-bold mb-0" style="color: #1e293b;">History</h4>
+                            </div>
+                        </div>
+                        @{
+                            var totalLogged = Model.GoalTasks.SelectMany(gt => gt.WorkTask.TimeLogs).Sum(tl => tl.DurationHours);
+                            if (Model.ProjectId.HasValue && Model.Project != null) {
+                                totalLogged = Model.Project.Tasks.SelectMany(t => t.TimeLogs).Sum(tl => tl.DurationHours);
+                            }
+                        }
+                        @if (totalLogged > 0)
+                        {
+                            <div class="badge-total-history">
+                                @totalLogged.ToString("0.##") hrs total
+                            </div>
+                        }
+                    </div>
+
                     <div class="time-history-list">
                         @{
                             var now = DateTime.UtcNow;
@@ -134,6 +135,7 @@
                             var taskLogs = Model.GoalTasks
                                 .SelectMany(gt => gt.WorkTask.TimeLogs)
                                 .Select(tl => new { 
+                                    Id = tl.Id,
                                     Title = tl.WorkTask.Title, 
                                     Date = tl.LogDate, 
                                     Duration = (double?)tl.DurationHours, 
@@ -147,6 +149,7 @@
                                 var projectTaskLogs = Model.Project.Tasks
                                     .SelectMany(t => t.TimeLogs)
                                     .Select(tl => new {
+                                        Id = tl.Id,
                                         Title = tl.WorkTask.Title,
                                         Date = tl.LogDate,
                                         Duration = (double?)tl.DurationHours,
@@ -165,6 +168,7 @@
                             var historyLogs = Model.GoalProgressHistories
                                 .Where(h => !string.IsNullOrEmpty(h.Note) && !h.Note.Contains("Auto update"))
                                 .Select(h => new { 
+                                    Id = h.Id,
                                     Title = Model.Title, 
                                     Date = h.RecordedAt, 
                                     Duration = (double?)null, 
@@ -179,50 +183,62 @@
                         @foreach(var item in allHistory)
                         {
                             var isJustNow = (now - item.Date).TotalMinutes < 1;
-                            <div class="timeline-item p-3 border-bottom transition-all">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <div class="d-flex align-items-center gap-2 mb-1">
-                                            <i class="fas fa-play-circle text-primary small"></i>
-                                            <span class="fw-bold">
-                                                @if (item.Duration.HasValue)
-                                                {
-                                                    var totalSecs = (int)Math.Round(item.Duration.Value * 3600);
-                                                    var m = totalSecs / 60;
-                                                    var s = totalSecs % 60;
+                            <div class="timeline-item p-3 position-relative">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fw-bold text-dark" style="font-size: 1.1rem;">
+                                            @if (item.Duration.HasValue)
+                                            {
+                                                var totalSecs = (int)Math.Round(item.Duration.Value * 3600);
+                                                var m = totalSecs / 60;
+                                                var s = totalSecs % 60;
+                                                if (totalSecs >= 3600) {
+                                                    @:@(totalSecs / 3600)h @(m % 60)m
+                                                } else {
                                                     @:@(m > 0 ? m + "m " : "")@(s)s
                                                 }
-                                                else if (!string.IsNullOrEmpty(item.Note) && item.Note.Contains("[") && item.Note.Contains("]"))
-                                                {
-                                                    // Extract duration from note prefix like [Focus 15m 30s]
-                                                    var start = item.Note.IndexOf("[");
-                                                    var end = item.Note.IndexOf("]");
-                                                    var durationText = item.Note.Substring(start + 1, end - start - 1);
-                                                    if (durationText.Contains("Focus ")) durationText = durationText.Replace("Focus ", "");
-                                                    if (durationText.Contains("Hoàn thành ")) durationText = durationText.Replace("Hoàn thành ", "");
-                                                    @durationText
-                                                }
-                                                else
-                                                {
-                                                    @:Focus
-                                                }
-                                            </span>
-                                            <span class="badge bg-light text-muted fw-normal ms-1" style="font-size: 0.7rem;">@item.Title</span>
-                                        </div>
-                                        @if (!string.IsNullOrEmpty(item.Note))
+                                            }
+                                            else if (!string.IsNullOrEmpty(item.Note) && item.Note.Contains("[") && item.Note.Contains("]"))
+                                            {
+                                                var start = item.Note.IndexOf("[");
+                                                var end = item.Note.IndexOf("]");
+                                                var durationText = item.Note.Substring(start + 1, end - start - 1);
+                                                if (durationText.Contains("Focus ")) durationText = durationText.Replace("Focus ", "");
+                                                if (durationText.Contains("Hoàn thành ")) durationText = durationText.Replace("Hoàn thành ", "");
+                                                @durationText
+                                            }
+                                            else
+                                            {
+                                                @:(Event)
+                                            }
+                                        </span>
+                                        @if (item.Type != "Goal Focus")
                                         {
-                                            var displayNote = item.Note;
-                                            if (displayNote.Contains("]") && displayNote.IndexOf("]") < 30) 
-                                            {
-                                                displayNote = displayNote.Substring(displayNote.IndexOf("]") + 1).Trim();
-                                            }
-                                            if (!string.IsNullOrEmpty(displayNote))
-                                            {
-                                                <p class="small text-muted mb-0 fst-italic">“@displayNote”</p>
-                                            }
+                                            <span class="text-primary-dark fw-bold ms-2" style="font-size: 0.9rem;">— @item.Title</span>
                                         }
                                     </div>
-                                    <small class="text-muted">@(isJustNow ? "Just now" : item.Date.ToString("MMM dd, HH:mm"))</small>
+                                    <div class="text-muted opacity-75 small">
+                                        @(isJustNow ? "Just now" : item.Date.ToString("MMM dd, HH:mm"))
+                                    </div>
+                                </div>
+                                
+                                @if (!string.IsNullOrEmpty(item.Note))
+                                {
+                                    var displayNote = item.Note;
+                                    if (displayNote.Contains("]") && displayNote.IndexOf("]") < 30) 
+                                    {
+                                        displayNote = displayNote.Substring(displayNote.IndexOf("]") + 1).Trim();
+                                    }
+                                    if (!string.IsNullOrEmpty(displayNote))
+                                    {
+                                        <div class="text-muted fst-italic ms-4 ps-1 opacity-75" style="font-size: 0.95rem;">"@displayNote"</div>
+                                    }
+                                }
+
+                                <div class="timeline-actions position-absolute top-50 end-0 translate-middle-y me-3 opacity-0 transition-all">
+                                    <button class="delete-history-btn" data-id="@item.Id" data-type="@item.Type" title="Delete record">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 </div>
                             </div>
                         }
@@ -267,35 +283,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadProgressChart();
             updateProgressDisplays();
-
-            // Task completion toggle
-            document.querySelectorAll('.task-complete-toggle').forEach(toggle => {
-                toggle.addEventListener('change', async function() {
-                    const taskId = this.dataset.taskId;
-                    const isDone = this.checked;
-                    
-                    try {
-                        const response = await fetch(`/Task/UpdateStatus?taskId=${taskId}&isDone=${isDone}`, {
-                            method: 'POST',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        });
-                        if (response.ok) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Updated',
-                                toast: true,
-                                position: 'top-end',
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
-                            setTimeout(() => location.reload(), 1500);
-                        }
-                    } catch (error) {
-                        console.error('Error updating task:', error);
-                        this.checked = !isDone;
-                    }
-                });
-            });
 
             // AI Regeneration
             document.querySelectorAll('.regenerate-ai-btn').forEach(btn => {
@@ -342,6 +329,46 @@
                         if (token) form.appendChild(token.cloneNode(true));
                         document.body.appendChild(form);
                         form.submit();
+                    }
+                });
+            });
+
+            // Delete History Log
+            document.querySelectorAll('.delete-history-btn').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    const id = this.dataset.id;
+                    const type = this.dataset.type;
+                    
+                    const result = await Swal.fire({
+                        title: 'Delete History Entry?',
+                        text: "This action cannot be undone.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        confirmButtonText: 'Yes, delete'
+                    });
+
+                    if (result.isConfirmed) {
+                        const url = type === 'Goal Focus' ? `/Goal/DeleteHistory/${id}` : `/TimeLog/DeleteLog/${id}`;
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        
+                        try {
+                            const response = await fetch(url, {
+                                method: 'POST',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'RequestVerificationToken': token
+                                }
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                this.closest('.timeline-item').classList.add('fade-out-item');
+                                setTimeout(() => location.reload(), 400);
+                            }
+                        } catch (err) {
+                            Swal.fire('Error', 'Failed to delete history entry.', 'error');
+                        }
                     }
                 });
             });
@@ -415,8 +442,18 @@
     .x-small { font-size: 0.75rem; }
     .italic { font-style: italic; }
     
-    .timeline-item { transition: background 0.2s ease; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .timeline-item { transition: all 0.3s ease; border-bottom: 1px solid rgba(0,0,0,0.03); }
     .timeline-item:hover { background: rgba(99, 102, 241, 0.05); transform: translateX(4px); }
+    .timeline-item:hover .timeline-actions { opacity: 1; }
+    .transition-all { transition: all 0.3s ease; }
+    .fade-out-item { opacity: 0; transform: translateX(20px); }
+
+    .delete-history-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #fee2e2; color: #dc2626; border: none; transition: all 0.2s; font-size: 0.85rem; }
+    .delete-history-btn:hover { background: #fecaca; transform: scale(1.1); color: #b91c1c; }
+
+    .icon-box-history { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; color: #4338ca; font-size: 1.5rem; }
+    .badge-total-history { background: #eef2ff; color: #4338ca; padding: 10px 20px; border-radius: 30px; font-weight: 700; font-size: 1.1rem; }
+    .text-primary-dark { color: #4338ca !important; }
     
     .status-badge { padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
     .status-badge.active { background: #e0f2fe; color: #0284c7; }

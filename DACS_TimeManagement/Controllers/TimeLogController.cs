@@ -1,4 +1,5 @@
 using DACS_TimeManagement.Models;
+using DACS_TimeManagement.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -57,6 +58,44 @@ namespace DACS_TimeManagement.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction("Details", "WorkTask", new { id = workTaskId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteLog(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var log = await _context.TimeLogs
+                .Include(tl => tl.WorkTask)
+                .FirstOrDefaultAsync(tl => tl.Id == id);
+                
+            if (log == null) return NotFound();
+
+            var task = log.WorkTask;
+            bool isOwner = task.UserId == userId;
+            bool isAssignee = task.AssigneeId == userId;
+            bool isProjectMember = false;
+            if (task.ProjectId.HasValue)
+            {
+                isProjectMember = await _context.ProjectMembers.AnyAsync(pm => pm.ProjectId == task.ProjectId.Value && pm.UserId == userId);
+            }
+
+            if (!isOwner && !isAssignee && !isProjectMember) return Unauthorized();
+
+            _context.TimeLogs.Remove(log);
+            await _context.SaveChangesAsync();
+
+            // Sync related goals
+            var goalService = (IGoalService)HttpContext.RequestServices.GetService(typeof(IGoalService));
+            if (goalService != null)
+            {
+                await goalService.SyncTaskGoalsAsync(task.Id);
+            }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true });
+
+            return RedirectToAction("Details", "WorkTask", new { id = task.Id });
         }
     }
 }
