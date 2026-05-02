@@ -526,17 +526,6 @@
                                 <i class="fas fa-project-diagram"></i> Projects
                             </a>
                         </li>
-                        <li class="nav-item">
-                            @{ var pendingCount = 0; var uid = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier); if(!string.IsNullOrEmpty(uid)) { pendingCount = _context.TaskChangeRequests.Count(r => r.OwnerId == uid && r.Status == DACS_TimeManagement.Models.TaskChangeStatus.Pending); } }
-                            <a class="nav-link @(currentController == "TaskChangeRequest" ? "active" : "")" asp-controller="TaskChangeRequest" asp-action="Index">
-                                <i class="fas fa-inbox"></i> Requests @if(pendingCount>0){<span class="badge bg-danger ms-2">@pendingCount</span>}
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(currentController == "Share" ? "active" : "")" asp-controller="Share" asp-action="Index">
-                                <i class="fas fa-share-alt"></i> Team Shared
-                            </a>
-                        </li>
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-category mt-2 text-primary">Admin</li>
