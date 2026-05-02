@@ -193,7 +193,7 @@ namespace DACS_TimeManagement.Data
                         {
                             WorkTaskId    = task.Id,
                             LogDate       = task.StartDate.AddDays(li2),
-                            DurationMinutes = Math.Round(rng.NextDouble() * 180 + 30, 2),
+                            DurationHours = Math.Round(rng.NextDouble() * 180 + 30, 2),
                             Note          = li2 == 0 ? "Initial work session" : (li2 == 1 ? "Continued implementation" : "Final review and polish")
                         });
                     }
