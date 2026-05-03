@@ -1,3 +1,4 @@
+@using DACS_TimeManagement.DTOs
 @model DACS_TimeManagement.Models.PersonalGoal
 @{
     ViewData["Title"] = "Goal Details";
@@ -115,10 +116,7 @@
                             </div>
                         </div>
                         @{
-                            var totalLogged = Model.GoalTasks.SelectMany(gt => gt.WorkTask.TimeLogs).Sum(tl => tl.DurationHours);
-                            if (Model.ProjectId.HasValue && Model.Project != null) {
-                                totalLogged = Model.Project.Tasks.SelectMany(t => t.TimeLogs).Sum(tl => tl.DurationHours);
-                            }
+                            var totalLogged = (double)(ViewBag.TotalLogged ?? 0.0);
                         }
                         @if (totalLogged > 0)
                         {
@@ -131,54 +129,7 @@
                     <div class="time-history-list">
                         @{
                             var now = DateTime.UtcNow;
-                            // 1. Logs from specifically linked tasks
-                            var taskLogs = Model.GoalTasks
-                                .SelectMany(gt => gt.WorkTask.TimeLogs)
-                                .Select(tl => new { 
-                                    Id = tl.Id,
-                                    Title = tl.WorkTask.Title, 
-                                    Date = tl.LogDate, 
-                                    Duration = (double?)tl.DurationHours, 
-                                    Note = tl.Note,
-                                    Type = "Task Focus"
-                                }).ToList();
-
-                            // 2. If it's a project goal, include all logs from all tasks in that project
-                            if (Model.ProjectId.HasValue && Model.Project != null)
-                            {
-                                var projectTaskLogs = Model.Project.Tasks
-                                    .SelectMany(t => t.TimeLogs)
-                                    .Select(tl => new {
-                                        Id = tl.Id,
-                                        Title = tl.WorkTask.Title,
-                                        Date = tl.LogDate,
-                                        Duration = (double?)tl.DurationHours,
-                                        Note = tl.Note,
-                                        Type = "Project Focus"
-                                    }).ToList();
-                                
-                                // Avoid duplicates if some tasks are also in GoalTasks
-                                taskLogs = taskLogs.Concat(projectTaskLogs)
-                                    .GroupBy(x => new { x.Date, x.Title, x.Note })
-                                    .Select(g => g.First())
-                                    .ToList();
-                            }
-
-                            // 3. Focus logs for personal (time-based) goals
-                            var historyLogs = Model.GoalProgressHistories
-                                .Where(h => !string.IsNullOrEmpty(h.Note) && !h.Note.Contains("Auto update"))
-                                .Select(h => new { 
-                                    Id = h.Id,
-                                    Title = Model.Title, 
-                                    Date = h.RecordedAt, 
-                                    Duration = (double?)null, 
-                                    Note = h.Note,
-                                    Type = "Goal Focus"
-                                }).ToList();
-
-                            var allHistory = taskLogs.Concat(historyLogs)
-                                .OrderByDescending(x => x.Date)
-                                .ToList();
+                            var allHistory = ViewBag.AllHistory as IEnumerable<GoalHistoryItemDto> ?? Enumerable.Empty<GoalHistoryItemDto>();
                         }
                         @foreach(var item in allHistory)
                         {
@@ -187,29 +138,24 @@
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="fw-bold text-dark" style="font-size: 1.1rem;">
-                                            @if (item.Duration.HasValue)
+                                            @if (item.Duration != null && item.Duration.Value > 0)
                                             {
                                                 var totalSecs = (int)Math.Round(item.Duration.Value * 3600);
-                                                var m = totalSecs / 60;
+                                                var h = totalSecs / 3600;
+                                                var m = (totalSecs % 3600) / 60;
                                                 var s = totalSecs % 60;
-                                                if (totalSecs >= 3600) {
-                                                    @:@(totalSecs / 3600)h @(m % 60)m
+                                                
+                                                if (h > 0) {
+                                                    @:@h.ToString()h @m.ToString()m
+                                                } else if (m > 0) {
+                                                    @:@m.ToString()m @s.ToString()s
                                                 } else {
-                                                    @:@(m > 0 ? m + "m " : "")@(s)s
+                                                    @:@s.ToString()s
                                                 }
-                                            }
-                                            else if (!string.IsNullOrEmpty(item.Note) && item.Note.Contains("[") && item.Note.Contains("]"))
-                                            {
-                                                var start = item.Note.IndexOf("[");
-                                                var end = item.Note.IndexOf("]");
-                                                var durationText = item.Note.Substring(start + 1, end - start - 1);
-                                                if (durationText.Contains("Focus ")) durationText = durationText.Replace("Focus ", "");
-                                                if (durationText.Contains("Hoàn thành ")) durationText = durationText.Replace("Hoàn thành ", "");
-                                                @durationText
                                             }
                                             else
                                             {
-                                                @:(Event)
+                                                @:(Session)
                                             }
                                         </span>
                                         @if (item.Type != "Goal Focus")
@@ -217,8 +163,15 @@
                                             <span class="text-primary-dark fw-bold ms-2" style="font-size: 0.9rem;">— @item.Title</span>
                                         }
                                     </div>
-                                    <div class="text-muted opacity-75 small">
-                                        @(isJustNow ? "Just now" : item.Date.ToString("MMM dd, HH:mm"))
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="text-muted opacity-75 small">
+                                            @(isJustNow ? "Just now" : item.Date.ToString("MMM dd, HH:mm"))
+                                        </div>
+                                        <div class="timeline-actions transition-all">
+                                            <button class="delete-history-btn" data-id="@item.Id" data-type="@item.Type" title="Delete record">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -235,11 +188,6 @@
                                     }
                                 }
 
-                                <div class="timeline-actions position-absolute top-50 end-0 translate-middle-y me-3 opacity-0 transition-all">
-                                    <button class="delete-history-btn" data-id="@item.Id" data-type="@item.Type" title="Delete record">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </div>
                             </div>
                         }
                         @if (!allHistory.Any())
@@ -444,6 +392,7 @@
     
     .timeline-item { transition: all 0.3s ease; border-bottom: 1px solid rgba(0,0,0,0.03); }
     .timeline-item:hover { background: rgba(99, 102, 241, 0.05); transform: translateX(4px); }
+    .timeline-actions { opacity: 0.2; }
     .timeline-item:hover .timeline-actions { opacity: 1; }
     .transition-all { transition: all 0.3s ease; }
     .fade-out-item { opacity: 0; transform: translateX(20px); }

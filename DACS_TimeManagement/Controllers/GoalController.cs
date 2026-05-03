@@ -30,6 +30,8 @@ namespace DACS_TimeManagement.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             // Eager load Project and GoalTasks to avoid N+1 issues in the view
             var goals = await _db.PersonalGoals
+                .AsNoTracking()
+                .AsSplitQuery()
                 .Include(g => g.Project)
                 .Include(g => g.GoalProgressHistories)
                 .Include(g => g.GoalTasks)
@@ -205,17 +207,104 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
+            // 1. Fetch Goal with basic info (Optimized: No deep tasks/logs here)
             var goal = await _db.PersonalGoals
+                .AsNoTracking()
                 .Include(g => g.Project)
-                    .ThenInclude(p => p.Tasks)
-                        .ThenInclude(t => t.TimeLogs)
-                .Include(g => g.GoalProgressHistories)
                 .Include(g => g.GoalTasks)
                     .ThenInclude(gt => gt.WorkTask)
-                        .ThenInclude(wt => wt.TimeLogs)
                 .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 
             if (goal == null) return NotFound();
+
+            // 2. Optimized History Fetching
+            var taskIds = goal.GoalTasks.Select(gt => gt.WorkTaskId).ToList();
+            
+            // Fetch latest 100 TimeLogs
+            var timeLogsQuery = _db.TimeLogs.AsNoTracking().Include(tl => tl.WorkTask).AsQueryable();
+            if (goal.ProjectId.HasValue)
+            {
+                timeLogsQuery = timeLogsQuery.Where(tl => tl.WorkTask.ProjectId == goal.ProjectId.Value);
+            }
+            else
+            {
+                timeLogsQuery = timeLogsQuery.Where(tl => taskIds.Contains(tl.WorkTaskId));
+            }
+
+            var timeLogs = await timeLogsQuery
+                .OrderByDescending(tl => tl.LogDate)
+                .Take(100)
+                .Select(tl => new GoalHistoryItemDto { 
+                    Id = tl.Id,
+                    Title = tl.WorkTask.Title, 
+                    Date = tl.LogDate, 
+                    Duration = (double?)tl.DurationHours, 
+                    Note = tl.Note,
+                    Type = goal.ProjectId.HasValue ? "Project Focus" : "Task Focus"
+                })
+                .ToListAsync();
+
+            // Fetch latest 100 Progress Histories
+            var progressHistoryRaw = await _db.GoalProgressHistories
+                .AsNoTracking()
+                .Where(h => h.GoalId == id && !string.IsNullOrEmpty(h.Note) && !h.Note.Contains("Auto update"))
+                .OrderByDescending(h => h.RecordedAt)
+                .Take(100)
+                .ToListAsync();
+
+            var progressHistory = progressHistoryRaw.Select(h => {
+                double? parsedDuration = null;
+                if (h.Note != null && h.Note.Contains("[Focus "))
+                {
+                    try {
+                        var start = h.Note.IndexOf("[Focus ") + 7;
+                        var end = h.Note.IndexOf("]", start);
+                        if (end > start) {
+                            var durStr = h.Note.Substring(start, end - start);
+                            if (durStr.Contains(":")) {
+                                var parts = durStr.Split(':');
+                                if (parts.Length == 3) parsedDuration = int.Parse(parts[0]) + int.Parse(parts[1])/60.0 + int.Parse(parts[2])/3600.0;
+                                else if (parts.Length == 2) parsedDuration = int.Parse(parts[0])/60.0 + int.Parse(parts[1])/3600.0;
+                            } else if (durStr.EndsWith("m")) {
+                                parsedDuration = double.Parse(durStr.Replace("m","")) / 60.0;
+                            } else if (durStr.EndsWith("s")) {
+                                parsedDuration = double.Parse(durStr.Replace("s","")) / 3600.0;
+                            }
+                        }
+                    } catch {}
+                }
+                
+                return new GoalHistoryItemDto { 
+                    Id = h.Id,
+                    Title = goal.Title, 
+                    Date = h.RecordedAt, 
+                    Duration = parsedDuration, 
+                    Note = h.Note,
+                    Type = "Goal Focus"
+                };
+            }).ToList();
+
+            // Combine and sort
+            var allHistory = timeLogs.Concat(progressHistory)
+                .OrderByDescending(x => x.Date)
+                .Take(100)
+                .ToList();
+
+            ViewBag.AllHistory = allHistory;
+
+            // 3. Pre-calculate summary stats
+            double totalLogged = 0;
+            if (goal.ProjectId.HasValue)
+            {
+                totalLogged = await _db.TimeLogs.Where(tl => tl.WorkTask.ProjectId == goal.ProjectId.Value).SumAsync(tl => tl.DurationHours);
+            }
+            else
+            {
+                totalLogged = await _db.TimeLogs.Where(tl => taskIds.Contains(tl.WorkTaskId)).SumAsync(tl => tl.DurationHours);
+            }
+            ViewBag.TotalLogged = totalLogged;
+
             return View(goal);
         }
 

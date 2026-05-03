@@ -185,18 +185,7 @@ namespace DACS_TimeManagement.Data
                     await context.SaveChangesAsync();
                     createdTasks.Add(task);
 
-                    // TimeLogs: 1-3 entries per task
-                    int logCount = rng.Next(1, 4);
-                    for (int li2 = 0; li2 < logCount; li2++)
-                    {
-                        context.TimeLogs.Add(new TimeLog
-                        {
-                            WorkTaskId    = task.Id,
-                            LogDate       = task.StartDate.AddDays(li2),
-                            DurationHours = Math.Round(rng.NextDouble() * 180 + 30, 2),
-                            Note          = li2 == 0 ? "Initial work session" : (li2 == 1 ? "Continued implementation" : "Final review and polish")
-                        });
-                    }
+                    // TimeLogs seeding removed to provide a clean history
 
                     // TaskHistory: moved from To Do → In Progress (or In Progress → Done)
                     if (isDone)
@@ -256,6 +245,13 @@ namespace DACS_TimeManagement.Data
                 if (existingGoal == null && createdTasks.Any())
                 {
                     bool useTimeBased = (pi % 2 == 0);
+                    
+                    // Calculate actual hours logged for this goal's tasks
+                    var linkedTaskIds = createdTasks.Take(3).Select(t => t.Id).ToList();
+                    var totalHoursLogged = await context.TimeLogs
+                        .Where(tl => linkedTaskIds.Contains(tl.WorkTaskId))
+                        .SumAsync(tl => tl.DurationHours);
+
                     var goal = new PersonalGoal
                     {
                         Title          = $"Complete: {proj.Name}",
@@ -263,8 +259,8 @@ namespace DACS_TimeManagement.Data
                         Type           = useTimeBased ? GoalType.TimeBased : GoalType.TaskBased,
                         TargetHours    = useTimeBased ? (double?)40 : null,
                         TargetTasks    = !useTimeBased ? (int?)createdTasks.Count : null,
-                        CompletedHours = useTimeBased ? Math.Round(rng.NextDouble() * 20, 2) : 0,
-                        CompletedTasks = !useTimeBased ? rng.Next(1, createdTasks.Count) : 0,
+                        CompletedHours = 0,
+                        CompletedTasks = 0,
                         StartDate      = proj.CreatedDate,
                         TargetDate     = proj.CreatedDate.AddDays(60),
                         Status         = GoalStatus.OnTrack,
@@ -274,6 +270,10 @@ namespace DACS_TimeManagement.Data
                         CurrentStreak  = rng.Next(2, 14),
                         LastUpdated    = DateTime.Now.AddDays(-rng.Next(0, 5))
                     };
+                    
+                    if (useTimeBased && goal.CompletedHours > (goal.TargetHours ?? 40)) 
+                        goal.TargetHours = Math.Ceiling(goal.CompletedHours / 10) * 10 + 10;
+
                     context.PersonalGoals.Add(goal);
                     await context.SaveChangesAsync();
 
@@ -288,17 +288,14 @@ namespace DACS_TimeManagement.Data
                         });
                     }
 
-                    // GoalProgressHistory: 3 snapshots
-                    for (int snap = 1; snap <= 3; snap++)
+                    // Progress history snapshots removed to provide a clean history
+                    context.GoalProgressHistories.Add(new GoalProgressHistory
                     {
-                        context.GoalProgressHistories.Add(new GoalProgressHistory
-                        {
-                            GoalId     = goal.Id,
-                            Progress   = snap * 20 + rng.Next(0, 10),
-                            RecordedAt = proj.CreatedDate.AddDays(snap * 7),
-                            Note       = snap == 1 ? "Good start, on track." : (snap == 2 ? "Steady progress midway." : "Approaching target milestone.")
-                        });
-                    }
+                        GoalId     = goal.Id,
+                        Progress   = 0,
+                        RecordedAt = proj.CreatedDate,
+                        Note       = "Initial Commitment Established"
+                    });
                     await context.SaveChangesAsync();
                 }
             }

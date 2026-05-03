@@ -49,4 +49,13 @@ namespace DACS_TimeManagement.DTOs
         public DateTime StartDate { get; set; }
         public DateTime TargetDate { get; set; }
     }
+    public class GoalHistoryItemDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public DateTime Date { get; set; }
+        public double? Duration { get; set; }
+        public string? Note { get; set; }
+        public string Type { get; set; }
+    }
 }
