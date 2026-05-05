@@ -1,5 +1,6 @@
 @model DACS_TimeManagement.Models.Project
 @using System.Security.Claims
+@using DACS_TimeManagement.Services
 @{
     ViewData["Title"] = "Project Details";
     var completedTasks = Model.Tasks?.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed) ?? 0;
@@ -7,6 +8,8 @@
     var progressPct = totalTasks == 0 ? 0 : (int)((double)completedTasks / totalTasks * 100);
     var members = (List<DACS_TimeManagement.Models.ProjectMember>)ViewBag.Members ?? new List<DACS_TimeManagement.Models.ProjectMember>();
     var memberList = members.Where(m => m.UserId != Model.UserId).ToList();
+    var currentCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+    var langCode = currentCulture.StartsWith("vi") ? "vi" : "en";
 }
 
 <style>
@@ -541,16 +544,9 @@
                         <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="text-pastel-muted"><i class="far fa-calendar-alt fs-5"></i></div>
-                                <h6 class="mb-0 fw-semibold text-pastel-dark">Created Date</h6>
+                                <h6 class="mb-0 fw-semibold text-pastel-dark">Created</h6>
                             </div>
-                            <span class="text-pastel-muted fw-medium">@Model.CreatedDate.ToString("MMM dd, yyyy")</span>
-                        </li>
-                        <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="text-pastel-muted"><i class="far fa-clock fs-5"></i></div>
-                                <h6 class="mb-0 fw-semibold text-pastel-dark">Time</h6>
-                            </div>
-                            <span class="text-pastel-muted fw-medium">@Model.CreatedDate.ToString("hh:mm tt")</span>
+                            <span class="text-pastel-muted fw-medium">@DateTimeHelper.FormatByLanguage(Model.CreatedDate, langCode)</span>
                         </li>                       
                         <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
@@ -712,7 +708,7 @@
                                             ${isMine ? `<button type="button" class="delete-message-btn" data-id="${c.id}" title="Delete message"><i class="fas fa-trash-alt"></i></button>` : ''}
                                         </div>
                                         <div class="small fw-medium text-muted mt-1 ${isMine ? 'me-2' : 'ms-2'}" style="font-size: 0.75rem; opacity: 0.7;">
-                                            ${new Date(c.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                                            ${formatDateTime(c.createdAt)}
                                         </div>
                                     </div>
                                 </div>

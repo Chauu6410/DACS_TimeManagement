@@ -1,7 +1,7 @@
 @model IEnumerable<DACS_TimeManagement.Models.PersonalGoal>
 @inject DACS_TimeManagement.Services.Interfaces.IGoalService GoalService
 @{
-    ViewData["Title"] = "Goal Management";
+    ViewData["Title"] = Localizer["GoalManagement"];
     var totalGoals = Model.Count();
     var completedGoals = Model.Count(g => g.Status == DACS_TimeManagement.Models.GoalStatus.Completed);
     var overallProgress = totalGoals == 0 ? 0 : (completedGoals * 100 / totalGoals);
@@ -12,11 +12,11 @@
 <div class="goals-container" data-aos="fade-up">
     <!-- Action Bar -->
     <div class="d-flex justify-content-end align-items-center mb-4 flex-wrap gap-2">
-        <button class="btn btn-light rounded-pill px-3 shadow-sm hover-lift" id="refreshBtn" title="Refresh data">
+        <button class="btn btn-light rounded-pill px-3 shadow-sm hover-lift" id="refreshBtn" title="@Localizer["RefreshData"]">
             <i class="fas fa-sync-alt"></i>
         </button>
         <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift">
-            <i class="fas fa-plus-circle me-2"></i>Set Up New Goal
+            <i class="fas fa-plus-circle me-2"></i>@Localizer["SetUpNewGoal"]
         </a>
     </div>
 
@@ -26,28 +26,28 @@
             <div class="stat-card-premium glass-premium">
                 <span class="stat-icon-bg"><i class="fas fa-bullseye"></i></span>
                 <div class="stat-value">@totalGoals</div>
-                <div class="stat-label">Total Goals</div>
+                <div class="stat-label">@Localizer["TotalGoals"]</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
             <div class="stat-card-premium glass-premium highlight-success">
                 <span class="stat-icon-bg"><i class="fas fa-check-double"></i></span>
                 <div class="stat-value">@completedGoals</div>
-                <div class="stat-label">Completed</div>
+                <div class="stat-label">@Localizer["Completed"]</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
             <div class="stat-card-premium glass-premium highlight-warning">
                 <span class="stat-icon-bg"><i class="fas fa-fire"></i></span>
                 <div class="stat-value" id="globalStreak">@(ViewBag.GlobalStreak ?? 0)</div>
-                <div class="stat-label">Day Streak</div>
+                <div class="stat-label">@Localizer["DayStreak"]</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
             <div class="stat-card-premium glass-premium highlight-info">
                 <span class="stat-icon-bg"><i class="fas fa-chart-pie"></i></span>
                 <div class="stat-value">@overallProgress%</div>
-                <div class="stat-label">Overall Progress</div>
+                <div class="stat-label">@Localizer["OverallProgress"]</div>
             </div>
         </div>
     </div>
@@ -56,20 +56,20 @@
     <div class="toolbar glass-premium p-3 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3 shadow-sm">
         <div class="search-box position-relative flex-grow-1" style="max-width: 400px;">
             <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-            <input type="text" id="goalSearch" class="form-control rounded-pill ps-5 border-0 bg-light" placeholder="Search goals...">
+            <input type="text" id="goalSearch" class="form-control rounded-pill ps-5 border-0 bg-light" placeholder="@Localizer["SearchGoals"]">
         </div>
         <div class="filter-group d-flex gap-2 overflow-auto pb-1 border-end pe-3 me-2">
-            <span class="small text-muted align-self-center me-2 d-none d-md-block">Status:</span>
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="Active">Active</button>
-            <button class="filter-btn" data-filter="Completed">Completed</button>
-            <button class="filter-btn" data-filter="Behind">Behind</button>
+            <span class="small text-muted align-self-center me-2 d-none d-md-block">@Localizer["Status"]:</span>
+            <button class="filter-btn active" data-filter="all">@Localizer["All"]</button>
+            <button class="filter-btn" data-filter="Active">@Localizer["Active"]</button>
+            <button class="filter-btn" data-filter="Completed">@Localizer["Completed"]</button>
+            <button class="filter-btn" data-filter="Behind">@Localizer["Behind"]</button>
         </div>
         <div class="filter-group d-flex gap-2 overflow-auto pb-1">
-            <span class="small text-muted align-self-center me-2 d-none d-md-block">Type:</span>
-            <button class="type-filter-btn active" data-type-filter="all">All</button>
-            <button class="type-filter-btn" data-type-filter="TaskBased">Project</button>
-            <button class="type-filter-btn" data-type-filter="TimeBased">Personal</button>
+            <span class="small text-muted align-self-center me-2 d-none d-md-block">@Localizer["Type"]:</span>
+            <button class="type-filter-btn active" data-type-filter="all">@Localizer["All"]</button>
+            <button class="type-filter-btn" data-type-filter="TaskBased">@Localizer["ProjectBased"]</button>
+            <button class="type-filter-btn" data-type-filter="TimeBased">@Localizer["PersonalBased"]</button>
         </div>
     </div>
 
@@ -82,9 +82,9 @@
                     <div class="mb-4">
                         <i class="fas fa-bullseye fa-4x text-pastel-muted opacity-50"></i>
                     </div>
-                    <h4 class="fw-bold">No goals defined yet</h4>
-                    <p class="text-muted mb-4">Start by creating a goal linked to one of your projects.</p>
-                    <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 fw-semibold mx-auto">Set Your First Goal</a>
+                    <h4 class="fw-bold">@Localizer["NoGoalsDefined"]</h4>
+                    <p class="text-muted mb-4">@Localizer["StartCreatingGoal"]</p>
+                    <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 fw-semibold mx-auto">@Localizer["SetYourFirstGoal"]</a>
                 </div>
             </div>
         }
@@ -123,10 +123,10 @@
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <h5 class="goal-title fw-bold mb-0 text-truncate" title="@goal.Title">@goal.Title</h5>
                                 <div class="d-flex gap-2">
-                                    <a asp-action="Edit" asp-route-id="@goal.Id" class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-primary hover-scale" title="Edit">
+                                    <a asp-action="Edit" asp-route-id="@goal.Id" class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-primary hover-scale" title="@Localizer["Edit"]">
                                         <i class="fas fa-pencil-alt"></i>
                                     </a>
-                                    <button class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-danger delete-goal-btn hover-scale" data-id="@goal.Id" title="Delete">
+                                    <button class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-danger delete-goal-btn hover-scale" data-id="@goal.Id" title="@Localizer["Delete"]">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
@@ -137,20 +137,25 @@
                                 @if (goal.Type == DACS_TimeManagement.Models.GoalType.TaskBased)
                                 {
                                     <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="small text-muted fw-medium"><i class="fas fa-tasks me-1"></i> Tasks</span>
+                                        <span class="small text-muted fw-medium"><i class="fas fa-tasks me-1"></i> @Localizer["Tasks"]</span>
                                         <span class="small fw-bold text-dark task-counter">@goal.CompletedTasks / @(goal.TargetTasks ?? 0)</span>
                                     </div>
                                 }
                                 @if (goal.TargetHours.HasValue && goal.Type != DACS_TimeManagement.Models.GoalType.TaskBased)
                                 {
                                     <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="small text-muted fw-medium"><i class="fas fa-clock me-1"></i> Effort</span>
+                                        <span class="small text-muted fw-medium"><i class="fas fa-clock me-1"></i> @Localizer["Effort"]</span>
                                         <span class="small fw-bold text-dark effort-counter">@(goal.CompletedHours < (1.0/60.0) ? (Math.Round(goal.CompletedHours * 3600)) + "s" : (goal.CompletedHours < 1 ? (Math.Round(goal.CompletedHours * 60)) + "m" : goal.CompletedHours.ToString("F1") + "h")) / @goal.TargetHours.Value.ToString("F1")h</span>
                                     </div>
                                 }
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="small text-muted fw-medium"><i class="far fa-calendar-alt me-1"></i> Deadline</span>
-                                    <span class="small fw-bold text-dark">@goal.TargetDate.ToString("dd/MM/yyyy")</span>
+                                    <span class="small text-muted fw-medium"><i class="far fa-calendar-alt me-1"></i> @Localizer["Deadline"]</span>
+                                    @{
+                                        var currentCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+                                        var langCode = currentCulture.StartsWith("vi") ? "vi" : "en";
+                                        var culture = new System.Globalization.CultureInfo(langCode == "vi" ? "vi-VN" : "en-US");
+                                    }
+                                    <span class="small fw-bold text-dark">@goal.TargetDate.ToString("d", culture)</span>
                                 </div>
 
                                 <!-- Progress Bar -->
@@ -164,14 +169,14 @@
                                 </div>
                                 
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="x-small @aiStatusClass"><i class="fas fa-robot me-1"></i> @aiShortStatus</span>
+                                    <span class="x-small @aiStatusClass"><i class="fas fa-robot me-1"></i> @Localizer[aiShortStatus == "Completed" ? "CompletedStatus" : aiShortStatus.Replace(" ", "")]</span>
                                     <span class="x-small fw-bold @(daysRemaining < 0 ? "text-danger" : "text-primary")">
                                         @if (daysRemaining < 0) {
-                                            @:Overdue
+                                            @Localizer["Overdue"]
                                         } else if (daysRemaining == 0) {
-                                            @:Due Today
+                                            @Localizer["DueToday"]
                                         } else {
-                                            @:@daysRemaining days left
+                                            @:@daysRemaining @Localizer["DaysLeft"]
                                         }
                                     </span>
                                 </div>
@@ -184,9 +189,9 @@
                                         <div class="ai-icon bg-white rounded-2 p-1 me-2 shadow-sm">
                                             <i class="fas fa-robot text-primary small"></i>
                                         </div>
-                                        <span class="x-small fw-bold text-uppercase letter-spacing-1">AI Strategy</span>
+                                        <span class="x-small fw-bold text-uppercase letter-spacing-1">@Localizer["AIStrategy"]</span>
                                     </div>
-                                    <button class="btn btn-sm btn-link text-primary p-0 regenerate-ai-btn" data-goal-id="@goal.Id" title="Update Strategy">
+                                    <button class="btn btn-sm btn-link text-primary p-0 regenerate-ai-btn" data-goal-id="@goal.Id" title="@Localizer["UpdateStrategy"]">
                                         <i class="fas fa-sync-alt"></i>
                                     </button>
                                 </div>
@@ -199,7 +204,7 @@
                                     }
                                     else
                                     {
-                                        <p class="text-muted x-small mb-0 italic">Analyzing project data for optimal strategy...</p>
+                                        <p class="text-muted x-small mb-0 italic">@Localizer["AnalyzingData"]</p>
                                     }
                                 </div>
                             </div>
@@ -209,10 +214,10 @@
                             <!-- Footer Actions -->
                             <div class="d-flex gap-2 mt-auto">
                                 <a asp-action="Focus" asp-route-id="@goal.Id" class="btn btn-primary btn-sm flex-grow-1 rounded-pill fw-bold shadow-sm">
-                                    <i class="fas fa-brain me-1"></i> Focus
+                                    <i class="fas fa-brain me-1"></i> @Localizer["Focus"]
                                 </a>
                                 <a asp-action="Details" asp-route-id="@goal.Id" class="btn btn-outline-secondary btn-sm flex-grow-1 rounded-pill fw-bold">
-                                    Details & History
+                                    @Localizer["DetailsHistory"]
                                 </a>
                             </div>
                         </div>
@@ -301,14 +306,14 @@
                     const title = this.closest('.goal-item').dataset.title;
 
                     Swal.fire({
-                        title: 'Delete Goal?',
-                        text: `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+                        title: '@Localizer["DeleteGoalTitle"]',
+                        text: `@Localizer["DeleteGoalText"]`.replace("{title}", title),
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ef4444',
                         cancelButtonColor: '#64748b',
-                        confirmButtonText: 'Yes, delete it',
-                        cancelButtonText: 'Cancel',
+                        confirmButtonText: '@Localizer["YesDelete"]',
+                        cancelButtonText: '@Localizer["Cancel"]',
                         customClass: { popup: 'rounded-4' }
                     }).then((result) => {
                         if (result.isConfirmed) {
@@ -352,7 +357,7 @@
                     if (icon.classList.contains('fa-spin')) return;
                     
                     icon.classList.add('fa-spin');
-                    contentBox.innerHTML = '<p class="text-muted x-small mb-0 italic">AI đang phân tích dữ liệu mới nhất...</p>';
+                    contentBox.innerHTML = `<p class="text-muted x-small mb-0 italic">${'@Localizer["AIDataAnalyzing"]'}</p>`;
                     
                     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                     const body = new URLSearchParams();

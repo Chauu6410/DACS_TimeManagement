@@ -132,6 +132,26 @@ namespace DACS_TimeManagement.Models
                 .WithMany(g => g.GoalProgressHistories)
                 .HasForeignKey(h => h.GoalId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // ==========================================
+            // CẤU HÌNH UTC CHO TẤT CẢ DỮ LIỆU THỜI GIAN
+            // ==========================================
+            // Đảm bảo mọi DateTime trong DB đều được lưu ở chuẩn UTC
+            // và khi đọc ra được gán đúng Kind là Utc để tránh sai lệch múi giờ.
+            var dateTimeConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>(
+                v => v.Kind == DateTimeKind.Utc ? v : v.ToUniversalTime(),
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+            foreach (var entityType in builder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+                    {
+                        property.SetValueConverter(dateTimeConverter);
+                    }
+                }
+            }
         }
         public DbSet<DACS_TimeManagement.Models.ProjectDiscussion> ProjectDiscussion { get; set; } = default!;
     }

@@ -15,8 +15,12 @@
         if (profile != null) themeColor = profile.Theme;
     }
 }
+@{
+    var currentCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+    var langCode = currentCulture.StartsWith("vi") ? "vi" : "en";
+}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@langCode">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -493,53 +497,53 @@
                 </div>
                 <div class="sidebar-content">
                     <ul class="nav flex-column">
-                        <li class="nav-category">Overview</li>
+                        <li class="nav-category">@Localizer["Overview"]</li>
                         <li class="nav-item">
                             <a class="nav-link @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">
-                                <i class="fas fa-chart-line"></i> Dashboard
+                                <i class="fas fa-chart-line"></i> @Localizer["Dashboard"]
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(currentController == "Report" ? "active" : "")" asp-controller="Report" asp-action="Index">
-                                <i class="fas fa-chart-pie"></i> Reporting
+                                <i class="fas fa-chart-pie"></i> @Localizer["Reporting"]
                             </a>
                         </li>
-                        <li class="nav-category mt-2">Workspace</li>
+                        <li class="nav-category mt-2">@Localizer["Workspace"]</li>
                         <li class="nav-item">
                             <a class="nav-link @(currentController == "WorkTask" ? "active" : "")" asp-controller="WorkTask" asp-action="Index">
-                                <i class="fas fa-columns"></i> Kanban
+                                <i class="fas fa-columns"></i> @Localizer["Kanban"]
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(currentController == "Calendar" ? "active" : "")" asp-controller="Calendar" asp-action="Index">
-                                <i class="far fa-calendar-alt"></i> Schedule
+                                <i class="far fa-calendar-alt"></i> @Localizer["Schedule"]
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link @(currentController == "Goal" ? "active" : "")" asp-controller="Goal" asp-action="Index">
-                                <i class="fas fa-bullseye"></i> Goals
+                                <i class="fas fa-bullseye"></i> @Localizer["Goals"]
                             </a>
                         </li>
-                        <li class="nav-category mt-2">Organization</li>
+                        <li class="nav-category mt-2">@Localizer["Organization"]</li>
                         <li class="nav-item">
                             <a class="nav-link @(currentController == "Project" ? "active" : "")" asp-controller="Project" asp-action="Index">
-                                <i class="fas fa-project-diagram"></i> Projects
+                                <i class="fas fa-project-diagram"></i> @Localizer["Projects"]
                             </a>
                         </li>
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-category mt-2 text-primary">Admin</li>
+                            <li class="nav-category mt-2 text-primary">@Localizer["Admin"]</li>
                             <li class="nav-item">
                                 <a class="nav-link @(currentController == "Admin" ? "active" : "")" asp-controller="Admin" asp-action="Index">
-                                    <i class="fas fa-shield-alt"></i> System Admin
+                                    <i class="fas fa-shield-alt"></i> @Localizer["SystemAdmin"]
                                 </a>
                             </li>
                         }
                     </ul>
                 </div>
                 <div class="sidebar-footer">
-                    <a class="nav-link @(currentController == "Profile" ? "active" : "")" asp-controller="Profile" asp-action="Index">
-                        <i class="fas fa-user-cog"></i> Settings
+                    <a class="nav-link @(currentController == "Account" && currentAction == "Profile" ? "active" : "")" asp-controller="Account" asp-action="Profile">
+                        <i class="fas fa-sliders-h"></i> @Localizer["Settings"]
                     </a>
                 </div>
             </aside>
@@ -552,6 +556,12 @@
                             <i class="fas fa-bars"></i>
                         </button>
                         <h1 class="page-title mb-0">@ViewData["Title"]</h1>
+                    </div>
+                    
+                    <!-- Global Real-Time Clock -->
+                    <div class="d-none d-lg-flex align-items-center bg-light bg-opacity-10 px-3 py-1 rounded-pill border border-white border-opacity-20 shadow-sm mx-auto">
+                        <i class="fas fa-clock text-primary me-2 animate-pulse"></i>
+                        <span id="globalClock" class="fw-bold small text-dark opacity-75" style="min-width: 180px;"></span>
                     </div>
                     <div class="topbar-actions">
                         <div class="dropdown">
@@ -568,12 +578,12 @@
                                     </div>
                                 }
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 20px; min-width: 300px;">
-                                <li><h6 class="dropdown-header fw-bold py-3">Notifications</h6></li>
+                                <li><h6 class="dropdown-header fw-bold py-3">@Localizer["Notifications"]</h6></li>
                                 <div id="notifList" style="max-height: 300px; overflow-y: auto;">
-                                    <li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2"></i><br/>All caught up</li>
+                                    <li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2"></i><br/>@Localizer["AllCaughtUp"]</li>
                                 </div>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-center fw-semibold" href="/Notification/Index">View all →</a></li>
+                                <li><a class="dropdown-item text-center fw-semibold" href="/Notification/Index">@Localizer["ViewAll"]</a></li>
                             </ul>
                         </div>
                         <partial name="_LoginPartial" />
@@ -584,7 +594,7 @@
                         @RenderBody()
                     </div>
                     <footer class="mt-5 pt-3 border-top text-center text-muted small">
-                        © 2026 TimeMaster · <a href="#" class="text-decoration-none">Privacy</a> · <a href="#" class="text-decoration-none">Terms</a>
+                        © 2026 TimeMaster · <a href="#" class="text-decoration-none">@Localizer["Privacy"]</a> · <a href="#" class="text-decoration-none">@Localizer["Terms"]</a>
                     </footer>
                 </main>
             </div>
@@ -634,25 +644,89 @@
                                 <li>
                                     <a class="dropdown-item py-3 px-4 border-bottom ${bgClass} position-relative" href="/Notification/Index">
                                         ${dot}
-                                        <div class="d-flex w-100 justify-content-between mb-1">
-                                            <span class="${fwClass} text-truncate" style="max-width: 150px; font-size: 0.9rem;">${n.title}</span>
-                                            <small class="text-muted" style="font-size: 0.75rem;">${n.time}</small>
-                                        </div>
+                                         <div class="d-flex w-100 justify-content-between mb-1">
+                                             <span class="${fwClass} text-truncate" style="max-width: 150px; font-size: 0.9rem;">${n.title}</span>
+                                             <small class="text-muted" style="font-size: 0.75rem;">${formatDateTime(n.createdAt)}</small>
+                                         </div>
                                         <p class="mb-0 text-muted text-truncate" style="max-width: 250px; font-size: 0.85rem;">${n.message}</p>
                                     </a>
                                 </li>
                             `);
                         });
                     } else {
-                        $list.html('<li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2"></i><br/>All caught up</li>');
+                        $list.html('<li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2"></i><br/>@Localizer["AllCaughtUp"]</li>');
                     }
                 }).fail(() => {
-                    $list.html('<li class="p-4 text-center text-danger small">Failed to load notifications</li>');
+                    $list.html('<li class="p-4 text-center text-danger small">@Localizer["FailedToLoadNotifications"]</li>');
                 });
             });
         });
     </script>
-    @await RenderSectionAsync("Scripts", required: false)
+        <script>
+            /**
+             * Định dạng ngày tháng toàn cục (Xử lý nhảy múi giờ và lùi ngày tự động)
+             */
+            function formatDateTime(date, lang) {
+                if (!date) return "";
+                if (!(date instanceof Date)) date = new Date(date);
+                
+                const langCode = lang || document.documentElement.lang || 'en';
+                
+                // Cấu hình định dạng chung
+                const options = {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit'
+                };
+
+                try {
+                    if (langCode === 'vi') {
+                        // VI: dd/mm/yyyy HH:mm | Asia/Ho_Chi_Minh (GMT+7)
+                        return new Intl.DateTimeFormat('vi-VN', {
+                            ...options, 
+                            hour12: false, 
+                            timeZone: 'Asia/Ho_Chi_Minh'
+                        }).format(date);
+                    } else {
+                        // EN: mm/dd/yyyy hh:mm AM/PM | UTC (GMT+0)
+                        // Sử dụng en-US để lấy định dạng MM/DD/YYYY
+                        return new Intl.DateTimeFormat('en-US', {
+                            ...options, 
+                            hour12: true, 
+                            timeZone: 'UTC'
+                        }).format(date);
+                    }
+                } catch (e) {
+                    console.error("Format error:", e);
+                    return date.toLocaleString();
+                }
+            }
+
+            /**
+             * Hệ thống đồng hồ thời gian thực toàn cục
+             */
+            const RealTimeClock = {
+                start() {
+                    const update = () => {
+                        const now = new Date();
+                        // Tự động lấy lang từ thuộc tính HTML
+                        const lang = document.documentElement.lang || 'en';
+                        const formatted = formatDateTime(now, lang);
+                        
+                        // Cập nhật tất cả các phần tử có class 'live-clock' hoặc ID cụ thể
+                        const clocks = document.querySelectorAll('#globalClock, #currentDateTime, .live-clock');
+                        clocks.forEach(el => {
+                            if (el) el.innerText = formatted;
+                        });
+                    };
+                    
+                    update();
+                    setInterval(update, 1000);
+                }
+            };
+
+            document.addEventListener('DOMContentLoaded', () => RealTimeClock.start());
+        </script>
+        @await RenderSectionAsync("Scripts", required: false)
 
     @if (!isLandingPage)
     {
@@ -663,21 +737,21 @@
         <div id="pomodoroWidget" class="position-fixed shadow-xl draggable-widget" style="z-index:1050; display:none; bottom: 100px; right: 20px;">
             <div class="card border-0 rounded-4 glass-card" style="width: 280px;">
                 <div id="pomodoroHeader" class="drag-handle d-flex justify-content-between align-items-center px-3 py-3">
-                    <div><i class="fas fa-grip-vertical text-muted me-1"></i> <span class="fw-semibold small">FOCUS TIMER</span></div>
+                    <div><i class="fas fa-grip-vertical text-muted me-1"></i> <span class="fw-semibold small">@Localizer["FocusTimer"]</span></div>
                     <button id="closePomodoroBtn" class="btn-close-custom" style="background: none; border: none;"><i class="fas fa-times"></i></button>
                 </div>
                 <div class="card-body p-4 pt-2 text-center">
                     <h1 id="timerDisplay" class="display-5 fw-bold mb-1">25:00</h1>
                     <div class="progress my-3" style="height: 6px;"><div id="progressBar" class="progress-bar" style="width:100%"></div></div>
                     <div class="d-flex gap-2 justify-content-between">
-                        <button class="btn btn-pomo btn-start flex-grow-1" id="startBtn"><i class="fas fa-play me-1"></i> Start</button>
-                        <button class="btn btn-pomo btn-pause flex-grow-1" id="pauseBtn"><i class="fas fa-pause me-1"></i> Pause</button>
+                        <button class="btn btn-pomo btn-start flex-grow-1" id="startBtn"><i class="fas fa-play me-1"></i> @Localizer["Start"]</button>
+                        <button class="btn btn-pomo btn-pause flex-grow-1" id="pauseBtn"><i class="fas fa-pause me-1"></i> @Localizer["Pause"]</button>
                         <button class="btn btn-pomo btn-reset rounded-circle" id="resetBtn"><i class="fas fa-undo-alt"></i></button>
                     </div>
                 </div>
             </div>
         </div>
-        <div id="pomodoroToast" class="toast-notify">🍅 Focus session completed! Great job.</div>
+        <div id="pomodoroToast" class="toast-notify">@Localizer["FocusSessionCompleted"]</div>
         <script>
             (function() {
                 let timerInterval = null, isRunning = false, currentSeconds = 25*60, initialSeconds = 25*60;
@@ -756,13 +830,13 @@
         <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1080">
             <div id="realtimeToast" class="toast bg-white shadow border-0 rounded-4" role="alert">
                 <div class="toast-header border-0 bg-primary text-white rounded-top-4">
-                    <i class="fas fa-bell me-2"></i><strong class="me-auto" id="toastTitle">Notification</strong>
+                    <i class="fas fa-bell me-2"></i><strong class="me-auto" id="toastTitle">@Localizer["Notification"]</strong>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
                 </div>
                 <div class="toast-body p-3">
                     <div class="d-flex gap-3">
                         <div class="bg-primary-subtle text-primary rounded-circle p-2 fs-4"><i class="fas fa-tasks"></i></div>
-                        <div><p class="mb-0 fw-bold" id="toastMessage">New task assigned!</p><small class="text-muted" id="toastDetail">Check workspace.</small></div>
+                        <div><p class="mb-0 fw-bold" id="toastMessage">@Localizer["NewTaskAssigned"]</p><small class="text-muted" id="toastDetail">@Localizer["CheckWorkspace"]</small></div>
                     </div>
                 </div>
             </div>
@@ -772,10 +846,10 @@
             document.addEventListener("DOMContentLoaded", function() {
                 const connection = new signalR.HubConnectionBuilder().withUrl("/notificationHub").configureLogging(signalR.LogLevel.Information).build();
                 connection.on("ReceiveNotification", function(title, message, taskTitle) {
-                    document.getElementById("toastTitle").innerText = title || "Notification";
+                    document.getElementById("toastTitle").innerText = title || "@Localizer["Notification"]";
                     document.getElementById("toastMessage").innerText = message;
-                    if(taskTitle) document.getElementById("toastDetail").innerText = `Task: ${taskTitle}`;
-                    else document.getElementById("toastDetail").innerText = "Check workspace.";
+                    if(taskTitle) document.getElementById("toastDetail").innerText = `@Localizer["Task"]: ${taskTitle}`;
+                    else document.getElementById("toastDetail").innerText = "@Localizer["CheckWorkspace"]";
                     let badge = document.getElementById("notifBadge");
                     if(badge) { let cnt = parseInt(badge.innerText)||0; badge.innerText=cnt+1; badge.style.display="inline"; }
                     new bootstrap.Toast(document.getElementById("realtimeToast"), {delay:5000}).show();

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LandingPageTitle" xml:space="preserve">
+    <value>TimeMaster - Quản lý thời gian thông minh</value>
+  </data>
+  <data name="NextGenManager" xml:space="preserve">
+    <value>✨ Trình quản lý thời gian thế hệ mới</value>
+  </data>
+  <data name="MasterYourTime" xml:space="preserve">
+    <value>Làm chủ thời gian,</value>
+  </data>
+  <data name="MasterYourLife" xml:space="preserve">
+    <value>Làm chủ cuộc sống</value>
+  </data>
+  <data name="HeroDescription" xml:space="preserve">
+    <value>Hệ thống quản lý công việc thông minh giúp bạn tối ưu năng suất, theo dõi tiến độ bằng biểu đồ trực quan và đảm bảo an toàn dữ liệu tuyệt đối.</value>
+  </data>
+  <data name="GetStarted" xml:space="preserve">
+    <value>Bắt đầu ngay</value>
+  </data>
+  <data name="SignIn" xml:space="preserve">
+    <value>Đăng nhập</value>
+  </data>
+  <data name="NoCreditCard" xml:space="preserve">
+    <value>Không cần thẻ tín dụng</value>
+  </data>
+  <data name="FreeTrial" xml:space="preserve">
+    <value>Dùng thử miễn phí 14 ngày</value>
+  </data>
+  <data name="ActiveUsers" xml:space="preserve">
+    <value>Người dùng tích cực</value>
+  </data>
+  <data name="SatisfactionRate" xml:space="preserve">
+    <value>Tỷ lệ hài lòng</value>
+  </data>
+  <data name="TasksCompleted" xml:space="preserve">
+    <value>Nhiệm vụ đã hoàn thành</value>
+  </data>
+  <data name="SupportAvailable" xml:space="preserve">
+    <value>Hỗ trợ 24/7</value>
+  </data>
+  <data name="PowerfulFeatures" xml:space="preserve">
+    <value>Tính năng mạnh mẽ</value>
+  </data>
+  <data name="EverythingYouNeed" xml:space="preserve">
+    <value>Mọi thứ bạn cần để quản lý thời gian hiệu quả</value>
+  </data>
+  <data name="KanbanBoard" xml:space="preserve">
+    <value>Bảng Kanban</value>
+  </data>
+  <data name="KanbanDesc" xml:space="preserve">
+    <value>Trực quan hóa quy trình làm việc với các cột tùy chỉnh: Cần làm, Đang làm, Đánh giá, Hoàn thành.</value>
+  </data>
+  <data name="AdvancedAnalytics" xml:space="preserve">
+    <value>Phân tích nâng cao</value>
+  </data>
+  <data name="AnalyticsDesc" xml:space="preserve">
+    <value>Theo dõi xu hướng năng suất, thời gian dự kiến so với thực tế và hiệu suất của nhóm.</value>
+  </data>
+  <data name="Encryption" xml:space="preserve">
+    <value>Mã hóa AES-256</value>
+  </data>
+  <data name="EncryptionDesc" xml:space="preserve">
+    <value>Dữ liệu của bạn được mã hóa khi lưu trữ và truyền tải với bảo mật cấp ngân hàng.</value>
+  </data>
+  <data name="SmartReminders" xml:space="preserve">
+    <value>Nhắc nhở thông minh</value>
+  </data>
+  <data name="RemindersDesc" xml:space="preserve">
+    <value>Nhận thông báo qua email, đẩy hoặc Telegram về các thời hạn sắp tới.</value>
+  </data>
+  <data name="TeamCollab" xml:space="preserve">
+    <value>Cộng tác nhóm</value>
+  </data>
+  <data name="TeamDesc" xml:space="preserve">
+    <value>Chia sẻ dự án, giao nhiệm vụ và bình luận trong thời gian thực.</value>
+  </data>
+  <data name="TimeTracking" xml:space="preserve">
+    <value>Theo dõi thời gian</value>
+  </data>
+  <data name="TrackingDesc" xml:space="preserve">
+    <value>Tích hợp đồng hồ pomodoro và nhật ký thời gian thủ công để tính toán chính xác.</value>
+  </data>
+  <data name="TrustedByPros" xml:space="preserve">
+    <value>Được tin dùng bởi các chuyên gia</value>
+  </data>
+  <data name="JoinThousands" xml:space="preserve">
+    <value>Tham gia cùng hàng ngàn người dùng đã thay đổi năng suất của họ</value>
+  </data>
+  <data name="ReadyToTakeControl" xml:space="preserve">
+    <value>Sẵn sàng để làm chủ thời gian của bạn?</value>
+  </data>
+  <data name="JoinToday" xml:space="preserve">
+    <value>Tham gia cùng hàng ngàn người dùng năng suất ngay hôm nay.</value>
+  </data>
+  <data name="StartFreeTrial" xml:space="preserve">
+    <value>Bắt đầu dùng thử miễn phí</value>
+  </data>
+  <data name="NoCommitment" xml:space="preserve">
+    <value>Không ràng buộc. Hủy bất cứ lúc nào.</value>
+  </data>
+</root>

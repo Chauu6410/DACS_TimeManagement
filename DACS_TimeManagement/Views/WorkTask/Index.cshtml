@@ -1,6 +1,6 @@
 @model DACS_TimeManagement.Models.KanbanViewModel
 @{
-    ViewData["Title"] = "Kanban Board";
+    ViewData["Title"] = Localizer["KanbanBoard"];
     var lists = Model?.BoardLists ?? new List<DACS_TimeManagement.Models.BoardList>();
 }
 
@@ -43,8 +43,8 @@
                     {
                         <div class="empty-state w-100 text-center py-5">
                             <i class="fas fa-clipboard-list fa-4x text-pastel-muted opacity-50 mb-3"></i>
-                            <h5 class="fw-semibold">No columns in this project</h5>
-                            <p class="text-pastel-muted">Please add columns (To Do, Doing, Done) in project settings.</p>
+                            <h5 class="fw-semibold">@Localizer["NoColumns"]</h5>
+                            <p class="text-pastel-muted">@Localizer["AddColumnsPrompt"]</p>
                         </div>
                     }
                     else
@@ -55,7 +55,7 @@
                                 <div class="column-header d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-pastel">
                                     <div class="fw-semibold d-flex align-items-center gap-2">
                                         <span class="column-handle cursor-grab"><i class="fas fa-grip-vertical text-pastel-muted"></i></span>
-                                        <span class="fs-5 text-pastel-dark">@list.Name</span>
+                                        <span class="fs-5 text-pastel-dark">@Localizer[list.Name.Replace(" ", "")]</span>
                                     </div>
                                     <span class="badge bg-pastel-secondary text-pastel-dark rounded-pill px-3 py-1 count">@(list.WorkTasks?.Count ?? 0)</span>
                                 </div>
@@ -82,7 +82,7 @@
                                                                 DACS_TimeManagement.Models.Priority.Medium => "pastel-warning",
                                                                 _ => "pastel-info"
                                                             };
-                                                            string priorityText = t.Priority.ToString();
+                                                            string priorityText = Localizer[t.Priority.ToString()].Value;
                                                         }
                                                         <div class="d-flex align-items-center gap-2 position-relative" style="z-index: 2;">
                                                             @* Edit link: only show if current user is creator or assignee or project owner. If assignee and not creator, opening edit will show request flow *@
@@ -92,7 +92,7 @@
                                                             }
                                                             @if (isCreatorOrAssignee)
                                                             {
-                                                                <a href="/WorkTask/Edit/@t.Id" class="text-pastel-primary opacity-75 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Sửa thẻ">
+                                                                <a href="/WorkTask/Edit/@t.Id" class="text-pastel-primary opacity-75 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="@Localizer["EditTask"]">
                                                                     <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
                                                                 </a>
                                                             }
@@ -105,12 +105,12 @@
                                                             @if (pr != null && isOwnerView)
                                                             {
                                                                 <div class="pending-controls ms-2" style="display:inline-block">
-                                                                    <button class="btn btn-sm btn-success approve-btn" data-request-id="@pr.Id" title="Approve"><i class="fas fa-check"></i></button>
-                                                                    <button class="btn btn-sm btn-danger reject-btn ms-1" data-request-id="@pr.Id" title="Reject"><i class="fas fa-times"></i></button>
+                                                                    <button class="btn btn-sm btn-success approve-btn" data-request-id="@pr.Id" title="@Localizer["Approve"]"><i class="fas fa-check"></i></button>
+                                                                    <button class="btn btn-sm btn-danger reject-btn ms-1" data-request-id="@pr.Id" title="@Localizer["Reject"]"><i class="fas fa-times"></i></button>
                                                                 </div>
                                                             }
                                                             <form asp-action="Delete" asp-route-id="@t.Id" method="post" class="d-inline m-0 p-0" onsubmit="return confirmDeleteTask(event, this);">
-                                                                <button type="submit" class="btn btn-link text-danger p-0 opacity-75 text-decoration-none border-0" style="transition: opacity 0.2s; background: transparent;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Xóa thẻ">
+                                                                <button type="submit" class="btn btn-link text-danger p-0 opacity-75 text-decoration-none border-0" style="transition: opacity 0.2s; background: transparent;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="@Localizer["DeleteTask"]">
                                                                     <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
                                                                 </button>
                                                             </form>
@@ -127,7 +127,7 @@
                                                     }
                                                     else
                                                     {
-                                                        <p class="small text-pastel-muted mb-3"><i class="far fa-file-alt me-1"></i>No description</p>
+                                                        <p class="small text-pastel-muted mb-3"><i class="far fa-file-alt me-1"></i>@Localizer["NoDescription"]</p>
                                                     }
 
                                                     <!-- Footer: Assignee + Due Date + Progress + Private -->
@@ -147,7 +147,7 @@
                                                                     <div class="avatar-xs rounded-circle bg-pastel-secondary-soft d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
                                                                         <i class="fas fa-user-slash text-pastel-muted fs-6"></i>
                                                                     </div>
-                                                                    <span class="small text-pastel-muted">Unassigned</span>
+                                                                    <span class="small text-pastel-muted">@Localizer["Unassigned"]</span>
                                                                 }
                                                             </div>
                                                             <!-- Private lock -->
@@ -159,7 +159,12 @@
 
                                                         <div class="d-flex justify-content-between align-items-center mt-2">
                                                             <small class="text-pastel-muted">
-                                                                <i class="far fa-calendar-alt me-1"></i>Due: @t.EndDate.ToString("MMM dd, yyyy")
+                                                                @{
+                                                                    var currentCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+                                                                    var langCode = currentCulture.StartsWith("vi") ? "vi" : "en";
+                                                                    var culture = new System.Globalization.CultureInfo(langCode == "vi" ? "vi-VN" : "en-US");
+                                                                }
+                                                                <i class="far fa-calendar-alt me-1"></i>@Localizer["Due"]: @t.EndDate.ToString("d", culture)
                                                             </small>
                                                             @if (t.Progress > 0)
                                                             {
@@ -187,12 +192,12 @@
 
                                 <div class="add-card-container px-2 pb-2">
                                     <button class="btn btn-sm text-pastel-dark text-start w-100 add-card-btn d-flex align-items-center" style="background: transparent; border: none; padding: 8px 12px; border-radius: 8px; transition: background 0.2s;">
-                                        <i class="fas fa-plus me-2 text-pastel-muted"></i> <span class="fw-medium text-pastel-muted">Add task</span>
+                                        <i class="fas fa-plus me-2 text-pastel-muted"></i> <span class="fw-medium text-pastel-muted">@Localizer["AddTask"]</span>
                                     </button>
                                     <div class="add-card-form d-none mt-2">
-                                        <textarea class="form-control rounded-3 border-pastel shadow-sm mb-2 quick-task-title" rows="2" placeholder="Enter task title..."></textarea>
+                                        <textarea class="form-control rounded-3 border-pastel shadow-sm mb-2 quick-task-title" rows="2" placeholder="@Localizer["EnterTaskTitle"]"></textarea>
                                         <div class="d-flex align-items-center gap-2">
-                                            <button class="btn btn-primary btn-sm rounded-3 px-3 fw-medium submit-quick-task" data-project-id="@Model.SelectedProjectId" data-list-id="@list.Id">Add task</button>
+                                            <button class="btn btn-primary btn-sm rounded-3 px-3 fw-medium submit-quick-task" data-project-id="@Model.SelectedProjectId" data-list-id="@list.Id">@Localizer["AddTask"]</button>
                                             <button class="btn btn-link text-pastel-muted p-0 cancel-add-card text-decoration-none hover-danger" style="font-size: 1.25rem;"><i class="fas fa-times"></i></button>
                                         </div>
                                     </div>
@@ -224,14 +229,14 @@
         function confirmDeleteTask(e, form) {
             e.preventDefault();
             Swal.fire({
-                title: 'Delete this task?',
-                text: "You won't be able to revert this action!",
+                title: '@Localizer["DeleteTaskTitle"]',
+                text: "@Localizer["DeleteTaskText"]",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="fas fa-trash-alt me-1"></i> Yes, delete it',
-                cancelButtonText: 'Cancel',
+                confirmButtonText: '<i class="fas fa-trash-alt me-1"></i> @Localizer["YesDelete"]',
+                cancelButtonText: '@Localizer["Cancel"]',
                 background: document.body.classList.contains('theme-dark') ? '#1e293b' : '#ffffff',
                 color: document.body.classList.contains('theme-dark') ? '#f8fafc' : '#334155',
                 customClass: {
@@ -483,19 +488,19 @@
                                                 </a>
                                             </h6>
                                             <div class="d-flex align-items-center gap-2 position-relative" style="z-index: 2;">
-                                                <a href="/WorkTask/Edit/${t.id}" class="text-pastel-primary opacity-75 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Sửa thẻ">
+                                                <a href="/WorkTask/Edit/${t.id}" class="text-pastel-primary opacity-75 text-decoration-none" style="transition: opacity 0.2s;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="${'@Localizer["EditTask"]'}">
                                                     <i class="fas fa-pen" style="font-size: 0.85rem;"></i>
                                                 </a>
                                                 <form action="/WorkTask/Delete/${t.id}" method="post" class="d-inline m-0 p-0" onsubmit="return confirmDeleteTask(event, this);">
                                                     <input name="__RequestVerificationToken" type="hidden" value="${document.querySelector('[name=__RequestVerificationToken]').value}" />
-                                                    <button type="submit" class="btn btn-link text-danger p-0 opacity-75 text-decoration-none border-0" style="transition: opacity 0.2s; background: transparent;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="Xóa thẻ">
+                                                    <button type="submit" class="btn btn-link text-danger p-0 opacity-75 text-decoration-none border-0" style="transition: opacity 0.2s; background: transparent;" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')" title="${'@Localizer["DeleteTask"]'}">
                                                         <i class="fas fa-trash-alt" style="font-size: 0.85rem;"></i>
                                                     </button>
                                                 </form>
                                                 <span class="badge ${t.priorityClass} rounded-pill px-2 py-1 fs-6">${t.priorityText}</span>
                                             </div>
                                         </div>
-                                        <p class="small text-pastel-muted mb-3"><i class="far fa-file-alt me-1"></i>No description</p>
+                                        <p class="small text-pastel-muted mb-3"><i class="far fa-file-alt me-1"></i>${escapeHtml('@Localizer["NoDescription"]')}</p>
                                         <div class="task-footer mt-2 pt-2 border-top border-pastel">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div class="d-flex align-items-center gap-2">
@@ -507,7 +512,7 @@
                                             </div>
                                             <div class="d-flex justify-content-between align-items-center mt-2">
                                                 <small class="text-pastel-muted">
-                                                    <i class="far fa-calendar-alt me-1"></i>Due: ${t.endDate}
+                                                    <i class="far fa-calendar-alt me-1"></i>@Localizer["Due"]: ${t.endDate}
                                                 </small>
                                                 <small class="text-pastel-muted progress-text-display">0%</small>
                                             </div>

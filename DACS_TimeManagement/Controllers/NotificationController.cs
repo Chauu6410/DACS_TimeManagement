@@ -26,21 +26,6 @@ namespace DACS_TimeManagement.Controllers
             return View("~/Views/Account/Notifications.cshtml", notifications);
         }
 
-        // Route so the view under Views/Account/Notifications.cshtml can be reached at /Account/Notifications
-        [HttpGet("/Account/Notifications")]
-        public async Task<IActionResult> Notifications(int page = 1, int pageSize = 10)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var notifications = await _notifRepo.GetPagedAsync(userId, page, pageSize);
-            int totalCount = await _notifRepo.CountAsync(userId);
-            int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-
-            // Explicitly return the view located in Views/Account/Notifications.cshtml
-            return View("~/Views/Account/Notifications.cshtml", notifications);
-        }
 
         // Lấy số lượng chưa đọc để hiển thị Badge trên Navbar
         [HttpGet]
@@ -62,7 +47,8 @@ namespace DACS_TimeManagement.Controllers
                 title = n.Title,
                 message = (n.Message ?? string.Empty).Split("||", StringSplitOptions.None)[0],
                 isRead = n.IsRead,
-                time = n.CreatedAt.ToString("g")
+                time = n.CreatedAt.ToString("g"),
+                createdAt = n.CreatedAt
             }));
         }
 

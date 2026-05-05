@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SystemAdminDashboard" xml:space="preserve">
+    <value>Bảng điều khiển quản trị hệ thống</value>
+  </data>
+  <data name="AdminDashboard" xml:space="preserve">
+    <value>Bảng điều khiển quản trị</value>
+  </data>
+  <data name="SystemOverview" xml:space="preserve">
+    <value>Tổng quan hệ thống và quản lý người dùng</value>
+  </data>
+  <data name="TotalUsers" xml:space="preserve">
+    <value>Tổng số người dùng</value>
+  </data>
+  <data name="TotalProjects" xml:space="preserve">
+    <value>Tổng số dự án</value>
+  </data>
+  <data name="TotalWorkTasks" xml:space="preserve">
+    <value>Tổng số nhiệm vụ</value>
+  </data>
+  <data name="RegisteredUsers" xml:space="preserve">
+    <value>Người dùng đã đăng ký</value>
+  </data>
+  <data name="UserID" xml:space="preserve">
+    <value>ID người dùng</value>
+  </data>
+  <data name="EmailUsername" xml:space="preserve">
+    <value>Email / Tên đăng nhập</value>
+  </data>
+  <data name="EmailConfirmed" xml:space="preserve">
+    <value>Email đã xác nhận</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Hành động</value>
+  </data>
+  <data name="Admin" xml:space="preserve">
+    <value>Quản trị viên</value>
+  </data>
+  <data name="Confirmed" xml:space="preserve">
+    <value>Đã xác nhận</value>
+  </data>
+  <data name="PendingFix" xml:space="preserve">
+    <value>Chờ xử lý (Sửa)</value>
+  </data>
+  <data name="ToggleAdminUser" xml:space="preserve">
+    <value>Chuyển đổi Quản trị viên/Người dùng</value>
+  </data>
+  <data name="Unlock" xml:space="preserve">
+    <value>Mở khóa</value>
+  </data>
+  <data name="Lock" xml:space="preserve">
+    <value>Khóa</value>
+  </data>
+  <data name="NoUsersFound" xml:space="preserve">
+    <value>Không tìm thấy người dùng nào.</value>
+  </data>
+  <data name="NetworkError" xml:space="preserve">
+    <value>Lỗi mạng</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+</root>

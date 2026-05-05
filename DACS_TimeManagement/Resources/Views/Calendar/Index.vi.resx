@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="ScheduleCalendar" xml:space="preserve">
+    <value>Lịch trình</value>
+  </data>
+  <data name="SetTaskToSchedule" xml:space="preserve">
+    <value>Đặt lịch nhiệm vụ</value>
+  </data>
+  <data name="SelectTask" xml:space="preserve">
+    <value>Chọn nhiệm vụ</value>
+  </data>
+  <data name="ChooseATask" xml:space="preserve">
+    <value>-- Chọn một nhiệm vụ --</value>
+  </data>
+  <data name="StartTime" xml:space="preserve">
+    <value>Thời gian bắt đầu</value>
+  </data>
+  <data name="EndTime" xml:space="preserve">
+    <value>Thời gian kết thúc</value>
+  </data>
+  <data name="Color" xml:space="preserve">
+    <value>Màu sắc</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="SaveSchedule" xml:space="preserve">
+    <value>Lưu lịch trình</value>
+  </data>
+  <data name="TodoList" xml:space="preserve">
+    <value>Danh sách cần làm</value>
+  </data>
+  <data name="SetTask" xml:space="preserve">
+    <value>Đặt lịch</value>
+  </data>
+  <data name="AutoPlan" xml:space="preserve">
+    <value>Tự động lập kế hoạch</value>
+  </data>
+  <data name="SelectADate" xml:space="preserve">
+    <value>Chọn một ngày</value>
+  </data>
+  <data name="AITaskAutoPlan" xml:space="preserve">
+    <value>AI Tự động lập kế hoạch</value>
+  </data>
+  <data name="SelectTasksAnalyze" xml:space="preserve">
+    <value>Chọn các nhiệm vụ bạn muốn AI phân tích và lập lịch cho bạn.</value>
+  </data>
+  <data name="SelectTasksToSchedule" xml:space="preserve">
+    <value>Chọn nhiệm vụ cần lập lịch</value>
+  </data>
+  <data name="AnalyzeWithAI" xml:space="preserve">
+    <value>Phân tích với AI</value>
+  </data>
+  <data name="ReviewAISuggestions" xml:space="preserve">
+    <value>Xem xét gợi ý từ AI</value>
+  </data>
+  <data name="AIAnalysisDescription" xml:space="preserve">
+    <value>AI đã phân tích các nhiệm vụ của bạn và đề xuất lịch trình sau đây dựa trên mức độ ưu tiên. Bạn có thể điều chỉnh thời gian nếu cần.</value>
+  </data>
+  <data name="ApproveSave" xml:space="preserve">
+    <value>Phê duyệt &amp; Lưu</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Đang tải...</value>
+  </data>
+  <data name="Purple" xml:space="preserve">
+    <value>Tím</value>
+  </data>
+  <data name="Pink" xml:space="preserve">
+    <value>Hồng</value>
+  </data>
+  <data name="Orange" xml:space="preserve">
+    <value>Cam</value>
+  </data>
+  <data name="Yellow" xml:space="preserve">
+    <value>Vàng</value>
+  </data>
+  <data name="Green" xml:space="preserve">
+    <value>Xanh lá</value>
+  </data>
+  <data name="Teal" xml:space="preserve">
+    <value>Xanh mòng két</value>
+  </data>
+  <data name="Blue" xml:space="preserve">
+    <value>Xanh dương</value>
+  </data>
+  <data name="MissingFields" xml:space="preserve">
+    <value>Thiếu thông tin</value>
+  </data>
+  <data name="EndAfterStart" xml:space="preserve">
+    <value>Thời gian kết thúc phải sau thời gian bắt đầu</value>
+  </data>
+  <data name="ScheduledSuccessfully" xml:space="preserve">
+    <value>Đã lập lịch thành công!</value>
+  </data>
+  <data name="NoScheduledTasks" xml:space="preserve">
+    <value>Không có lịch trình nào</value>
+  </data>
+  <data name="DeleteQuestion" xml:space="preserve">
+    <value>Xóa?</value>
+  </data>
+  <data name="CannotUndo" xml:space="preserve">
+    <value>Không thể hoàn tác</value>
+  </data>
+  <data name="YesDelete" xml:space="preserve">
+    <value>Có, xóa nó</value>
+  </data>
+  <data name="TaskOptions" xml:space="preserve">
+    <value>Tùy chọn nhiệm vụ</value>
+  </data>
+  <data name="ChangeColor" xml:space="preserve">
+    <value>Đổi màu</value>
+  </data>
+  <data name="NoPendingTasks" xml:space="preserve">
+    <value>Không có nhiệm vụ chờ xử lý</value>
+  </data>
+  <data name="Overdue" xml:space="preserve">
+    <value>Quá hạn</value>
+  </data>
+  <data name="Deadline" xml:space="preserve">
+    <value>Hạn chót</value>
+  </data>
+  <data name="Importance" xml:space="preserve">
+    <value>Mức độ quan trọng</value>
+  </data>
+  <data name="Critical (Overdue)" xml:space="preserve">
+    <value>Nghiêm trọng (Quá hạn)</value>
+  </data>
+  <data name="High (Approaching Deadline)" xml:space="preserve">
+    <value>Cao (Sắp tới hạn)</value>
+  </data>
+  <data name="Normal" xml:space="preserve">
+    <value>Bình thường</value>
+  </data>
+</root>

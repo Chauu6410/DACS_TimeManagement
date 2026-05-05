@@ -1,7 +1,10 @@
+@using DACS_TimeManagement.Services
 @using DACS_TimeManagement.DTOs
 @model DACS_TimeManagement.Models.PersonalGoal
 @{
-    ViewData["Title"] = "Goal Details";
+    ViewData["Title"] = Localizer["GoalDetails"];
+    var currentCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+    var langCode = currentCulture.StartsWith("vi") ? "vi" : "en";
 }
 
 <div class="container py-4">
@@ -14,14 +17,17 @@
                         <h1 class="fw-bold">@Model.Title</h1>
                         <div class="d-flex gap-2 mt-2">
                             <span class="status-badge @Model.Status.ToString().ToLower()">@Model.Status</span>
-                            <span class="text-muted"><i class="far fa-calendar"></i> Due @Model.TargetDate.ToString("dd MMM yyyy")</span>
+                            @{
+                                var culture = new System.Globalization.CultureInfo(langCode == "vi" ? "vi-VN" : "en-US");
+                            }
+                            <span class="text-muted"><i class="far fa-calendar"></i> @Localizer["Due"] @Model.TargetDate.ToString("d", culture)</span>
                         </div>
                     </div>
                     @if (Model.Type != DACS_TimeManagement.Models.GoalType.TaskBased)
                     {
                         <div class="d-flex gap-2">
-                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-outline-custom"><i class="fas fa-edit"></i> Edit</a>
-                            <a asp-action="Focus" asp-route-id="@Model.Id" class="btn-primary-custom"><i class="fas fa-stopwatch"></i> Focus</a>
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-outline-custom"><i class="fas fa-edit"></i> @Localizer["Edit"]</a>
+                            <a asp-action="Focus" asp-route-id="@Model.Id" class="btn-primary-custom"><i class="fas fa-stopwatch"></i> @Localizer["Focus"]</a>
                         </div>
                     }
                 </div>
@@ -29,7 +35,7 @@
                 <!-- Progress Section -->
                 <div class="mb-4">
                     <div class="d-flex justify-content-between">
-                        <span class="fw-semibold">Overall Progress</span>
+                        <span class="fw-semibold">@Localizer["OverallProgress"]</span>
                         <span class="fw-bold" id="pctLarge">0%</span>
                     </div>
                     <div class="progress-bar-large mt-1">
@@ -43,21 +49,21 @@
                         <div class="stat-mini glass text-center p-3">
                             <div class="stat-mini-icon text-primary"><i class="fas fa-chart-simple"></i></div>
                             <h4 class="mb-0">@((Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased) ? (Model.CompletedHours < (1.0/60.0) ? (Math.Round(Model.CompletedHours * 3600)) + "s" : (Model.CompletedHours < 1 ? (Math.Round(Model.CompletedHours * 60)) + "m" : Model.CompletedHours.ToString("0.##") + "h")) : Model.CompletedTasks.ToString())</h4>
-                            <small class="text-muted">Completed</small>
+                            <small class="text-muted">@Localizer["Completed"]</small>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="stat-mini glass text-center p-3">
                             <div class="stat-mini-icon text-info"><i class="fas fa-bullseye"></i></div>
                             <h4 class="mb-0">@((Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased) ? (Model.TargetHours?.ToString("0.##") + "h") : (Model.TargetTasks?.ToString() ?? "-"))</h4>
-                            <small class="text-muted">Target</small>
+                            <small class="text-muted">@Localizer["Target"]</small>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
                         <div class="stat-mini glass text-center p-3">
                             <div class="stat-mini-icon text-warning"><i class="fas fa-fire"></i></div>
                             <h4 class="mb-0">@Model.CurrentStreak</h4>
-                            <small class="text-muted">Streak</small>
+                            <small class="text-muted">@Localizer["Streak"]</small>
                         </div>
                     </div>
                     <div class="col-6 col-md-3">
@@ -66,8 +72,8 @@
                                 var daysLeft = (Model.TargetDate.Date - DateTime.Now.Date).Days;
                             }
                             <div class="stat-mini-icon text-danger"><i class="fas fa-clock"></i></div>
-                            <h4 class="mb-0 @(daysLeft < 0 ? "text-danger" : "")">@(daysLeft < 0 ? "Overdue" : daysLeft + "d")</h4>
-                            <small class="text-muted">Left</small>
+                            <h4 class="mb-0 @(daysLeft < 0 ? "text-danger" : "")">@(daysLeft < 0 ? Localizer["Overdue"].Value : daysLeft + "d")</h4>
+                            <small class="text-muted">@Localizer["Left"]</small>
                         </div>
                     </div>
                 </div>
@@ -76,9 +82,9 @@
                 <div class="mb-5">
                     <div class="glass p-4 rounded-4 border-start border-4 border-primary">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="fw-bold mb-0"><i class="fas fa-robot text-primary me-2"></i>AI Action Plan</h5>
+                            <h5 class="fw-bold mb-0"><i class="fas fa-robot text-primary me-2"></i>@Localizer["AIActionPlan"]</h5>
                             <button class="btn btn-sm btn-light rounded-pill regenerate-ai-btn" data-goal-id="@Model.Id">
-                                <i class="fas fa-sync-alt me-1"></i> Update
+                                <i class="fas fa-sync-alt me-1"></i> @Localizer["Update"]
                             </button>
                         </div>
                         <div class="ai-strategy-content small text-dark" id="aiContent-@Model.Id">
@@ -88,7 +94,7 @@
                             }
                             else
                             {
-                                <span class="text-muted italic">No strategy generated yet. Click update to analyze your goal.</span>
+                                <span class="text-muted italic">@Localizer["NoStrategyGenerated"]</span>
                             }
                         </div>
                     </div>
@@ -96,7 +102,7 @@
 
                 <!-- Chart -->
                 <div class="mb-5">
-                    <h5 class="fw-semibold"><i class="fas fa-chart-line me-2"></i>Progress History</h5>
+                    <h5 class="fw-semibold"><i class="fas fa-chart-line me-2"></i>@Localizer["ProgressHistory"]</h5>
                     <div class="chart-container">
                         <canvas id="progressChart" height="200"></canvas>
                     </div>
@@ -111,8 +117,8 @@
                                 <i class="fas fa-history"></i>
                             </div>
                             <div class="lh-1">
-                                <h4 class="fw-bold mb-0" style="color: #1e293b;">Time</h4>
-                                <h4 class="fw-bold mb-0" style="color: #1e293b;">History</h4>
+                                <h4 class="fw-bold mb-0" style="color: #1e293b;">@Localizer["Time"]</h4>
+                                <h4 class="fw-bold mb-0" style="color: #1e293b;">@Localizer["History"]</h4>
                             </div>
                         </div>
                         @{
@@ -121,7 +127,7 @@
                         @if (totalLogged > 0)
                         {
                             <div class="badge-total-history">
-                                @totalLogged.ToString("0.##") hrs total
+                                @totalLogged.ToString("0.##") @Localizer["HrsTotal"]
                             </div>
                         }
                     </div>
@@ -165,10 +171,10 @@
                                     </div>
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="text-muted opacity-75 small">
-                                            @(isJustNow ? "Just now" : item.Date.ToString("MMM dd, HH:mm"))
+                                            @(isJustNow ? Localizer["JustNow"].Value : DateTimeHelper.FormatByLanguage(item.Date, langCode))
                                         </div>
                                         <div class="timeline-actions transition-all">
-                                            <button class="delete-history-btn" data-id="@item.Id" data-type="@item.Type" title="Delete record">
+                                            <button class="delete-history-btn" data-id="@item.Id" data-type="@item.Type" title="@Localizer["DeleteRecord"]">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </div>
@@ -192,7 +198,7 @@
                         }
                         @if (!allHistory.Any())
                         {
-                            <div class="text-muted text-center p-4">No focus sessions recorded yet.</div>
+                            <div class="text-muted text-center p-4">@Localizer["NoSessionsRecorded"]</div>
                         }
                     </div>
                 </div>
@@ -202,22 +208,22 @@
         <!-- Sidebar -->
         <div class="col-lg-4">
             <div class="card glass p-4 rounded-4 sticky-top" style="top: 1rem;">
-                <h5 class="fw-semibold"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                <h5 class="fw-semibold"><i class="fas fa-bolt me-2"></i>@Localizer["QuickActions"]</h5>
                 <div class="d-grid gap-2 mt-2">
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-outline-custom">Edit Goal</a>
-                    <a asp-action="Focus" asp-route-id="@Model.Id" class="btn-primary-custom">Enter Focus Mode</a>
-                    <button class="btn-danger-custom delete-goal-btn" data-id="@Model.Id" data-name="@Model.Title">Delete Goal</button>
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-outline-custom">@Localizer["EditGoal"]</a>
+                    <a asp-action="Focus" asp-route-id="@Model.Id" class="btn-primary-custom">@Localizer["EnterFocusMode"]</a>
+                    <button class="btn-danger-custom delete-goal-btn" data-id="@Model.Id" data-name="@Model.Title">@Localizer["DeleteGoal"]</button>
                 </div>
                 <hr class="my-3">
-                <h5 class="fw-semibold"><i class="fas fa-chart-simple me-2"></i>Insights</h5>
+                <h5 class="fw-semibold"><i class="fas fa-chart-simple me-2"></i>@Localizer["Insights"]</h5>
                 <ul class="list-unstyled small">
-                    <li class="d-flex justify-content-between mb-2"><span>Created</span><strong>@Model.CreatedAt.ToString("dd MMM yyyy")</strong></li>
-                    <li class="d-flex justify-content-between mb-2"><span>Last updated</span><strong>@(Model.UpdatedAt?.ToString("dd MMM yyyy") ?? "-")</strong></li>
-                    <li class="d-flex justify-content-between mb-2"><span>Target date</span><strong>@Model.TargetDate.ToString("dd MMM yyyy")</strong></li>
-                    <li class="d-flex justify-content-between"><span>Goal type</span><strong>@Model.Type</strong></li>
+                    <li class="d-flex justify-content-between mb-2"><span>@Localizer["Created"]</span><strong>@DateTimeHelper.FormatByLanguage(Model.CreatedAt, langCode)</strong></li>
+                    <li class="d-flex justify-content-between mb-2"><span>@Localizer["LastUpdated"]</span><strong>@(Model.UpdatedAt.HasValue ? DateTimeHelper.FormatByLanguage(Model.UpdatedAt.Value, langCode) : "-")</strong></li>
+                    <li class="d-flex justify-content-between mb-2"><span>@Localizer["TargetDate"]</span><strong>@DateTimeHelper.FormatByLanguage(Model.TargetDate, langCode)</strong></li>
+                    <li class="d-flex justify-content-between"><span>@Localizer["GoalType"]</span><strong>@Model.Type</strong></li>
                 </ul>
                 <div class="alert alert-info mt-3 small">
-                    <i class="fas fa-lightbulb"></i> Complete tasks daily to maintain your streak.
+                    <i class="fas fa-lightbulb"></i> @Localizer["MaintainStreakTip"]
                 </div>
             </div>
         </div>
@@ -239,7 +245,7 @@
                     const contentDiv = document.getElementById(`aiContent-${goalId}`);
                     
                     this.classList.add('fa-spin');
-                    contentDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Analyzing...</div>';
+                    contentDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> ' + '@Localizer["Analyzing"]' + '</div>';
 
                     try {
                         const response = await fetch(`/Goal/RegenerateAIStrategy?goalId=${goalId}`, { method: 'POST' });
@@ -262,12 +268,13 @@
                 const id = this.dataset.id;
                 const name = this.dataset.name;
                 Swal.fire({
-                    title: 'Delete Goal?',
-                    text: `Are you sure you want to delete "${name}"?`,
+                    title: '@Localizer["DeleteGoalTitle"]',
+                    text: `@Localizer["DeleteGoalConfirm"]`.replace("{name}", name),
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#ef4444',
-                    confirmButtonText: 'Yes, delete'
+                    confirmButtonText: '@Localizer["YesDelete"]',
+                    cancelButtonText: '@Localizer["Cancel"]'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         const form = document.createElement('form');
@@ -289,12 +296,13 @@
                     const type = this.dataset.type;
                     
                     const result = await Swal.fire({
-                        title: 'Delete History Entry?',
-                        text: "This action cannot be undone.",
+                        title: '@Localizer["DeleteHistoryTitle"]',
+                        text: "@Localizer["CannotUndo"]",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ef4444',
-                        confirmButtonText: 'Yes, delete'
+                        confirmButtonText: '@Localizer["YesDelete"]',
+                        cancelButtonText: '@Localizer["Cancel"]'
                     });
 
                     if (result.isConfirmed) {

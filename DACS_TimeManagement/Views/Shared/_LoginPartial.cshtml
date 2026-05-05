@@ -2,31 +2,51 @@
 
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
+@inject DACS_TimeManagement.Models.ApplicationDbContext Context
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 
 @if (SignInManager.IsSignedIn(User))
 {
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" 
            data-bs-toggle="dropdown" aria-expanded="false">
-            <div class="user-avatar">
+            <div class="user-avatar overflow-hidden border border-white border-1">
                 @{
+                    var userId = UserManager.GetUserId(User);
+                    var profile = await Context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
                     var userName = UserManager.GetUserName(User);
                     var userInitial = !string.IsNullOrEmpty(userName) ? userName.Substring(0, 1).ToUpper() : "U";
                 }
-                <span class="avatar-initials">@userInitial</span>
+                @if (profile != null && !string.IsNullOrEmpty(profile.AvatarUrl))
+                {
+                    <img src="@profile.AvatarUrl" alt="Avatar" class="w-100 h-100 object-fit-cover" />
+                }
+                else
+                {
+                    <span class="avatar-initials">@userInitial</span>
+                }
                 <div class="avatar-status"></div>
             </div>
             <div class="user-info-wrapper">
                 <span class="user-name">@UserManager.GetUserName(User)!.Split('@')[0]</span>
-                <span class="user-role">Member</span>
+                <span class="user-role">@Localizer["Member"]</span>
             </div>
             <i class="fas fa-chevron-down dropdown-icon"></i>
         </a>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
             <li>
                 <div class="dropdown-user-header">
-                    <div class="user-avatar-large">
-                        <span class="avatar-initials-large">@userInitial</span>
+                    <div class="user-avatar-large overflow-hidden border border-white border-2">
+                        @if (profile != null && !string.IsNullOrEmpty(profile.AvatarUrl))
+                        {
+                            <img src="@profile.AvatarUrl" alt="Avatar" class="w-100 h-100 object-fit-cover" />
+                        }
+                        else
+                        {
+                            <span class="avatar-initials-large">@userInitial</span>
+                        }
                     </div>
                     <div class="user-details">
                         <h6 class="mb-0">@UserManager.GetUserName(User)!.Split('@')[0]</h6>
@@ -36,28 +56,22 @@
             </li>
             <li><hr class="dropdown-divider"></li>
             <li>
-                <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">
-                    <i class="fas fa-user-circle"></i>
-                    <span>My Profile</span>
-                </a>
-            </li>
-            <li>
-                <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Settings">
+                <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile" title="@Localizer["SettingsProfile"]">
                     <i class="fas fa-sliders-h"></i>
-                    <span>Settings</span>
+                    <span>@Localizer["SettingsProfile"]</span>
                 </a>
             </li>
             <li>
                 <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Notifications">
                     <i class="fas fa-bell"></i>
-                    <span>Notifications</span>
+                    <span>@Localizer["Notifications"]</span>
                     <span class="notification-badge" id="notifCountBadge" style="display: none;">0</span>
                 </a>
             </li>
             <li>
                 <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Activity">
                     <i class="fas fa-history"></i>
-                    <span>Activity Log</span>
+                    <span>@Localizer["ActivityLog"]</span>
                 </a>
             </li>
             <li><hr class="dropdown-divider"></li>
@@ -66,7 +80,7 @@
                       asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
                     <button id="logout" type="submit" class="dropdown-item logout-btn">
                         <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
+                        <span>@Localizer["Logout"]</span>
                     </button>
                 </form>
             </li>
@@ -78,13 +92,13 @@ else
     <li class="nav-item">
         <a class="nav-link auth-btn login-btn" id="login" asp-area="Identity" asp-page="/Account/Login">
             <i class="fas fa-sign-in-alt"></i>
-            <span>Login</span>
+            <span>@Localizer["Login"]</span>
         </a>
     </li>
     <li class="nav-item">
         <a class="nav-link auth-btn register-btn" id="register" asp-area="Identity" asp-page="/Account/Register">
             <i class="fas fa-user-plus"></i>
-            <span>Register</span>
+            <span>@Localizer["Register"]</span>
         </a>
     </li>
 }

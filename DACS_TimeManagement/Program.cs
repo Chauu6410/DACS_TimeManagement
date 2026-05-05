@@ -11,11 +11,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. CẤU HÌNH CONTROLLERS & JSON (Chống vòng lặp vô tận)
 builder.Services.AddControllersWithViews()
+    .AddViewLocalization()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.WriteIndented = false;
     });
+
+// 1.1 CẤU HÌNH LOCALIZATION
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "en-US", "vi-VN" };
+    options.SetDefaultCulture(supportedCultures[0])
+           .AddSupportedCultures(supportedCultures)
+           .AddSupportedUICultures(supportedCultures);
+});
 
 builder.Services.AddSignalR();
 builder.Services.AddRazorPages();
@@ -68,6 +79,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Localization Middleware
+var localizationOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<RequestLocalizationOptions>>();
+app.UseRequestLocalization(localizationOptions.Value);
 
 // Thứ tự quan trọng: Authentication TRƯỚC Authorization
 app.UseAuthentication();

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="WelcomeBack" xml:space="preserve">
+    <value>Chào mừng trở lại,</value>
+  </data>
+  <data name="Overview" xml:space="preserve">
+    <value>Tổng quan</value>
+  </data>
+  <data name="TotalTasks" xml:space="preserve">
+    <value>Tổng số nhiệm vụ</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Đã hoàn thành</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>Đang thực hiện</value>
+  </data>
+  <data name="HoursWorked" xml:space="preserve">
+    <value>Số giờ làm việc</value>
+  </data>
+  <data name="TodaySchedule" xml:space="preserve">
+    <value>Lịch trình hôm nay</value>
+  </data>
+  <data name="AddEvent" xml:space="preserve">
+    <value>Thêm sự kiện</value>
+  </data>
+  <data name="NoEventsToday" xml:space="preserve">
+    <value>Không có sự kiện nào hôm nay</value>
+  </data>
+  <data name="StartByAddingEvent" xml:space="preserve">
+    <value>Bắt đầu bằng cách thêm một sự kiện vào lịch của bạn.</value>
+  </data>
+  <data name="CreateNewEvent" xml:space="preserve">
+    <value>Tạo sự kiện mới</value>
+  </data>
+  <data name="RecentTasks" xml:space="preserve">
+    <value>Nhiệm vụ gần đây</value>
+  </data>
+  <data name="AddTask" xml:space="preserve">
+    <value>Thêm nhiệm vụ</value>
+  </data>
+  <data name="Due" xml:space="preserve">
+    <value>Hạn:</value>
+  </data>
+  <data name="NoTasksYet" xml:space="preserve">
+    <value>Chưa có nhiệm vụ nào</value>
+  </data>
+  <data name="CreateFirstTaskToGetStarted" xml:space="preserve">
+    <value>Tạo nhiệm vụ đầu tiên của bạn để bắt đầu.</value>
+  </data>
+  <data name="CreateFirstTask" xml:space="preserve">
+    <value>Tạo nhiệm vụ đầu tiên</value>
+  </data>
+  <data name="WeeklyProductivity" xml:space="preserve">
+    <value>Năng suất hàng tuần</value>
+  </data>
+  <data name="HoursWorkedLabel" xml:space="preserve">
+    <value>Số giờ đã làm</value>
+  </data>
+  <data name="TasksCompletedLabel" xml:space="preserve">
+    <value>Nhiệm vụ đã xong</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Bảng điều khiển</value>
+  </data>
+  <data name="Scheduled" xml:space="preserve">
+    <value>Đã lên lịch</value>
+  </data>
+  <data name="High" xml:space="preserve">
+    <value>Cao</value>
+  </data>
+  <data name="Medium" xml:space="preserve">
+    <value>Trung bình</value>
+  </data>
+  <data name="Mon" xml:space="preserve">
+    <value>Thứ 2</value>
+  </data>
+  <data name="Tue" xml:space="preserve">
+    <value>Thứ 3</value>
+  </data>
+  <data name="Wed" xml:space="preserve">
+    <value>Thứ 4</value>
+  </data>
+  <data name="Thu" xml:space="preserve">
+    <value>Thứ 5</value>
+  </data>
+  <data name="Fri" xml:space="preserve">
+    <value>Thứ 6</value>
+  </data>
+  <data name="Sat" xml:space="preserve">
+    <value>Thứ 7</value>
+  </data>
+  <data name="Sun" xml:space="preserve">
+    <value>CN</value>
+  </data>
+  <data name="Urgent" xml:space="preserve">
+    <value>Khẩn cấp</value>
+  </data>
+</root>

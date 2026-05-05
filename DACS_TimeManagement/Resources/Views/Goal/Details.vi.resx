@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GoalDetails" xml:space="preserve">
+    <value>Chi tiết mục tiêu</value>
+  </data>
+  <data name="Due" xml:space="preserve">
+    <value>Hạn:</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Sửa</value>
+  </data>
+  <data name="Focus" xml:space="preserve">
+    <value>Tập trung</value>
+  </data>
+  <data name="OverallProgress" xml:space="preserve">
+    <value>Tiến độ tổng thể</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Đã xong</value>
+  </data>
+  <data name="Target" xml:space="preserve">
+    <value>Mục tiêu</value>
+  </data>
+  <data name="Streak" xml:space="preserve">
+    <value>Chuỗi</value>
+  </data>
+  <data name="Left" xml:space="preserve">
+    <value>Còn lại</value>
+  </data>
+  <data name="Overdue" xml:space="preserve">
+    <value>Quá hạn</value>
+  </data>
+  <data name="AIActionPlan" xml:space="preserve">
+    <value>Kế hoạch hành động AI</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Cập nhật</value>
+  </data>
+  <data name="NoStrategyGenerated" xml:space="preserve">
+    <value>Chưa có chiến lược nào được tạo. Nhấp vào cập nhật để phân tích mục tiêu của bạn.</value>
+  </data>
+  <data name="ProgressHistory" xml:space="preserve">
+    <value>Lịch sử tiến độ</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Thời gian</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>Lịch sử</value>
+  </data>
+  <data name="HrsTotal" xml:space="preserve">
+    <value>tổng cộng giờ</value>
+  </data>
+  <data name="JustNow" xml:space="preserve">
+    <value>Vừa xong</value>
+  </data>
+  <data name="DeleteRecord" xml:space="preserve">
+    <value>Xóa bản ghi</value>
+  </data>
+  <data name="NoSessionsRecorded" xml:space="preserve">
+    <value>Chưa có phiên tập trung nào được ghi lại.</value>
+  </data>
+  <data name="QuickActions" xml:space="preserve">
+    <value>Hành động nhanh</value>
+  </data>
+  <data name="EditGoal" xml:space="preserve">
+    <value>Sửa mục tiêu</value>
+  </data>
+  <data name="EnterFocusMode" xml:space="preserve">
+    <value>Vào chế độ tập trung</value>
+  </data>
+  <data name="DeleteGoal" xml:space="preserve">
+    <value>Xóa mục tiêu</value>
+  </data>
+  <data name="Insights" xml:space="preserve">
+    <value>Thông tin chi tiết</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Đã tạo</value>
+  </data>
+  <data name="LastUpdated" xml:space="preserve">
+    <value>Cập nhật lần cuối</value>
+  </data>
+  <data name="TargetDate" xml:space="preserve">
+    <value>Ngày mục tiêu</value>
+  </data>
+  <data name="GoalType" xml:space="preserve">
+    <value>Loại mục tiêu</value>
+  </data>
+  <data name="MaintainStreakTip" xml:space="preserve">
+    <value>Hoàn thành nhiệm vụ hàng ngày để duy trì chuỗi của bạn.</value>
+  </data>
+  <data name="Analyzing" xml:space="preserve">
+    <value>Đang phân tích...</value>
+  </data>
+  <data name="DeleteGoalTitle" xml:space="preserve">
+    <value>Xóa mục tiêu?</value>
+  </data>
+  <data name="DeleteGoalConfirm" xml:space="preserve">
+    <value>Bạn có chắc chắn muốn xóa "{name}"?</value>
+  </data>
+  <data name="YesDelete" xml:space="preserve">
+    <value>Có, xóa</value>
+  </data>
+  <data name="DeleteHistoryTitle" xml:space="preserve">
+    <value>Xóa lịch sử?</value>
+  </data>
+  <data name="CannotUndo" xml:space="preserve">
+    <value>Hành động này không thể hoàn tác.</value>
+  </data>
+</root>

@@ -1,5 +1,10 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@using DACS_TimeManagement.Services
+@{
+    ViewData["Title"] = Localizer["Dashboard"];
+    var currentCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+    var langCode = currentCulture.StartsWith("vi") ? "vi" : "en";
 }
 
 <style>
@@ -207,9 +212,9 @@
                 <div>
                     <h1 class="display-5 fw-bold mb-2">
                         <i class="fas fa-calendar-check me-2"></i>
-                        Welcome back, @User.Identity.Name!
+                        @Localizer["WelcomeBack"] @User.Identity.Name!
                     </h1>
-                    <p class="lead mb-0 opacity-90">Your time management overview at a glance</p>
+                    <p class="lead mb-0 opacity-90">@Localizer["Overview"]</p>
                 </div>
                 <div class="glass-panel mt-3 mt-md-0">
                     <i class="fas fa-clock me-2"></i>
@@ -229,7 +234,7 @@
                             <i class="fas fa-tasks fa-2x"></i>
                         </div>
                         <div class="stats-number display-6 fw-bold">@ViewBag.TotalWorkTasks</div>
-                        <div class="stats-label text-muted small fw-semibold">Total Tasks</div>
+                        <div class="stats-label text-muted small fw-semibold">@Localizer["TotalTasks"]</div>
                     </div>
                     <i class="fas fa-clipboard-list fa-3x opacity-25"></i>
                 </div>
@@ -243,7 +248,7 @@
                             <i class="fas fa-check-circle fa-2x"></i>
                         </div>
                         <div class="stats-number display-6 fw-bold">@ViewBag.CompletedTasks</div>
-                        <div class="stats-label text-muted small fw-semibold">Completed</div>
+                        <div class="stats-label text-muted small fw-semibold">@Localizer["Completed"]</div>
                     </div>
                     <i class="fas fa-check-double fa-3x opacity-25"></i>
                 </div>
@@ -257,7 +262,7 @@
                             <i class="fas fa-hourglass-half fa-2x"></i>
                         </div>
                         <div class="stats-number display-6 fw-bold">@ViewBag.InProgressTasks</div>
-                        <div class="stats-label text-muted small fw-semibold">In Progress</div>
+                        <div class="stats-label text-muted small fw-semibold">@Localizer["InProgress"]</div>
                     </div>
                     <i class="fas fa-spinner fa-3x opacity-25"></i>
                 </div>
@@ -271,7 +276,7 @@
                             <i class="fas fa-clock fa-2x"></i>
                         </div>
                         <div class="stats-number display-6 fw-bold">@ViewBag.HoursWorked</div>
-                        <div class="stats-label text-muted small fw-semibold">Hours Worked</div>
+                        <div class="stats-label text-muted small fw-semibold">@Localizer["HoursWorked"]</div>
                     </div>
                     <i class="fas fa-stopwatch fa-3x opacity-25"></i>
                 </div>
@@ -289,10 +294,10 @@
                         <div class="icon-circle">
                             <i class="fas fa-calendar-day text-pastel-primary"></i>
                         </div>
-                        <h5 class="fw-bold mb-0">Today's Schedule</h5>
+                        <h5 class="fw-bold mb-0">@Localizer["TodaySchedule"]</h5>
                     </div>
                     <a asp-controller="Calendar" asp-action="Create" class="btn btn-pastel-outline rounded-pill btn-sm px-3">
-                        <i class="fas fa-plus me-1"></i>Add Event
+                        <i class="fas fa-plus me-1"></i>@Localizer["AddEvent"]
                     </a>
                 </div>
                 <div class="card-body p-4">
@@ -304,7 +309,7 @@
                                 <div class="timeline-item-pastel mb-4 pb-3 border-bottom border-pastel">
                                     <div class="d-flex gap-3">
                                         <div class="timeline-time-pastel fw-bold text-pastel-primary" style="min-width: 75px;">
-                                            @evt.StartTime.ToString("HH:mm")
+                                            @DateTimeHelper.FormatByLanguage(evt.StartTime, langCode)
                                         </div>
                                         <div class="flex-grow-1">
                                             <h6 class="fw-bold mb-1">@evt.Title</h6>
@@ -313,7 +318,7 @@
                                                 <p class="small text-muted mb-2">@evt.Description</p>
                                             }
                                             <span class="badge rounded-pill @(evt.Status == "Completed" ? "bg-pastel-success" : "bg-pastel-primary")">
-                                                @evt.Status
+                                                @Localizer[evt.Status]
                                             </span>
                                         </div>
                                     </div>
@@ -325,10 +330,10 @@
                     {
                         <div class="empty-state text-center">
                             <i class="fas fa-calendar-alt fa-4x text-pastel-muted opacity-50 mb-3"></i>
-                            <h6 class="fw-semibold">No events scheduled for today</h6>
-                            <p class="small text-muted">Start by adding an event to your calendar.</p>
-                            <a asp-controller="Calendar" asp-action="Create" class="btn btn-pastel-primary rounded-pill mt-2 px-4">
-                                Create New Event
+                            <h6 class="fw-semibold">@Localizer["NoEventsToday"]</h6>
+                            <p class="small text-muted">@Localizer["StartByAddingEvent"]</p>
+                            <a asp-controller="Calendar" asp-action="Index" class="btn btn-pastel-primary rounded-pill mt-2 px-4">
+                                @Localizer["CreateNewEvent"]
                             </a>
                         </div>
                     }
@@ -344,10 +349,10 @@
                         <div class="icon-circle">
                             <i class="fas fa-list-check text-pastel-primary"></i>
                         </div>
-                        <h5 class="fw-bold mb-0">Recent Tasks</h5>
+                        <h5 class="fw-bold mb-0">@Localizer["RecentTasks"]</h5>
                     </div>
                     <a asp-controller="WorkTask" asp-action="Create" class="btn btn-pastel-outline rounded-pill btn-sm px-3">
-                        <i class="fas fa-plus me-1"></i>Add Task
+                        <i class="fas fa-plus me-1"></i>@Localizer["AddTask"]
                     </a>
                 </div>
                 <div class="card-body p-0">
@@ -367,10 +372,15 @@
                                                 @{
                                                     var priorityClass = task.Priority == "High" ? "bg-pastel-danger" : (task.Priority == "Medium" ? "bg-pastel-warning" : "bg-pastel-info");
                                                 }
-                                                <span class="badge @priorityClass rounded-pill">@task.Priority</span>
+                                                <span class="badge @priorityClass rounded-pill">@Localizer[task.Priority]</span>
                                             </div>
                                             <small class="text-muted">
-                                                <i class="far fa-calendar-alt me-1"></i>Due: @task.DueDate.ToString("MMM dd, yyyy")
+                                                @{
+                                                    var currentCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
+                                                    var langCode = currentCulture.StartsWith("vi") ? "vi" : "en";
+                                                    var culture = new System.Globalization.CultureInfo(langCode == "vi" ? "vi-VN" : "en-US");
+                                                }
+                                                <i class="far fa-calendar-alt me-1"></i>@Localizer["Due"] @task.DueDate.ToString("d", culture)
                                             </small>
                                         </div>
                                         <div class="btn-group ms-2">
@@ -392,10 +402,10 @@
                     {
                         <div class="empty-state text-center py-5">
                             <i class="fas fa-tasks fa-4x text-pastel-muted opacity-50 mb-3"></i>
-                            <h6 class="fw-semibold">No tasks yet</h6>
-                            <p class="small text-muted">Create your first task to get started.</p>
+                            <h6 class="fw-semibold">@Localizer["NoTasksYet"]</h6>
+                            <p class="small text-muted">@Localizer["CreateFirstTaskToGetStarted"]</p>
                             <a asp-controller="WorkTask" asp-action="Create" class="btn btn-pastel-primary rounded-pill mt-2">
-                                Create First Task
+                                @Localizer["CreateFirstTask"]
                             </a>
                         </div>
                     }
@@ -413,7 +423,7 @@
                         <div class="icon-circle">
                             <i class="fas fa-chart-line text-pastel-primary"></i>
                         </div>
-                        <h5 class="fw-bold mb-0">Weekly Productivity</h5>
+                        <h5 class="fw-bold mb-0">@Localizer["WeeklyProductivity"]</h5>
                     </div>
                 </div>
                 <div class="card-body p-4">
@@ -427,22 +437,7 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        // Update live time
-        function updateDateTime() {
-            const now = new Date();
-            const formatted = now.toLocaleString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            const el = document.getElementById('currentDateTime');
-            if (el) el.innerText = formatted;
-        }
-        updateDateTime();
-        setInterval(updateDateTime, 1000);
+        // Cập nhật thời gian thực hiện đã được xử lý toàn cục tại _Layout.cshtml
 
         // Task checkbox handler
         document.querySelectorAll('.task-checkbox').forEach(cb => {
@@ -464,10 +459,10 @@
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                labels: ['@Localizer["Mon"]', '@Localizer["Tue"]', '@Localizer["Wed"]', '@Localizer["Thu"]', '@Localizer["Fri"]', '@Localizer["Sat"]', '@Localizer["Sun"]'],
                 datasets: [
                     {
-                        label: 'Hours Worked',
+                        label: '@Localizer["HoursWorkedLabel"]',
                         data: @Html.Raw(Json.Serialize(ViewBag.WeeklyHours)),
                         borderColor: '#6366f1',
                         backgroundColor: 'rgba(99, 102, 241, 0.08)',
@@ -481,7 +476,7 @@
                         pointHoverRadius: 6
                     },
                     {
-                        label: 'Tasks Completed',
+                        label: '@Localizer["TasksCompletedLabel"]',
                         data: @Html.Raw(Json.Serialize(ViewBag.WeeklyTasks)),
                         borderColor: '#06b6d4',
                         backgroundColor: 'rgba(6, 182, 212, 0.08)',

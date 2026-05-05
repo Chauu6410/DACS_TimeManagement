@@ -2,7 +2,7 @@
 @model DACS_TimeManagement.Models.AdminViewModel
 @inject UserManager<IdentityUser> _userManager
 @{
-    ViewData["Title"] = "System Admin Dashboard";
+    ViewData["Title"] = Localizer["SystemAdminDashboard"];
 }
 
 <div class="admin-container" data-aos="fade-up">
@@ -26,8 +26,8 @@
                         <i class="fas fa-shield-alt fs-3"></i>
                     </div>
                     <div>
-                        <h1 class="display-6 fw-bold mb-0">Admin Dashboard</h1>
-                        <p class="opacity-90 mb-0">System overview and user management</p>
+                        <h1 class="display-6 fw-bold mb-0">@Localizer["AdminDashboard"]</h1>
+                        <p class="opacity-90 mb-0">@Localizer["SystemOverview"]</p>
                     </div>
                 </div>
             </div>
@@ -44,7 +44,7 @@
                             <i class="fas fa-users fa-2x"></i>
                         </div>
                         <div class="stats-number display-4 fw-bold">@Model.TotalUsers</div>
-                        <div class="stats-label text-pastel-muted small fw-semibold">Total Users</div>
+                        <div class="stats-label text-pastel-muted small fw-semibold">@Localizer["TotalUsers"]</div>
                     </div>
                     <i class="fas fa-users fa-4x opacity-25"></i>
                 </div>
@@ -58,7 +58,7 @@
                             <i class="fas fa-project-diagram fa-2x"></i>
                         </div>
                         <div class="stats-number display-4 fw-bold">@Model.TotalProjects</div>
-                        <div class="stats-label text-pastel-muted small fw-semibold">Total Projects</div>
+                        <div class="stats-label text-pastel-muted small fw-semibold">@Localizer["TotalProjects"]</div>
                     </div>
                     <i class="fas fa-project-diagram fa-4x opacity-25"></i>
                 </div>
@@ -72,7 +72,7 @@
                             <i class="fas fa-tasks fa-2x"></i>
                         </div>
                         <div class="stats-number display-4 fw-bold">@Model.TotalTasks</div>
-                        <div class="stats-label text-pastel-muted small fw-semibold">Total Work Tasks</div>
+                        <div class="stats-label text-pastel-muted small fw-semibold">@Localizer["TotalWorkTasks"]</div>
                     </div>
                     <i class="fas fa-tasks fa-4x opacity-25"></i>
                 </div>
@@ -87,7 +87,7 @@
                 <div class="icon-circle bg-pastel-primary-soft" style="width: 36px; height: 36px;">
                     <i class="fas fa-users-cog text-pastel-primary fs-6"></i>
                 </div>
-                <h5 class="fw-bold mb-0 text-pastel-dark">Registered Users</h5>
+                <h5 class="fw-bold mb-0 text-pastel-dark">@Localizer["RegisteredUsers"]</h5>
             </div>
         </div>
         <div class="card-body p-0">
@@ -95,10 +95,10 @@
                 <table class="table table-pastel align-middle m-0">
                     <thead>
                         <tr>
-                            <th class="ps-4">User ID</th>
-                            <th>Email / Username</th>
-                            <th>Email Confirmed</th>
-                            <th class="text-end pe-4">Actions</th>
+                            <th class="ps-4">@Localizer["UserID"]</th>
+                            <th>@Localizer["EmailUsername"]</th>
+                            <th>@Localizer["EmailConfirmed"]</th>
+                            <th class="text-end pe-4">@Localizer["Actions"]</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -111,7 +111,7 @@
                                 <td class="fw-semibold text-pastel-dark">
                                     @if (isAdmin)
                                     {
-                                        <span class="badge bg-pastel-danger me-2">Admin</span>
+                                        <span class="badge bg-pastel-danger me-2">@Localizer["Admin"]</span>
                                     }
                                     @user.Email
                                 </td>
@@ -119,14 +119,14 @@
                                     @if (user.EmailConfirmed)
                                     {
                                         <span class="badge bg-pastel-success rounded-pill px-3 py-1">
-                                            <i class="fas fa-check-circle me-1"></i>Confirmed
+                                            <i class="fas fa-check-circle me-1"></i>@Localizer["Confirmed"]
                                         </span>
                                     }
                                     else
                                     {
                                         <form asp-action="ConfirmEmail" asp-route-userId="@user.Id" method="post" class="d-inline">
                                             <button type="submit" class="badge bg-pastel-warning border-0 rounded-pill px-3 py-1 text-dark cursor-pointer" style="cursor: pointer;">
-                                                <i class="fas fa-clock me-1"></i>Pending (Fix)
+                                                <i class="fas fa-clock me-1"></i>@Localizer["PendingFix"]
                                             </button>
                                         </form>
                                     }
@@ -135,10 +135,10 @@
                                     @if (user.Email != "admin@gmail.com")
                                     {
                                         <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                            <button type="button" class="btn btn-sm bg-white text-primary border-end toggle-admin-btn" data-user-id="@user.Id" data-is-admin="@(isAdmin ? "true" : "false")" title="Toggle Admin/User">
+                                            <button type="button" class="btn btn-sm bg-white text-primary border-end toggle-admin-btn" data-user-id="@user.Id" data-is-admin="@(isAdmin ? "true" : "false")" title="@Localizer["ToggleAdminUser"]">
                                                 <i class="fas fa-user-tag"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm bg-white @(isLocked ? "text-success" : "text-danger") toggle-lock-btn" data-user-id="@user.Id" data-is-locked="@(isLocked ? "true" : "false")" title="@(isLocked ? "Unlock" : "Lock")">
+                                            <button type="button" class="btn btn-sm bg-white @(isLocked ? "text-success" : "text-danger") toggle-lock-btn" data-user-id="@user.Id" data-is-locked="@(isLocked ? "true" : "false")" title="@(isLocked ? Localizer["Unlock"].Value : Localizer["Lock"].Value)">
                                                 <i class="fas @(isLocked ? "fa-unlock" : "fa-lock")"></i>
                                             </button>
                                         </div>
@@ -149,7 +149,7 @@
                         @if (!Model.Users.Any())
                         {
                             <tr>
-                                <td colspan="4" class="text-center text-pastel-muted py-5">No users found.</td>
+                                <td colspan="4" class="text-center text-pastel-muted py-5">@Localizer["NoUsersFound"]</td>
                             </tr>
                         }
                     </tbody>
@@ -188,7 +188,7 @@
                             if (!badgeSpan) {
                                 const newBadge = document.createElement('span');
                                 newBadge.className = 'badge bg-pastel-danger me-2';
-                                newBadge.innerText = 'Admin';
+                                newBadge.innerText = '@Localizer["Admin"]';
                                 emailCell.insertBefore(newBadge, emailCell.firstChild);
                             }
                             this.dataset.isAdmin = 'true';
@@ -235,13 +235,13 @@
                             icon.className = 'fas fa-unlock';
                             this.classList.add('text-success');
                             this.classList.remove('text-danger');
-                            this.title = 'Unlock';
+                            this.title = '@Localizer["Unlock"]';
                             this.dataset.isLocked = 'true';
                         } else {
                             icon.className = 'fas fa-lock';
                             this.classList.add('text-danger');
                             this.classList.remove('text-success');
-                            this.title = 'Lock';
+                            this.title = '@Localizer["Lock"]';
                             this.dataset.isLocked = 'false';
                         }
                     } else {

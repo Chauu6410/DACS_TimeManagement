@@ -22,6 +22,8 @@ namespace DACS_TimeManagement.Models
         public string DefaultView { get; set; } = "Dashboard";
         public bool EmailNotifications { get; set; } = true;
         public bool PushNotifications { get; set; } = true;
+        public string? AvatarUrl { get; set; }
+        public string Language { get; set; } = "en";
         
         public TimeSpan WorkStartTime { get; set; } = new TimeSpan(9, 0, 0); // 9:00 AM
         public TimeSpan WorkEndTime { get; set; } = new TimeSpan(17, 0, 0); // 5:00 PM

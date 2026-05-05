@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Bảng điều khiển</value>
+  </data>
+  <data name="Reporting" xml:space="preserve">
+    <value>Báo cáo</value>
+  </data>
+  <data name="Kanban" xml:space="preserve">
+    <value>Bảng công việc</value>
+  </data>
+  <data name="Schedule" xml:space="preserve">
+    <value>Lịch trình</value>
+  </data>
+  <data name="Goals" xml:space="preserve">
+    <value>Mục tiêu</value>
+  </data>
+  <data name="Projects" xml:space="preserve">
+    <value>Dự án</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Cài đặt</value>
+  </data>
+  <data name="Overview" xml:space="preserve">
+    <value>Tổng quan</value>
+  </data>
+  <data name="Workspace" xml:space="preserve">
+    <value>Không gian làm việc</value>
+  </data>
+  <data name="Organization" xml:space="preserve">
+    <value>Tổ chức</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Thông báo</value>
+  </data>
+  <data name="AllCaughtUp" xml:space="preserve">
+    <value>Đã xem hết tất cả</value>
+  </data>
+  <data name="ViewAll" xml:space="preserve">
+    <value>Xem tất cả →</value>
+  </data>
+  <data name="Privacy" xml:space="preserve">
+    <value>Bảo mật</value>
+  </data>
+  <data name="Terms" xml:space="preserve">
+    <value>Điều khoản</value>
+  </data>
+  <data name="FocusTimer" xml:space="preserve">
+    <value>ĐỒNG HỒ TẬP TRUNG</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Bắt đầu</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Tạm dừng</value>
+  </data>
+  <data name="FocusSessionCompleted" xml:space="preserve">
+    <value>Phiên tập trung hoàn thành! Tuyệt vời.</value>
+  </data>
+  <data name="Admin" xml:space="preserve">
+    <value>Quản trị</value>
+  </data>
+  <data name="SystemAdmin" xml:space="preserve">
+    <value>Quản trị hệ thống</value>
+  </data>
+  <data name="NewTaskAssigned" xml:space="preserve">
+    <value>Nhiệm vụ mới được giao!</value>
+  </data>
+  <data name="CheckWorkspace" xml:space="preserve">
+    <value>Kiểm tra không gian làm việc.</value>
+  </data>
+  <data name="Notification" xml:space="preserve">
+    <value>Thông báo</value>
+  </data>
+  <data name="Task" xml:space="preserve">
+    <value>Nhiệm vụ</value>
+  </data>
+  <data name="FailedToLoadNotifications" xml:space="preserve">
+    <value>Không thể tải thông báo</value>
+  </data>
+  <data name="Urgent" xml:space="preserve">
+    <value>Khẩn cấp</value>
+  </data>
+  <data name="High" xml:space="preserve">
+    <value>Cao</value>
+  </data>
+  <data name="Medium" xml:space="preserve">
+    <value>Trung bình</value>
+  </data>
+  <data name="Low" xml:space="preserve">
+    <value>Thấp</value>
+  </data>
+  <data name="Todo" xml:space="preserve">
+    <value>Cần làm</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>Đang làm</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Đã xong</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Hoàn tất</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>Đang kiểm thử</value>
+  </data>
+  <data name="Scheduled" xml:space="preserve">
+    <value>Đã lên lịch</value>
+  </data>
+  <data name="NoDescription" xml:space="preserve">
+    <value>Không có mô tả</value>
+  </data>
+  <data name="Due" xml:space="preserve">
+    <value>Hạn:</value>
+  </data>
+</root>
