@@ -9,8 +9,46 @@ namespace DACS_TimeManagement.Controllers
     public class NotificationController : Controller
     {
         private readonly INotificationRepository _notifRepo;
+        private readonly Microsoft.Extensions.Localization.IStringLocalizer<NotificationController> _localizer;
 
-        public NotificationController(INotificationRepository notifRepo) => _notifRepo = notifRepo;
+        public NotificationController(INotificationRepository notifRepo, Microsoft.Extensions.Localization.IStringLocalizer<NotificationController> localizer)
+        {
+            _notifRepo = notifRepo;
+            _localizer = localizer;
+        }
+
+        private string TranslateMessage(string msg)
+        {
+            if (string.IsNullOrEmpty(msg)) return msg;
+
+            // Simple pattern matching for common messages
+            // Task added in project: "{creatorName} added a new task in project {projectName}."
+            var matchAdded = System.Text.RegularExpressions.Regex.Match(msg, @"(.*) added a new task in project (.*)\.");
+            if (matchAdded.Success)
+                return string.Format(_localizer["TaskAddedInProject"].Value, matchAdded.Groups[1].Value, matchAdded.Groups[2].Value);
+
+            // Task moved: "Task '{title}' was moved by {name}."
+            var matchMoved = System.Text.RegularExpressions.Regex.Match(msg, @"Task '(.*)' was moved by (.*)\.");
+            if (matchMoved.Success)
+                return string.Format(_localizer["TaskMove"].Value, matchMoved.Groups[1].Value, matchMoved.Groups[2].Value);
+
+            // Task assigned: "You have been assigned a new task!"
+            if (msg.Contains("assigned a new task"))
+                return _localizer["TaskAssigned"].Value;
+
+            // Request modify: "User has requested to modify task {title}."
+            var matchReqMod = System.Text.RegularExpressions.Regex.Match(msg, @"User has requested to modify task (.*)\.");
+            if (matchReqMod.Success)
+                return string.Format(_localizer["TaskRequestModify"].Value, matchReqMod.Groups[1].Value);
+
+            // Request create: "{name} requested to create a task in project '{projectName}'."
+            var matchReqCreate = System.Text.RegularExpressions.Regex.Match(msg, @"(.*) requested to create a task in project '(.*)'\.");
+            if (matchReqCreate.Success)
+                return string.Format(_localizer["TaskRequestCreate"].Value, matchReqCreate.Groups[1].Value, matchReqCreate.Groups[2].Value);
+
+            return msg;
+        }
+
 
         // Hiển thị danh sách thông báo có phân trang
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
@@ -44,13 +82,14 @@ namespace DACS_TimeManagement.Controllers
             var notifications = await _notifRepo.GetPagedAsync(userId, 1, 5); // Lấy 5 thông báo trang 1
             return Json(notifications.Select(n => new {
                 id = n.Id,
-                title = n.Title,
-                message = (n.Message ?? string.Empty).Split("||", StringSplitOptions.None)[0],
+                title = _localizer[n.Title].Value, // Localize title if it's a key
+                message = TranslateMessage((n.Message ?? string.Empty).Split("||", StringSplitOptions.None)[0]),
                 isRead = n.IsRead,
                 time = n.CreatedAt.ToString("g"),
                 createdAt = n.CreatedAt
             }));
         }
+
 
         // Đánh dấu một thông báo là đã đọc
         [HttpPost]

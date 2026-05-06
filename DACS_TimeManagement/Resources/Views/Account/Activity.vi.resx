@@ -135,4 +135,20 @@
   <data name="ActionsWillAppear" xml:space="preserve">
     <value>Các hành động của bạn sẽ xuất hiện ở đây khi bạn sử dụng hệ thống.</value>
   </data>
+  <data name="TaskWasMoved" xml:space="preserve">
+    <value>Công việc '{0}' đã được di chuyển.</value>
+  </data>
+  <data name="TaskWasCreated" xml:space="preserve">
+    <value>Công việc '{0}' đã được tạo mới.</value>
+  </data>
+  <data name="MinsAgo" xml:space="preserve">
+    <value>phút trước</value>
+  </data>
+  <data name="HoursAgo" xml:space="preserve">
+    <value>giờ trước</value>
+  </data>
+  <data name="DaysAgo" xml:space="preserve">
+    <value>ngày trước</value>
+  </data>
 </root>
+

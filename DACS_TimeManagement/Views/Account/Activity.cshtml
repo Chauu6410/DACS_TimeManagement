@@ -1,3 +1,4 @@
+@model IEnumerable<DACS_TimeManagement.Models.TaskHistory>
 @{
     ViewData["Title"] = Localizer["ActivityLog"];
 }
@@ -26,24 +27,34 @@
             </div>
         </div>
         <div class="card-body p-0">
-            @{
-                var activities = ViewBag.Activities as List<string> ?? new List<string>();
-            }
-            @if (activities.Any())
+            @if (Model != null && Model.Any())
             {
                 <div class="activity-timeline">
-                    @foreach (var activity in activities)
+                    @foreach (var h in Model)
                     {
+                        var taskTitle = h.WorkTask?.Title ?? "Unknown Task";
+                        var message = h.OldBoardListId == null 
+                            ? string.Format(Localizer["TaskWasCreated"].Value, taskTitle)
+                            : string.Format(Localizer["TaskWasMoved"].Value, taskTitle);
+
                         <div class="activity-item p-4 border-bottom">
                             <div class="d-flex gap-3">
                                 <div class="activity-icon flex-shrink-0">
                                     <i class="fas fa-circle text-pastel-primary" style="font-size: 10px;"></i>
                                 </div>
                                 <div class="flex-grow-1">
-                                    <p class="mb-0 text-pastel-dark">@activity</p>
+                                    <p class="mb-0 text-pastel-dark">@message (@h.ChangedAt.ToString("g"))</p>
                                     <small class="text-pastel-muted">
-                                        <i class="far fa-clock me-1"></i>@Localizer["JustNow"]
+                                        <i class="far fa-clock me-1"></i>
+                                        @{
+                                            var diff = DateTime.Now - h.ChangedAt;
+                                            if (diff.TotalMinutes < 1) { @Localizer["JustNow"] }
+                                            else if (diff.TotalHours < 1) { <span>@((int)diff.TotalMinutes) @Localizer["MinsAgo"]</span> }
+                                            else if (diff.TotalDays < 1) { <span>@((int)diff.TotalHours) @Localizer["HoursAgo"]</span> }
+                                            else { <span>@((int)diff.TotalDays) @Localizer["DaysAgo"]</span> }
+                                        }
                                     </small>
+
                                 </div>
                             </div>
                         </div>
@@ -52,6 +63,7 @@
             }
             else
             {
+
                 <div class="empty-state text-center py-5">
                     <i class="fas fa-history fa-4x text-pastel-muted opacity-50 mb-3"></i>
                     <h6 class="fw-semibold text-pastel-dark">@Localizer["NoActivitiesRecorded"]</h6>

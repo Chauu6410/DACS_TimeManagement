@@ -38,15 +38,11 @@ namespace DACS_TimeManagement.Controllers
                 .Where(h => h.ChangedByUserId == userId)
                 .OrderByDescending(h => h.ChangedAt)
                 .Take(50)
-                .Select(h => new {
-                    Message = $"Task '{h.WorkTask.Title}' was moved.",
-                    Time = h.ChangedAt
-                })
                 .ToListAsync();
 
-            ViewBag.Activities = activities.Select(a => $"{a.Message} (at {a.Time:g})").ToList();
-            return View();
+            return View(activities);
         }
+
 
         [HttpPost]
         public IActionResult ChangePassword()

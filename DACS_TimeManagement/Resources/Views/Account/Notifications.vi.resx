@@ -112,4 +112,36 @@
   <data name="Cancel" xml:space="preserve">
     <value>Hủy</value>
   </data>
+  <data name="TaskAssigned" xml:space="preserve">
+    <value>Bạn đã được giao một công việc mới!</value>
+  </data>
+  <data name="TaskAddedInProject" xml:space="preserve">
+    <value>{0} đã thêm một công việc mới trong dự án {1}.</value>
+  </data>
+  <data name="TaskMove" xml:space="preserve">
+    <value>Công việc '{0}' đã được di chuyển bởi {1}.</value>
+  </data>
+  <data name="TaskRequestModify" xml:space="preserve">
+    <value>Người dùng yêu cầu thay đổi công việc {0}.</value>
+  </data>
+  <data name="TaskRequestCreate" xml:space="preserve">
+    <value>{0} yêu cầu tạo công việc trong dự án '{1}'.</value>
+  </data>
+  <data name="Project Update" xml:space="preserve">
+    <value>Cập nhật dự án</value>
+  </data>
+  <data name="Task Updated" xml:space="preserve">
+    <value>Công việc đã cập nhật</value>
+  </data>
+  <data name="New Task" xml:space="preserve">
+    <value>Công việc mới</value>
+  </data>
+  <data name="Task Creation Request" xml:space="preserve">
+    <value>Yêu cầu tạo công việc</value>
+  </data>
+  <data name="Task Change Request" xml:space="preserve">
+    <value>Yêu cầu thay đổi công việc</value>
+  </data>
 </root>
+
+

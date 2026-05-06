@@ -62,7 +62,13 @@
                     <div class="col-6 col-md-3">
                         <div class="stat-mini glass text-center p-3">
                             <div class="stat-mini-icon text-warning"><i class="fas fa-fire"></i></div>
-                            <h4 class="mb-0">@Model.CurrentStreak</h4>
+                            @{
+                                var todayDate = DateTime.UtcNow.Date;
+                                var isStreakActive = Model.LastUpdated.HasValue && Model.LastUpdated.Value.Date >= todayDate.AddDays(-1);
+                                var displayStreak = isStreakActive ? Model.CurrentStreak : 0;
+                            }
+                            <h4 class="mb-0">@displayStreak</h4>
+
                             <small class="text-muted">@Localizer["Streak"]</small>
                         </div>
                     </div>

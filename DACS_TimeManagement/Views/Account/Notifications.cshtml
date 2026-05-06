@@ -48,12 +48,47 @@
         <div class="card-body p-0">
             @if (notifications.Any())
             {
+                @functions {
+                    public string TranslateMessage(string msg, string detail, IViewLocalizer localizer)
+                    {
+                        if (string.IsNullOrEmpty(msg)) return msg;
+
+                        // Task added in project: "{creatorName} added a new task in project {projectName}."
+                        var matchAdded = System.Text.RegularExpressions.Regex.Match(msg, @"(.*) added a new task in project (.*)\.");
+                        if (matchAdded.Success)
+                            return string.Format(localizer["TaskAddedInProject"].Value, matchAdded.Groups[1].Value, matchAdded.Groups[2].Value);
+
+                        // Task moved: "Task '{title}' was moved by {name}."
+                        var matchMoved = System.Text.RegularExpressions.Regex.Match(msg, @"Task '(.*)' was moved by (.*)\.");
+                        if (matchMoved.Success)
+                            return string.Format(localizer["TaskMove"].Value, matchMoved.Groups[1].Value, matchMoved.Groups[2].Value);
+
+                        // Task assigned: "You have been assigned a new task!"
+                        if (msg.Contains("assigned a new task"))
+                            return localizer["TaskAssigned"].Value;
+
+                        // Request modify: "User has requested to modify task {title}."
+                        var matchReqMod = System.Text.RegularExpressions.Regex.Match(msg, @"User has requested to modify task (.*)\.");
+                        if (matchReqMod.Success)
+                            return string.Format(localizer["TaskRequestModify"].Value, matchReqMod.Groups[1].Value);
+
+                        // Request create: "{name} requested to create a task in project '{projectName}'."
+                        var matchReqCreate = System.Text.RegularExpressions.Regex.Match(msg, @"(.*) requested to create a task in project '(.*)'\.");
+                        if (matchReqCreate.Success)
+                            return string.Format(localizer["TaskRequestCreate"].Value, matchReqCreate.Groups[1].Value, matchReqCreate.Groups[2].Value);
+
+                        return msg;
+                    }
+                }
                 <div class="notification-timeline">
                     @foreach (var n in notifications)
                     {
                         var messageParts = (n.Message ?? string.Empty).Split("||", StringSplitOptions.None);
-                        var mainMessage = messageParts.Length > 0 ? messageParts[0] : string.Empty;
+                        var rawMainMessage = messageParts.Length > 0 ? messageParts[0] : string.Empty;
                         var detailMessage = messageParts.Length > 1 ? messageParts[1] : string.Empty;
+                        
+                        var mainMessage = TranslateMessage(rawMainMessage, detailMessage, Localizer);
+
                         <div class="notification-item p-4 border-bottom @(!n.IsRead ? "unread" : "")">
                             <div class="d-flex flex-wrap gap-3 align-items-start justify-content-between">
                                 <div class="d-flex gap-3 flex-grow-1">
