@@ -4,15 +4,22 @@
 }
 
 <div class="projects-container" data-aos="fade-up" style="opacity: 1 !important;">
-    <!-- Actions -->
-    <div class="d-flex justify-content-end mb-3">
-        <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <!-- Search Bar -->
+        <div class="search-wrapper position-relative" style="min-width: 300px;">
+            <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            <input type="text" id="projectSearch" class="form-control rounded-pill ps-5 border-0 shadow-sm" placeholder="@Localizer["SearchProjects"]..." style="background: rgba(255,255,255,0.8); backdrop-filter: blur(4px);">
+        </div>
+
+        <button type="button" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift" data-bs-toggle="modal" data-bs-target="#createProjectModal">
             <i class="fas fa-plus me-2"></i>@Localizer["NewProject"]
-        </a>
+        </button>
     </div>
 
+
     <!-- Projects Grid -->
-    <div class="row g-4">
+    <div class="row g-4" id="projectsGrid">
+
         @if (!Model.Any())
         {
             <div class="col-12">
@@ -20,7 +27,7 @@
                     <i class="fas fa-folder-open fa-4x text-pastel-muted mb-3"></i>
                     <h4 class="fw-semibold">@Localizer["NoProjectsYet"]</h4>
                     <p class="text-muted mb-4">@Localizer["OrganizeTasksDescription"]</p>
-                    <a asp-action="Create" class="btn btn-pastel-primary rounded-pill mx-auto px-4">@Localizer["CreateFirstProject"]</a>
+                    <button type="button" class="btn btn-pastel-primary rounded-pill mx-auto px-4" data-bs-toggle="modal" data-bs-target="#createProjectModal">@Localizer["CreateFirstProject"]</button>
                 </div>
             </div>
         }
@@ -38,7 +45,8 @@
             var completedTasks = project.Tasks?.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed) ?? 0;
             var completionPercent = totalTasks == 0 ? 0 : (int)((double)completedTasks / totalTasks * 100);
 
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-6 col-lg-4 project-item" data-name="@project.Name.ToLower()">
+
                 <div class="project-card card border-0 shadow-md rounded-4 overflow-hidden hover-lift @colorClass">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -93,6 +101,64 @@
             </div>
         }
     </div>
+
+    <!-- Empty Search Result -->
+    <div id="emptySearchResult" class="col-12 text-center py-5" style="display: none;">
+        <div class="card glass-card border-0 shadow-sm rounded-4 p-5">
+            <i class="fas fa-search fa-3x text-muted mb-3 opacity-50"></i>
+            <h5 class="fw-semibold text-muted">@Localizer["NoProjectsFound"]</h5>
+            <p class="text-muted mb-0">@Localizer["TryDifferentSearch"]</p>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- Create Project Modal -->
+<div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-gradient-primary text-white border-0 py-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-white bg-opacity-25 text-white" style="width: 48px; height: 48px; border-radius: 60px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                        <i class="fas fa-folder-plus fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Create New Project</h4>
+                        <p class="opacity-75 small mb-0">Set up a new project workspace</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Create" method="post" id="createProjectForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4 p-lg-5" style="background-color: var(--card-bg);">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label for="Name" class="form-label fw-semibold mb-2" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">
+                                <i class="fas fa-tag text-primary me-1"></i> Project Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="Name" name="Name" class="form-control form-control-lg rounded-3" style="border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-dark);" placeholder="e.g., Q3 Website Redesign" required />
+                        </div>
+                        <div class="col-12">
+                            <label for="Description" class="form-label fw-semibold mb-2" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">
+                                <i class="fas fa-align-left text-primary me-1"></i> Description
+                            </label>
+                            <textarea id="Description" name="Description" class="form-control rounded-3" style="border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-dark);" rows="5" placeholder="Briefly describe the goals of this project..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-4 d-flex justify-content-between" style="border-color: var(--border-color) !important; background-color: var(--bg-light);">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2" data-bs-dismiss="modal">
+                        <i class="fas fa-arrow-left me-2"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm fw-bold">
+                        <i class="fas fa-check-circle me-2"></i> Create Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -132,9 +198,7 @@
         justify-content: center;
         border-radius: 30px;
     }
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, var(--primary, #6366f1), var(--primary-dark, #4f46e5));
-    }
+
     .text-primary-pastel {
         color: #4f46e5;
     }
@@ -301,7 +365,28 @@
         background-color: #fee2e2 !important; /* Nền đỏ nhạt khi hover */
         color: #dc2626 !important;
     }
+
+    /* Search Bar Styles */
+    .search-wrapper input {
+        transition: all 0.3s ease;
+        border: 1px solid transparent !important;
+    }
+    .search-wrapper input:focus {
+        background: #fff !important;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06) !important;
+        border-color: var(--pastel-blue-border) !important;
+        width: 350px;
+    }
+    body.theme-dark .search-wrapper input {
+        background: rgba(30, 41, 59, 0.7) !important;
+        color: #f1f5f9;
+    }
+    body.theme-dark .search-wrapper input:focus {
+        background: rgba(30, 41, 59, 0.9) !important;
+        border-color: #475569 !important;
+    }
 </style>
+
 
 @section Scripts {
     <script>
@@ -310,19 +395,103 @@
             if (typeof AOS !== 'undefined') {
                 AOS.refresh();
             }
+
+            // Chức năng tìm kiếm dự án
+            const projectSearch = document.getElementById('projectSearch');
+            if (projectSearch) {
+                projectSearch.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase().trim();
+                    const projectItems = document.querySelectorAll('.project-item');
+                    let hasResults = false;
+
+                    projectItems.forEach(item => {
+                        const projectName = item.getAttribute('data-name');
+                        if (projectName.includes(searchTerm)) {
+                            item.style.display = 'block';
+                            hasResults = true;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+
+                    // Hiển thị thông báo nếu không tìm thấy
+                    const emptySearch = document.getElementById('emptySearchResult');
+                    if (emptySearch) {
+                        emptySearch.style.display = hasResults ? 'none' : 'block';
+                    }
+
+                    if (typeof AOS !== 'undefined') AOS.refresh();
+                });
+            }
         });
+
+
 
         /**
          * Xác nhận xóa dự án với thông báo đa ngôn ngữ an toàn
          */
         function confirmDelete(projectId, projectName) {
-            // Sử dụng Html.Raw và Encoder để tránh lỗi cú pháp JS khi chuỗi có ký tự đặc biệt
             const rawMessage = "@Html.Raw(System.Text.Encodings.Web.JavaScriptEncoder.Default.Encode(Localizer["DeleteProjectConfirm"].Value))";
             const message = rawMessage.replace("{projectName}", projectName).replace(/\\n/g, '\n');
         
-            if (confirm(message)) {
-                document.getElementById(`delete-form-${projectId}`).submit();
-            }
+            Swal.fire({
+                title: 'Are you sure?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel',
+                borderRadius: '1rem'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`delete-form-${projectId}`).submit();
+                }
+            });
         }
+
+        /**
+         * Xử lý submit form Create Project bằng AJAX
+         */
+        document.getElementById('createProjectForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Tắt modal và reload trang để hiện project mới
+                    const modalEl = document.getElementById('createProjectModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) {
+                        modal.hide();
+                    }
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'An error occurred while creating the project.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('A network error occurred. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        });
     </script>
 }

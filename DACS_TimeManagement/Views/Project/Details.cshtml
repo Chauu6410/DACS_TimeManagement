@@ -364,9 +364,9 @@
             <div class="d-flex gap-2">
                 @if (!string.IsNullOrEmpty(currentUserId) && currentUserId == Model.UserId)
                 {
-                    <a asp-controller="Project" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light rounded-pill px-4 shadow-sm btn-sm fw-semibold" style="color: var(--primary);">
+                    <button type="button" class="btn btn-light rounded-pill px-4 shadow-sm btn-sm fw-semibold" style="color: var(--primary);" data-bs-toggle="modal" data-bs-target="#editProjectModal">
                         <i class="fas fa-pencil-alt me-2"></i>Edit
-                    </a>
+                    </button>
                     <button type="button" class="btn btn-outline-light-custom rounded-pill px-4 shadow-sm btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
                         <i class="fas fa-user-plus me-2"></i>Invite
                     </button>
@@ -653,6 +653,56 @@
     </div>
 </div>
 
+<!-- Edit Project Modal -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-gradient-primary text-white border-0 py-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-white bg-opacity-25 text-white" style="width: 48px; height: 48px; border-radius: 60px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                        <i class="fas fa-edit fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Edit Project</h4>
+                        <p class="opacity-75 small mb-0">Update project information</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Edit" method="post" id="editProjectForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" value="@Model.Id" />
+                <input type="hidden" name="CreatedDate" value="@Model.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                <input type="hidden" name="UserId" value="@Model.UserId" />
+                <div class="modal-body p-4 p-lg-5" style="background-color: var(--pastel-card-bg);">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label for="EditName" class="form-label fw-semibold mb-2" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--pastel-muted);">
+                                <i class="fas fa-tag text-primary me-1"></i> Project Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="EditName" name="Name" value="@Model.Name" class="form-control form-control-lg rounded-3 pastel-input" required />
+                        </div>
+                        <div class="col-12">
+                            <label for="EditDescription" class="form-label fw-semibold mb-2" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--pastel-muted);">
+                                <i class="fas fa-align-left text-primary me-1"></i> Description
+                            </label>
+                            <textarea id="EditDescription" name="Description" class="form-control rounded-3 pastel-input" rows="5">@Model.Description</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-pastel p-4 d-flex justify-content-between" style="background-color: var(--pastel-column-bg);">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2" data-bs-dismiss="modal">
+                        <i class="fas fa-arrow-left me-2"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-pastel-primary rounded-pill px-5 py-2 shadow-sm fw-bold">
+                        <i class="fas fa-save me-2"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         let isLoadingComments = false;
@@ -663,6 +713,46 @@
             var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         }
         currentUserId = "@currentUserId";
+
+        // Handle Edit Project form submission
+        document.getElementById('editProjectForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const modalEl = document.getElementById('editProjectModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) {
+                        modal.hide();
+                    }
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'An error occurred while updating the project.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('A network error occurred. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        });
 
         function loadComments() {
             if (isLoadingComments) return;

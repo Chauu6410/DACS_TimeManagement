@@ -355,8 +355,13 @@ namespace DACS_TimeManagement.Controllers
                         .SendAsync("ReceiveNotification", notif.Title, notif.Message, task.Title);
                 }
 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = true });
+
                 return RedirectToAction(nameof(Index), new { projectId = task.ProjectId });
             }
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = false, message = "Invalid data." });
 
             var projects = await _projectRepo.GetAllAsync(userId);
             ViewBag.ProjectId = new SelectList(projects, "Id", "Name", task.ProjectId);
@@ -722,6 +727,21 @@ namespace DACS_TimeManagement.Controllers
                 }
             }
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { 
+                    id = task.Id, 
+                    title = task.Title, 
+                    description = task.Description, 
+                    startDate = task.StartDate.ToString("yyyy-MM-ddTHH:mm"),
+                    endDate = task.EndDate.ToString("yyyy-MM-ddTHH:mm"),
+                    priority = task.Priority.ToString(),
+                    status = task.Status.ToString(),
+                    progress = task.Progress,
+                    assigneeId = task.AssigneeId,
+                    isPrivate = task.IsPrivate,
+                    projectId = task.ProjectId
+                });
+
             return View(task);
         }
 
@@ -916,18 +936,27 @@ namespace DACS_TimeManagement.Controllers
                             .SendAsync("ReceiveNotification", notif.Title, "One of your tasks has just been updated!", taskForm.Title);
                     }
 
-                    TempData["SuccessMessage"] = "Task updated successfully!";
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = true });
+
                     return RedirectToAction(nameof(Index), new { projectId = taskForm.ProjectId });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = false, message = "Concurrency error." });
                     ModelState.AddModelError(string.Empty, "Data has been changed by someone else. Please reload the page.");
                 }
                 catch (Exception ex)
                 {
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = false, message = ex.Message });
                     ModelState.AddModelError(string.Empty, "An error occurred during update: " + ex.Message);
                 }
             }
+            
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = false, message = "Invalid data." });
 
             // Nếu form lỗi, load lại danh sách project để hiển thị lại View
             var projects = await _projectRepo.GetAllAsync(userId);

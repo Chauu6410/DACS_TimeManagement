@@ -5,6 +5,7 @@
     var totalGoals = Model.Count();
     var completedGoals = Model.Count(g => g.Status == DACS_TimeManagement.Models.GoalStatus.Completed);
     var overallProgress = totalGoals == 0 ? 0 : (completedGoals * 100 / totalGoals);
+    var projects = (IEnumerable<dynamic>)ViewBag.Projects;
 }
 
 @Html.AntiForgeryToken()
@@ -15,9 +16,9 @@
         <button class="btn btn-light rounded-pill px-3 shadow-sm hover-lift" id="refreshBtn" title="@Localizer["RefreshData"]">
             <i class="fas fa-sync-alt"></i>
         </button>
-        <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift">
+        <button type="button" class="btn btn-pastel-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift" data-bs-toggle="modal" data-bs-target="#createGoalModal">
             <i class="fas fa-plus-circle me-2"></i>@Localizer["SetUpNewGoal"]
-        </a>
+        </button>
     </div>
 
     <!-- Stats Overview Grid -->
@@ -84,7 +85,7 @@
                     </div>
                     <h4 class="fw-bold">@Localizer["NoGoalsDefined"]</h4>
                     <p class="text-muted mb-4">@Localizer["StartCreatingGoal"]</p>
-                    <a asp-action="Create" class="btn btn-pastel-primary rounded-pill px-4 fw-semibold mx-auto">@Localizer["SetYourFirstGoal"]</a>
+                    <button type="button" class="btn btn-pastel-primary rounded-pill px-4 fw-semibold mx-auto" data-bs-toggle="modal" data-bs-target="#createGoalModal">@Localizer["SetYourFirstGoal"]</button>
                 </div>
             </div>
         }
@@ -123,9 +124,9 @@
                             <div class="d-flex justify-content-between align-items-start mb-3">
                                 <h5 class="goal-title fw-bold mb-0 text-truncate" title="@goal.Title">@goal.Title</h5>
                                 <div class="d-flex gap-2">
-                                    <a asp-action="Edit" asp-route-id="@goal.Id" class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-primary hover-scale" title="@Localizer["Edit"]">
+                                    <button type="button" class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-primary hover-scale edit-goal-btn" title="@Localizer["Edit"]" data-goal-id="@goal.Id">
                                         <i class="fas fa-pencil-alt"></i>
-                                    </a>
+                                    </button>
                                     <button class="btn btn-sm rounded-circle border-0 bg-white bg-opacity-50 text-danger delete-goal-btn hover-scale" data-id="@goal.Id" title="@Localizer["Delete"]">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
@@ -225,6 +226,164 @@
                 </div>
             }
         }
+    </div>
+</div>
+
+<!-- Edit Goal Modal -->
+<div class="modal fade" id="editGoalModal" tabindex="-1" aria-labelledby="editGoalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-gradient-primary text-white border-0 py-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-white bg-opacity-25 text-white" style="width: 48px; height: 48px; border-radius: 60px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                        <i class="fas fa-pencil-alt fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Edit Goal</h4>
+                        <p class="opacity-75 small mb-0">Update your objective details</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editGoalForm" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editGoalId" />
+                <div class="modal-body p-4 p-lg-5" style="background-color: var(--card-bg);">
+                    <div class="row g-4">
+                        <!-- Type (Hidden in Edit) -->
+                        <input type="hidden" name="Type" id="editGoalType" />
+
+
+                        <!-- Title (TimeBased) -->
+                        <div class="col-12" id="editTitleGroup">
+                            <label for="editTitle" class="form-label fw-semibold mb-2">Goal Title <span class="text-danger">*</span></label>
+                            <input type="text" name="Title" id="editTitle" class="form-control rounded-3" placeholder="e.g., Learn English" />
+                        </div>
+
+                        <!-- Project (TaskBased) -->
+                        <div class="col-12" id="editProjectGroup">
+                            <label for="editProjectId" class="form-label fw-semibold mb-2">Linked Project <span class="text-danger">*</span></label>
+                            <select name="ProjectId" id="editProjectId" class="form-select rounded-3">
+                                <option value="">-- Select a project --</option>
+                                @foreach(var p in projects)
+                                {
+                                    <option value="@p.Id">@p.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label for="editDescription" class="form-label fw-semibold mb-2">Description</label>
+                            <textarea name="Description" id="editDescription" class="form-control rounded-3" rows="3"></textarea>
+                        </div>
+
+                        <!-- Target Date & Hours -->
+                        <div class="col-md-6">
+                            <label for="editTargetDate" class="form-label fw-semibold mb-2">Target Date <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="TargetDate" id="editTargetDate" class="form-control rounded-3" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editTargetHours" class="form-label fw-semibold mb-2">Target Hours</label>
+                            <div class="input-group">
+                                <input type="number" step="0.5" name="TargetHours" id="editTargetHours" class="form-control rounded-start-3" />
+                                <span class="input-group-text rounded-end-3">hours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-4 d-flex justify-content-between" style="background-color: var(--bg-light);">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="editGoalSubmitBtn" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm fw-bold">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="createGoalModal" tabindex="-1" aria-labelledby="createGoalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-gradient-primary text-white border-0 py-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-white bg-opacity-25 text-white" style="width: 48px; height: 48px; border-radius: 60px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                        <i class="fas fa-bullseye fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Set Up New Goal</h4>
+                        <p class="opacity-75 small mb-0">Define your objectives and track progress</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Create" method="post" id="createGoalForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4 p-lg-5" style="background-color: var(--card-bg);">
+                    <div class="row g-4">
+                        <!-- Goal Type -->
+                        <div class="col-12 mb-2">
+                            <label class="form-label fw-semibold mb-3">Goal Type</label>
+                            <div class="d-flex gap-3 flex-wrap">
+                                <div class="form-check custom-radio-card flex-grow-1 p-0 m-0">
+                                    <input class="form-check-input" type="radio" name="Type" id="typeTask" value="TaskBased" checked>
+                                    <label class="form-check-label w-100 p-3 border rounded-3 text-center cursor-pointer h-100" for="typeTask">
+                                        <i class="fas fa-project-diagram fs-4 text-primary d-block mb-2 mt-2"></i>
+                                        <span class="fw-bold d-block">Project-Based</span>
+                                    </label>
+                                </div>
+                                <div class="form-check custom-radio-card flex-grow-1 p-0 m-0">
+                                    <input class="form-check-input" type="radio" name="Type" id="typeTime" value="TimeBased">
+                                    <label class="form-check-label w-100 p-3 border rounded-3 text-center cursor-pointer h-100" for="typeTime">
+                                        <i class="fas fa-stopwatch fs-4 text-warning d-block mb-2 mt-2"></i>
+                                        <span class="fw-bold d-block">Time-Based</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Title (TimeBased) -->
+                        <div class="col-12 d-none" id="titleGroup">
+                            <label for="Title" class="form-label fw-semibold mb-2">Goal Title <span class="text-danger">*</span></label>
+                            <input type="text" name="Title" id="Title" class="form-control rounded-3" placeholder="e.g., Learn English" />
+                        </div>
+
+                        <!-- Project (TaskBased) -->
+                        <div class="col-12" id="projectGroup">
+                            <label for="ProjectId" class="form-label fw-semibold mb-2">Linked Project <span class="text-danger">*</span></label>
+                            <select name="ProjectId" id="ProjectId" class="form-select rounded-3">
+                                <option value="">-- Select a project --</option>
+                                @foreach(var p in projects)
+                                {
+                                    <option value="@p.Id" data-deadline="@(p.EndDate?.ToString("yyyy-MM-dd"))">@p.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label for="Description" class="form-label fw-semibold mb-2">Description</label>
+                            <textarea name="Description" id="Description" class="form-control rounded-3" rows="3"></textarea>
+                        </div>
+
+                        <!-- Target Date & Hours -->
+                        <div class="col-md-6">
+                            <label for="TargetDate" class="form-label fw-semibold mb-2">Target Date <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="TargetDate" id="TargetDate" class="form-control rounded-3" value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-ddTHH:mm")" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="TargetHours" class="form-label fw-semibold mb-2">Target Hours</label>
+                            <div class="input-group">
+                                <input type="number" step="0.5" name="TargetHours" id="TargetHours" class="form-control rounded-start-3" placeholder="30" />
+                                <span class="input-group-text rounded-end-3">hours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-4 d-flex justify-content-between" style="background-color: var(--bg-light);">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="createGoalSubmitBtn" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm fw-bold">Create Goal</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -425,6 +584,137 @@
             });
 
             connection.start().catch(err => console.log("SignalR connection error:", err));
+
+            // Create Goal Modal Logic
+            const typeTask = document.getElementById('typeTask');
+            const typeTime = document.getElementById('typeTime');
+            const titleGroup = document.getElementById('titleGroup');
+            const projectGroup = document.getElementById('projectGroup');
+            const projectSelect = document.getElementById('ProjectId');
+            const titleInput = document.getElementById('Title');
+            const targetHoursInput = document.getElementById('TargetHours');
+
+            function toggleType() {
+                if (typeTask.checked) {
+                    titleGroup.classList.add('d-none');
+                    titleInput.required = false;
+                    projectGroup.classList.remove('d-none');
+                    projectSelect.required = true;
+                    targetHoursInput.required = false;
+                } else {
+                    titleGroup.classList.remove('d-none');
+                    titleInput.required = true;
+                    projectGroup.classList.add('d-none');
+                    projectSelect.required = false;
+                    targetHoursInput.required = true;
+                }
+            }
+
+            typeTask?.addEventListener('change', toggleType);
+            typeTime?.addEventListener('change', toggleType);
+
+            // AJAX Submit for Create Goal
+            document.getElementById('createGoalForm')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const submitBtn = document.getElementById('createGoalSubmitBtn');
+                const originalText = submitBtn.innerHTML;
+                
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', data.message || 'Validation failed', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+            });
+            // Edit Goal Modal Logic
+            const editGoalModal = new bootstrap.Modal(document.getElementById('editGoalModal'));
+            const editTitleGroup = document.getElementById('editTitleGroup');
+            const editProjectGroup = document.getElementById('editProjectGroup');
+
+            function toggleEditType(type) {
+                if (type === 'TaskBased') {
+                    editTitleGroup.classList.add('d-none');
+                    editProjectGroup.classList.remove('d-none');
+                } else {
+                    editTitleGroup.classList.remove('d-none');
+                    editProjectGroup.classList.add('d-none');
+                }
+            }
+
+
+            document.querySelectorAll('.edit-goal-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.goalId;
+                    fetch(`/Goal/Details/${id}`, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('editGoalId').value = data.id;
+                        document.getElementById('editTitle').value = data.title || '';
+                        document.getElementById('editDescription').value = data.description || '';
+                        document.getElementById('editTargetDate').value = data.targetDate;
+                        document.getElementById('editTargetHours').value = data.targetHours;
+                        document.getElementById('editProjectId').value = data.projectId || '';
+                        
+                        document.getElementById('editGoalType').value = data.type;
+                        toggleEditType(data.type);
+
+                        editGoalModal.show();
+                    })
+                    .catch(err => console.error(err));
+                });
+            });
+
+            document.getElementById('editGoalForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const id = document.getElementById('editGoalId').value;
+                const submitBtn = document.getElementById('editGoalSubmitBtn');
+                const originalText = submitBtn.innerHTML;
+                
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+                
+                fetch(`/Goal/Edit/${id}`, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        Swal.fire('Error', data.message || 'Validation failed', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+            });
         });
     </script>
 }

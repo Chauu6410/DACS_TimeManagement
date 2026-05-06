@@ -79,4 +79,11 @@
   <data name="Register" xml:space="preserve">
     <value>Đăng ký</value>
   </data>
+  <data name="Admin" xml:space="preserve">
+    <value>Quản trị viên</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>Người dùng</value>
+  </data>
 </root>
+

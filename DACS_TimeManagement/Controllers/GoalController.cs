@@ -41,6 +41,13 @@ namespace DACS_TimeManagement.Controllers
                 .OrderByDescending(g => g.CreatedAt)
                 .ToListAsync();
 
+            var projects = await _db.Projects
+                .AsNoTracking()
+                .Where(p => p.UserId == userId)
+                .Select(p => new { p.Id, p.Name, p.EndDate })
+                .ToListAsync();
+
+            ViewBag.Projects = projects;
             return View(goals);
         }
 
@@ -147,6 +154,9 @@ namespace DACS_TimeManagement.Controllers
             });
             await _db.SaveChangesAsync();
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true });
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -198,8 +208,14 @@ namespace DACS_TimeManagement.Controllers
                 // Recalculate to ensure status and progress are in sync
                 await _goalService.RecalculateProgressForGoalAsync(existingGoal.Id, userId);
                 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = true });
+
                 return RedirectToAction(nameof(Index));
             }
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = false, message = "Invalid data." });
+
             return View(goal);
         }
 
@@ -217,6 +233,17 @@ namespace DACS_TimeManagement.Controllers
                 .FirstOrDefaultAsync(g => g.Id == id && g.UserId == userId);
 
             if (goal == null) return NotFound();
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new {
+                    id = goal.Id,
+                    title = goal.Title,
+                    description = goal.Description,
+                    targetDate = goal.TargetDate.ToString("yyyy-MM-ddTHH:mm"),
+                    targetHours = goal.TargetHours,
+                    type = goal.Type.ToString(),
+                    projectId = goal.ProjectId
+                });
 
             // 2. Optimized History Fetching
             var taskIds = goal.GoalTasks.Select(gt => gt.WorkTaskId).ToList();
@@ -461,7 +488,8 @@ namespace DACS_TimeManagement.Controllers
                 .OrderBy(h => h.RecordedAt)
                 .Take(20)
                 .Select(h => new {
-                    date = h.RecordedAt.ToString("dd/MM HH:mm"),
+                    date = h.RecordedAt.ToString("dd/MM HH:mm", System.Globalization.CultureInfo.InvariantCulture),
+
                     progress = Math.Round(h.Progress, 1)
                 })
                 .ToListAsync();

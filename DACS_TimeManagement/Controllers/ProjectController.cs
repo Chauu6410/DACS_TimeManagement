@@ -76,7 +76,15 @@ namespace DACS_TimeManagement.Controllers
                 await _context.SaveChangesAsync();  // Lưu các cột xong là xong
 
                 
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = true });
+                }
                 return RedirectToAction(nameof(Index));
+            }
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = false, message = "Invalid data. Please check your inputs." });
             }
             return View(project);
         }

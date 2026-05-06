@@ -15,9 +15,17 @@
             <div class="user-avatar overflow-hidden border border-white border-1">
                 @{
                     var userId = UserManager.GetUserId(User);
+                    var user = await UserManager.FindByIdAsync(userId);
                     var profile = await Context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
-                    var userName = UserManager.GetUserName(User);
-                    var userInitial = !string.IsNullOrEmpty(userName) ? userName.Substring(0, 1).ToUpper() : "U";
+                    
+                    // Priority: FullName -> UserName (Email)
+                    var displayName = !string.IsNullOrEmpty(profile?.FullName) ? profile.FullName : user.UserName;
+                    
+                    // Role Logic
+                    var roles = await UserManager.GetRolesAsync(user);
+                    var userRole = roles.FirstOrDefault() ?? "User";
+                    
+                    var userInitial = !string.IsNullOrEmpty(displayName) ? displayName.Substring(0, 1).ToUpper() : "U";
                 }
                 @if (profile != null && !string.IsNullOrEmpty(profile.AvatarUrl))
                 {
@@ -30,8 +38,8 @@
                 <div class="avatar-status"></div>
             </div>
             <div class="user-info-wrapper">
-                <span class="user-name">@UserManager.GetUserName(User)!.Split('@')[0]</span>
-                <span class="user-role">@Localizer["Member"]</span>
+                <span class="user-name">@displayName</span>
+                <span class="user-role">@Localizer[userRole]</span>
             </div>
             <i class="fas fa-chevron-down dropdown-icon"></i>
         </a>
@@ -49,11 +57,12 @@
                         }
                     </div>
                     <div class="user-details">
-                        <h6 class="mb-0">@UserManager.GetUserName(User)!.Split('@')[0]</h6>
-                        <small class="text-muted">@UserManager.GetUserName(User)</small>
+                        <h6 class="mb-0">@displayName</h6>
+                        <small class="text-muted">@user.Email</small>
                     </div>
                 </div>
             </li>
+
             <li><hr class="dropdown-divider"></li>
             <li>
                 <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Profile" title="@Localizer["SettingsProfile"]">

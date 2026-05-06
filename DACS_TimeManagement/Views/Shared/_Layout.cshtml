@@ -559,10 +559,11 @@
                     </div>
                     
                     <!-- Global Real-Time Clock -->
-                    <div class="d-none d-lg-flex align-items-center bg-light bg-opacity-10 px-3 py-1 rounded-pill border border-white border-opacity-20 shadow-sm mx-auto">
+                    <div class="d-none d-lg-flex align-items-center bg-white bg-opacity-25 px-3 py-1 rounded-pill border border-primary border-opacity-10 shadow-sm mx-auto" style="backdrop-filter: blur(4px);">
                         <i class="fas fa-clock text-primary me-2 animate-pulse"></i>
-                        <span id="globalClock" class="fw-bold small text-dark opacity-75" style="min-width: 180px;"></span>
+                        <span id="globalClock" class="fw-bold small text-dark opacity-75" style="min-width: 140px; white-space: nowrap;"></span>
                     </div>
+
                     <div class="topbar-actions">
                         <div class="dropdown">
                             <div class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false">
@@ -654,10 +655,12 @@
                             `);
                         });
                     } else {
-                        $list.html('<li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2"></i><br/>@Localizer["AllCaughtUp"]</li>');
+                        $list.html('<li class="p-4 text-center text-muted small"><i class="fas fa-check-circle fs-4 mb-2"></i><br/>' + @Html.Raw(Json.Serialize(Localizer["AllCaughtUp"].Value)) + '</li>');
+
                     }
                 }).fail(() => {
-                    $list.html('<li class="p-4 text-center text-danger small">@Localizer["FailedToLoadNotifications"]</li>');
+                    $list.html('<li class="p-4 text-center text-danger small">' + @Html.Raw(Json.Serialize(Localizer["FailedToLoadNotifications"].Value)) + '</li>');
+
                 });
             });
         });
@@ -679,27 +682,33 @@
                 };
 
                 try {
-                    if (langCode === 'vi') {
-                        // VI: dd/mm/yyyy HH:mm | Asia/Ho_Chi_Minh (GMT+7)
-                        return new Intl.DateTimeFormat('vi-VN', {
-                            ...options, 
-                            hour12: false, 
-                            timeZone: 'Asia/Ho_Chi_Minh'
-                        }).format(date);
+                    // Xử lý riêng cho Tiếng Việt để đảm bảo luôn hiện
+                    if (langCode.startsWith('vi')) {
+                        try {
+                            return date.toLocaleString('vi-VN', {
+                                year: 'numeric', month: '2-digit', day: '2-digit',
+                                hour: '2-digit', minute: '2-digit', hour12: false
+                            });
+                        } catch(inner) {
+                            const d = date;
+                            return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                        }
                     } else {
-                        // EN: mm/dd/yyyy hh:mm AM/PM | UTC (GMT+0)
-                        // Sử dụng en-US để lấy định dạng MM/DD/YYYY
-                        return new Intl.DateTimeFormat('en-US', {
+
+                        return new Intl.DateTimeFormat('en', {
                             ...options, 
-                            hour12: true, 
-                            timeZone: 'UTC'
+                            hour12: true
                         }).format(date);
                     }
                 } catch (e) {
-                    console.error("Format error:", e);
-                    return date.toLocaleString();
+                    console.warn("Clock Format Fallback:", e);
+                    // Fallback cực đơn giản
+                    const d = date;
+                    return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
                 }
             }
+
+
 
             /**
              * Hệ thống đồng hồ thời gian thực toàn cục
@@ -846,10 +855,12 @@
             document.addEventListener("DOMContentLoaded", function() {
                 const connection = new signalR.HubConnectionBuilder().withUrl("/notificationHub").configureLogging(signalR.LogLevel.Information).build();
                 connection.on("ReceiveNotification", function(title, message, taskTitle) {
-                    document.getElementById("toastTitle").innerText = title || "@Localizer["Notification"]";
+                    document.getElementById("toastTitle").innerText = title || @Html.Raw(Json.Serialize(Localizer["Notification"].Value));
+
                     document.getElementById("toastMessage").innerText = message;
-                    if(taskTitle) document.getElementById("toastDetail").innerText = `@Localizer["Task"]: ${taskTitle}`;
-                    else document.getElementById("toastDetail").innerText = "@Localizer["CheckWorkspace"]";
+                    if(taskTitle) document.getElementById("toastDetail").innerText = @Html.Raw(Json.Serialize(Localizer["Task"].Value)) + `: ${taskTitle}`;
+                    else document.getElementById("toastDetail").innerText = @Html.Raw(Json.Serialize(Localizer["CheckWorkspace"].Value));
+
                     let badge = document.getElementById("notifBadge");
                     if(badge) { let cnt = parseInt(badge.innerText)||0; badge.innerText=cnt+1; badge.style.display="inline"; }
                     new bootstrap.Toast(document.getElementById("realtimeToast"), {delay:5000}).show();

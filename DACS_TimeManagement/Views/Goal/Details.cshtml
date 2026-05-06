@@ -26,7 +26,7 @@
                     @if (Model.Type != DACS_TimeManagement.Models.GoalType.TaskBased)
                     {
                         <div class="d-flex gap-2">
-                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-outline-custom"><i class="fas fa-edit"></i> @Localizer["Edit"]</a>
+                            <button type="button" class="btn-outline-custom edit-goal-btn" data-goal-id="@Model.Id"><i class="fas fa-edit"></i> @Localizer["Edit"]</button>
                             <a asp-action="Focus" asp-route-id="@Model.Id" class="btn-primary-custom"><i class="fas fa-stopwatch"></i> @Localizer["Focus"]</a>
                         </div>
                     }
@@ -210,7 +210,7 @@
             <div class="card glass p-4 rounded-4 sticky-top" style="top: 1rem;">
                 <h5 class="fw-semibold"><i class="fas fa-bolt me-2"></i>@Localizer["QuickActions"]</h5>
                 <div class="d-grid gap-2 mt-2">
-                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn-outline-custom">@Localizer["EditGoal"]</a>
+                    <button type="button" class="btn-outline-custom edit-goal-btn" data-goal-id="@Model.Id">@Localizer["EditGoal"]</button>
                     <a asp-action="Focus" asp-route-id="@Model.Id" class="btn-primary-custom">@Localizer["EnterFocusMode"]</a>
                     <button class="btn-danger-custom delete-goal-btn" data-id="@Model.Id" data-name="@Model.Title">@Localizer["DeleteGoal"]</button>
                 </div>
@@ -230,6 +230,82 @@
     </div>
 </div>
 
+<!-- Edit Goal Modal -->
+<div class="modal fade" id="editGoalModal" tabindex="-1" aria-labelledby="editGoalModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-gradient-primary text-white border-0 py-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-white bg-opacity-25 text-white" style="width: 48px; height: 48px; border-radius: 60px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                        <i class="fas fa-pencil-alt fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">Edit Goal</h4>
+                        <p class="opacity-75 small mb-0">Update your objective details</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editGoalForm" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editGoalId" />
+                <div class="modal-body p-4 p-lg-5" style="background-color: var(--card-bg);">
+                    <div class="row g-4">
+                        <!-- Type (Hidden in Edit) -->
+                        <input type="hidden" name="Type" id="editGoalType" />
+
+                        <!-- Title (TimeBased) -->
+                        <div class="col-12" id="editTitleGroup">
+                            <label for="editTitle" class="form-label fw-semibold mb-2">Goal Title <span class="text-danger">*</span></label>
+                            <input type="text" name="Title" id="editTitle" class="form-control rounded-3" placeholder="e.g., Learn English" />
+                        </div>
+
+                        <!-- Project (TaskBased) -->
+                        <div class="col-12" id="editProjectGroup">
+                            <label for="editProjectId" class="form-label fw-semibold mb-2">Linked Project <span class="text-danger">*</span></label>
+                            <select name="ProjectId" id="editProjectId" class="form-select rounded-3">
+                                <option value="">-- Select a project --</option>
+                                <!-- Potentially populate this via ViewBag if available or fetch -->
+                            </select>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label for="editDescription" class="form-label fw-semibold mb-2">Description</label>
+                            <textarea name="Description" id="editDescription" class="form-control rounded-3" rows="3"></textarea>
+                        </div>
+
+                        <!-- Target Date & Hours -->
+                        <div class="col-md-6">
+                            <label for="editTargetDate" class="form-label fw-semibold mb-2">Target Date <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="TargetDate" id="editTargetDate" class="form-control rounded-3" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="editTargetHours" class="form-label fw-semibold mb-2">Target Hours</label>
+                            <div class="input-group">
+                                <input type="number" step="0.5" name="TargetHours" id="editTargetHours" class="form-control rounded-start-3" />
+                                <span class="input-group-text rounded-end-3">hours</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top p-4 d-flex justify-content-between" style="background-color: var(--bg-light);">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="editGoalSubmitBtn" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm fw-bold">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    .icon-circle { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+    .custom-radio-card input { display: none; }
+    .custom-radio-card input:checked + label { border-color: #6366f1 !important; background-color: rgba(99, 102, 241, 0.05); }
+    .cursor-pointer { cursor: pointer; }
+</style>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -245,14 +321,16 @@
                     const contentDiv = document.getElementById(`aiContent-${goalId}`);
                     
                     this.classList.add('fa-spin');
-                    contentDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> ' + '@Localizer["Analyzing"]' + '</div>';
+                    contentDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> ' + @Html.Raw(Json.Serialize(Localizer["Analyzing"].Value)) + '</div>';
+
 
                     try {
                         const response = await fetch(`/Goal/RegenerateAIStrategy?goalId=${goalId}`, { method: 'POST' });
                         const data = await response.json();
                         if (data.success) {
-                            contentDiv.innerHTML = data.newStrategy.replace(/\n/g, '<br/>');
-                        } else {
+                            contentDiv.innerHTML = data.actionPlan.replace(/\n/g, '<br/>');
+                        }
+ else {
                             Swal.fire('Error', 'Failed to regenerate AI strategy.', 'error');
                         }
                     } catch (e) {
@@ -267,14 +345,18 @@
             document.querySelector('.delete-goal-btn')?.addEventListener('click', function() {
                 const id = this.dataset.id;
                 const name = this.dataset.name;
+                // localize template on server, perform replacement on client to avoid Razor parsing issues
+                const deleteConfirmTemplate = @Html.Raw(Json.Serialize(Localizer["DeleteGoalConfirm"].Value));
                 Swal.fire({
-                    title: '@Localizer["DeleteGoalTitle"]',
-                    text: `@Localizer["DeleteGoalConfirm"]`.replace("{name}", name),
+                    title: @Html.Raw(Json.Serialize(Localizer["DeleteGoalTitle"].Value)),
+                    text: deleteConfirmTemplate.replace("{name}", name),
+
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#ef4444',
-                    confirmButtonText: '@Localizer["YesDelete"]',
-                    cancelButtonText: '@Localizer["Cancel"]'
+                    confirmButtonText: @Html.Raw(Json.Serialize(Localizer["YesDelete"].Value)),
+                    cancelButtonText: @Html.Raw(Json.Serialize(Localizer["Cancel"].Value))
+
                 }).then((result) => {
                     if (result.isConfirmed) {
                         const form = document.createElement('form');
@@ -296,13 +378,15 @@
                     const type = this.dataset.type;
                     
                     const result = await Swal.fire({
-                        title: '@Localizer["DeleteHistoryTitle"]',
-                        text: "@Localizer["CannotUndo"]",
+                        title: @Html.Raw(Json.Serialize(Localizer["DeleteHistoryTitle"].Value)),
+                        text: @Html.Raw(Json.Serialize(Localizer["CannotUndo"].Value)),
+
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#ef4444',
-                        confirmButtonText: '@Localizer["YesDelete"]',
-                        cancelButtonText: '@Localizer["Cancel"]'
+                        confirmButtonText: @Html.Raw(Json.Serialize(Localizer["YesDelete"].Value)),
+                        cancelButtonText: @Html.Raw(Json.Serialize(Localizer["Cancel"].Value))
+
                     });
 
                     if (result.isConfirmed) {
@@ -328,11 +412,13 @@
                     }
                 });
             });
-        });
+
 
         function updateProgressDisplays() {
-            const completed = @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? Model.CompletedHours : Model.CompletedTasks);
-            const target = @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? (Model.TargetHours ?? 0) : (Model.TargetTasks ?? 0));
+            const completed = @Html.Raw(Json.Serialize(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? Model.CompletedHours : (double)Model.CompletedTasks));
+            const target = @Html.Raw(Json.Serialize(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? (Model.TargetHours ?? 0.0) : (double)(Model.TargetTasks ?? 0)));
+
+
             const pct = target > 0 ? Math.round((completed / target) * 100) : 0;
             
             const fill = document.getElementById('mainProgress');
@@ -342,34 +428,146 @@
         }
 
         async function loadProgressChart() {
-            const res = await fetch(`/Goal/GetGoalHistory/@Model.Id`);
-            const data = await res.json();
+            const chartEl = document.getElementById('progressChart');
+            if (!chartEl) return;
+            const ctx = chartEl.getContext('2d');
             
-            const ctx = document.getElementById('progressChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(d => d.date),
-                    datasets: [{
-                        label: 'Progress %',
-                        data: data.map(d => d.progress),
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { min: 0, max: 100, ticks: { callback: value => value + '%' } }
-                    }
+            try {
+                const res = await fetch(`/Goal/GetGoalHistory/@Model.Id`);
+                if (!res.ok) throw new Error("Fetch failed");
+                const data = await res.json();
+                
+                if (!data || !Array.isArray(data) || data.length === 0) {
+                    ctx.font = '14px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#64748b';
+                    ctx.fillText('No progress data yet', chartEl.width / 2, chartEl.height / 2);
+                    return;
                 }
-            });
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.date),
+                        datasets: [{
+                            label: 'Progress %',
+                            data: data.map(d => d.progress),
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { min: 0, max: 100, ticks: { callback: value => value + '%' } }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Chart error:", e);
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Error loading chart', chartEl.width / 2, chartEl.height / 2);
+            }
         }
+
+
+            // Edit Goal Modal Logic
+            const editGoalModalEl = document.getElementById('editGoalModal');
+            if (editGoalModalEl) {
+                const editGoalModal = new bootstrap.Modal(editGoalModalEl);
+                const editTitleGroup = document.getElementById('editTitleGroup');
+                const editProjectGroup = document.getElementById('editProjectGroup');
+
+                window.toggleEditType = function(type) {
+                    if (type === 'TaskBased') {
+                        editTitleGroup.classList.add('d-none');
+                        editProjectGroup.classList.remove('d-none');
+                    } else {
+                        editTitleGroup.classList.remove('d-none');
+                        editProjectGroup.classList.add('d-none');
+                    }
+                };
+
+
+                document.querySelectorAll('.edit-goal-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.dataset.goalId;
+                        fetch(`/Goal/Details/${id}`, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            document.getElementById('editGoalId').value = data.id;
+                            document.getElementById('editTitle').value = data.title || '';
+                            document.getElementById('editDescription').value = data.description || '';
+                            document.getElementById('editTargetDate').value = data.targetDate;
+                            document.getElementById('editTargetHours').value = data.targetHours;
+                            
+                            const projectSelect = document.getElementById('editProjectId');
+                            document.getElementById('editGoalType').value = data.type;
+                            toggleEditType(data.type);
+
+                            editGoalModal.show();
+                            
+                            fetch('/Project/GetUserProjects', { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+                            .then(res => res.json())
+                            .then(projects => {
+                                if (projectSelect) {
+                                    projectSelect.innerHTML = '<option value="">-- Select a project --</option>';
+                                    projects.forEach(p => {
+                                        const opt = document.createElement('option');
+                                        opt.value = p.id;
+                                        opt.textContent = p.name;
+                                        if (p.id === data.projectId) opt.selected = true;
+                                        projectSelect.appendChild(opt);
+                                    });
+                                }
+                            });
+                        })
+                        .catch(err => console.error(err));
+                    });
+                });
+
+                document.getElementById('editGoalForm').addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const form = this;
+                    const id = document.getElementById('editGoalId').value;
+                    const submitBtn = document.getElementById('editGoalSubmitBtn');
+                    const originalText = submitBtn.innerHTML;
+                    
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+                    
+                    fetch(`/Goal/Edit/${id}`, {
+                        method: 'POST',
+                        body: new FormData(form),
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            Swal.fire('Error', data.message || 'Validation failed', 'error');
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    });
+                });
+            }
+        });
     </script>
+
 }
 
 <style>

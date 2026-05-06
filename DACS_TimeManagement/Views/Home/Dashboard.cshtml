@@ -375,9 +375,8 @@
                                                 <span class="badge @priorityClass rounded-pill">@Localizer[task.Priority]</span>
                                             </div>
                                             <small class="text-muted">
-                                                @{
-                                                    var currentCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.Name;
-                                                    var langCode = currentCulture.StartsWith("vi") ? "vi" : "en";
+                                                @{ 
+                                                    // reuse page-level 'langCode' (declared at top) to avoid redeclaring the same local names
                                                     var culture = new System.Globalization.CultureInfo(langCode == "vi" ? "vi-VN" : "en-US");
                                                 }
                                                 <i class="far fa-calendar-alt me-1"></i>@Localizer["Due"] @task.DueDate.ToString("d", culture)
