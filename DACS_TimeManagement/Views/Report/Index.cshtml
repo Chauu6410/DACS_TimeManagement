@@ -8,10 +8,17 @@
         <div>
             <p class="text-pastel-muted small mb-0">Track your productivity and find bottlenecks.</p>
         </div>
-        <!-- Project Filter (Tương lai có thể đổ dữ liệu động) -->
+        <!-- Project Filter -->
         <div>
             <select id="projectFilter" class="form-select border-0 shadow-sm rounded-pill px-4 bg-white" style="min-width: 200px;">
                 <option value="">All Projects</option>
+                @if (ViewBag.Projects != null)
+                {
+                    foreach (var project in ViewBag.Projects)
+                    {
+                        <option value="@project.Id">@project.Name</option>
+                    }
+                }
             </select>
         </div>
     </div>
@@ -299,7 +306,10 @@
             // Load initial data
             loadData();
             
-            // Tương lai: Lắng nghe sự kiện change từ select#projectFilter để loadData($(this).val())
+            // Lắng nghe sự kiện change từ select#projectFilter để loadData
+            $('#projectFilter').change(function() {
+                loadData($(this).val());
+            });
         });
     </script>
 }

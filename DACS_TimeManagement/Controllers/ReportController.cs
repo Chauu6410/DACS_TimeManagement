@@ -17,23 +17,35 @@ namespace DACS_TimeManagement.Controllers
         }
 
         // View chính cho trang báo cáo
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var projects = await _context.Projects
+                .Include(p => p.Members)
+                .Where(p => p.UserId == userId || p.Members.Any(m => m.UserId == userId))
+                .ToListAsync();
+            ViewBag.Projects = projects;
             return View();
         }
 
         // 1. Task Completion Chart (7 days)
         [HttpGet]
-        public async Task<IActionResult> GetPerformanceData()
+        public async Task<IActionResult> GetPerformanceData(int? projectId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var sevenDaysAgo = DateTime.Now.Date.AddDays(-6); 
 
-            var completedTasks = await _context.TaskHistories
+            var query = _context.TaskHistories
                 .Include(h => h.WorkTask)
                 .Where(h => (h.WorkTask.UserId == userId || h.WorkTask.AssigneeId == userId) 
-                            && h.ChangedAt >= sevenDaysAgo)
-                .ToListAsync();
+                            && h.ChangedAt >= sevenDaysAgo);
+
+            if (projectId.HasValue && projectId.Value > 0)
+            {
+                query = query.Where(h => h.WorkTask.ProjectId == projectId.Value);
+            }
+
+            var completedTasks = await query.ToListAsync();
 
             var boardLists = await _context.BoardLists.ToDictionaryAsync(b => b.Id, b => b.Name);
             
@@ -57,15 +69,22 @@ namespace DACS_TimeManagement.Controllers
 
         // 2. Hours Worked Tracking (7 days)
         [HttpGet]
-        public async Task<IActionResult> GetHoursWorkedData()
+        public async Task<IActionResult> GetHoursWorkedData(int? projectId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var sevenDaysAgo = DateTime.Now.Date.AddDays(-6);
 
-            var timeLogs = await _context.TimeLogs
+            var query = _context.TimeLogs
                 .Include(tl => tl.WorkTask)
                 .Where(tl => (tl.WorkTask.UserId == userId || tl.WorkTask.AssigneeId == userId) 
-                            && tl.LogDate >= sevenDaysAgo)
+                            && tl.LogDate >= sevenDaysAgo);
+
+            if (projectId.HasValue && projectId.Value > 0)
+            {
+                query = query.Where(tl => tl.WorkTask.ProjectId == projectId.Value);
+            }
+
+            var timeLogs = await query
                 .GroupBy(tl => tl.LogDate.Date)
                 .Select(g => new { Date = g.Key.ToString("yyyy-MM-dd"), Hours = g.Sum(tl => tl.DurationHours) })
                 .ToListAsync();
@@ -83,14 +102,21 @@ namespace DACS_TimeManagement.Controllers
 
         // 3. Productivity Heatmap (365 days)
         [HttpGet]
-        public async Task<IActionResult> GetHeatmapData()
+        public async Task<IActionResult> GetHeatmapData(int? projectId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var oneYearAgo = DateTime.Now.Date.AddDays(-365);
 
-            var timeLogs = await _context.TimeLogs
+            var query = _context.TimeLogs
                 .Include(tl => tl.WorkTask)
-                .Where(tl => (tl.WorkTask.UserId == userId || tl.WorkTask.AssigneeId == userId) && tl.LogDate >= oneYearAgo)
+                .Where(tl => (tl.WorkTask.UserId == userId || tl.WorkTask.AssigneeId == userId) && tl.LogDate >= oneYearAgo);
+
+            if (projectId.HasValue && projectId.Value > 0)
+            {
+                query = query.Where(tl => tl.WorkTask.ProjectId == projectId.Value);
+            }
+
+            var timeLogs = await query
                 .GroupBy(tl => tl.LogDate.Date)
                 .Select(g => new { date = g.Key.ToString("yyyy-MM-dd"), count = g.Sum(tl => tl.DurationHours) })
                 .ToListAsync();
