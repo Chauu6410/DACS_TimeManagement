@@ -20,6 +20,7 @@
         border-radius: 0;
         padding: 20px;
         box-shadow: none;
+        min-height: 800px;
     }
     
     /* FullCalendar v6 Customization */
@@ -43,6 +44,29 @@
         line-height: 1;
         display: inline-flex;
         align-items: center;
+        transition: all 0.2s ease;
+    }
+
+    /* Style cho nút Todo List */
+    .fc .fc-todoToggle-button {
+        background: rgba(99, 102, 241, 0.1) !important;
+        border-color: rgba(99, 102, 241, 0.2) !important;
+        color: #6366f1 !important;
+    }
+    .fc .fc-todoToggle-button:hover {
+        background: #6366f1 !important;
+        color: white !important;
+    }
+
+    /* Style cho nút Work Schedule */
+    .fc .fc-workSchedule-button {
+        background: rgba(6, 182, 212, 0.1) !important;
+        border-color: rgba(6, 182, 212, 0.2) !important;
+        color: #0891b2 !important;
+    }
+    .fc .fc-workSchedule-button:hover {
+        background: #06b6d4 !important;
+        color: white !important;
     }
     
     .fc .fc-button-primary .fc-icon {
@@ -107,8 +131,8 @@
         font-size: 0.9rem;
     }
     
-    /* Todo Sidebar - draggable, kích thước 320px */
-    .todo-sidebar {
+    /* Sidebars - draggable, kích thước 320px */
+    .todo-sidebar, .work-schedule-sidebar {
         position: fixed;
         right: 20px;
         top: 100px;
@@ -119,22 +143,21 @@
         backdrop-filter: blur(16px);
         box-shadow: 0 12px 28px rgba(0,0,0,0.15);
         z-index: 1050;
-        display: flex;
+        display: none;
         flex-direction: column;
         border-radius: 20px;
         border: 1px solid rgba(129, 140, 248, 0.3);
         overflow: hidden;
         transition: none;
         cursor: default;
-        resize: none;
     }
     
-    .todo-sidebar.dragging {
+    .todo-sidebar.dragging, .work-schedule-sidebar.dragging {
         opacity: 0.95;
         cursor: grabbing;
     }
     
-    .todo-sidebar-header {
+    .todo-sidebar-header, .work-schedule-header {
         padding: 14px 18px;
         background: rgba(255,255,255,0.9);
         border-bottom: 1px solid #e2e8f0;
@@ -144,11 +167,8 @@
         cursor: grab;
         user-select: none;
     }
-    .todo-sidebar-header:active {
-        cursor: grabbing;
-    }
     
-    .todo-sidebar-header h5 {
+    .todo-sidebar-header h5, .work-schedule-header h5 {
         margin: 0;
         font-size: 1.1rem;
         font-weight: 700;
@@ -158,7 +178,7 @@
         color: transparent;
     }
     
-    .todo-sidebar-body {
+    .todo-sidebar-body, .work-schedule-body {
         padding: 18px;
         overflow-y: auto;
         max-height: calc(85vh - 60px);
@@ -278,7 +298,7 @@
 <div id="todoSidebar" class="todo-sidebar">
     <div class="todo-sidebar-header" id="todoHeader">
         <h5><i class="fas fa-list-ul me-2"></i>@Localizer["TodoList"]</h5>
-        <button id="closeTodoSidebar" class="btn-close"></button>
+        <button class="btn-close" onclick="document.getElementById('todoSidebar').style.display='none'"></button>
     </div>
     <div class="todo-sidebar-body">
         <input type="date" id="todoDateFilter" class="filter-date-input" />
@@ -292,6 +312,48 @@
     </div>
 </div>
 
+<!-- Work Schedule Sidebar (draggable) -->
+<div id="workScheduleSidebar" class="work-schedule-sidebar">
+    <div class="work-schedule-header" id="wsHeader">
+        <h5><i class="fas fa-user-clock me-2"></i>@Localizer["WorkSchedule"]</h5>
+        <button class="btn-close" onclick="document.getElementById('workScheduleSidebar').style.display='none'"></button>
+    </div>
+    <div class="work-schedule-body">
+        <form id="wsForm">
+            <div class="mb-3">
+                <label class="form-label fw-bold small">Giờ làm việc</label>
+                <div class="d-flex gap-2">
+                    <input type="time" id="wsStart" class="form-control form-control-sm" required>
+                    <input type="time" id="wsEnd" class="form-control form-control-sm" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold small">Nghỉ trưa</label>
+                <div class="d-flex gap-2">
+                    <input type="time" id="wsLunchStart" class="form-control form-control-sm" required>
+                    <input type="time" id="wsLunchEnd" class="form-control form-control-sm" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold small">Ngày làm việc</label>
+                <div class="d-flex flex-wrap gap-2">
+                    @{
+                        var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+                        var dayVi = new[] { "T2", "T3", "T4", "T5", "T6", "T7", "CN" };
+                        for(int i=0; i<days.Length; i++) {
+                            <div class="form-check form-check-inline m-0">
+                                <input class="form-check-input" type="checkbox" name="SelectedWorkingDays" value="@days[i]" id="ws_@days[i]">
+                                <label class="form-check-label small" for="ws_@days[i]">@dayVi[i]</label>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+            <button type="button" onclick="saveWorkSchedule()" class="btn btn-primary btn-sm w-100 rounded-pill shadow-sm">Lưu cấu hình</button>
+        </form>
+    </div>
+</div>
+
 <!-- Modal Auto Plan -->
 <div class="modal fade" id="autoPlanModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -301,8 +363,18 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4 bg-light">
-                <p class="text-muted mb-3">@Localizer["SelectTasksAnalyze"]</p>
-                <div class="mb-3"><label class="form-label fw-semibold">@Localizer["SelectTasksToSchedule"]</label><div id="tasksListContainer" class="border rounded-3 p-3 bg-white shadow-sm" style="max-height: 400px; overflow-y: auto;"><div class="text-center py-3"><i class="fas fa-spinner fa-spin"></i> @Localizer["Loading"]</div></div></div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold small text-uppercase text-muted"><i class="far fa-calendar-check me-1"></i> Ngày bắt đầu lên lịch</label>
+                        <input type="date" id="aiPlanStartDate" class="form-control border-0 shadow-sm rounded-3" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-uppercase text-muted"><i class="fas fa-tasks me-1"></i> Chọn công việc (Theo Project)</label>
+                    <div id="tasksListContainer" class="border-0 rounded-4 p-3 bg-white shadow-sm" style="max-height: 450px; overflow-y: auto;">
+                        <div class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-3"></i><br>@Localizer["Loading"]</div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer border-0 pb-4 pe-4 bg-light">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
@@ -332,18 +404,20 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     
     <script>
         let calendar, currentUserId = '@currentUserId';
         let selectedTaskId = null, selectedTaskTitle = null, selectedTasks = [];
         const pastelColors = ["#818cf8", "#c084fc", "#f472b6", "#fb923c", "#fbbf24", "#4ade80", "#2dd4bf", "#60a5fa"];
-        function getRandomPastelColor() { return pastelColors[Math.floor(Math.random() * pastelColors.length)]; }
+        
+        function getRandomPastelColor() { 
+            return pastelColors[Math.floor(Math.random() * pastelColors.length)]; 
+        }
+        
         window.randomColor = () => {
             const col = getRandomPastelColor();
             document.getElementById('eventColorSelect').value = col;
@@ -351,324 +425,497 @@
             const sw = document.querySelector(`.color-swatch[data-color="${col}"]`);
             if(sw) sw.classList.add('selected');
         };
+        
         // Color swatch click handling
         document.addEventListener('click', function(e){
             const sw = e.target.closest && e.target.closest('.color-swatch');
-            if(sw) {
+            if(sw && !sw.closest('.swal-swatch')) { // không can thiệp vào swatch trong Swal
                 document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
                 sw.classList.add('selected');
                 const col = sw.getAttribute('data-color');
                 document.getElementById('eventColorSelect').value = col;
             }
-            if(e.target && e.target.id === 'randomColorBtn') {
-                const col = getRandomPastelColor();
-                document.getElementById('eventColorSelect').value = col;
-                document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
-            }
         });
         
         // Tooltip tùy chỉnh
-        let tooltipDiv = null;
+        let tooltipDiv = document.createElement('div');
+        tooltipDiv.className = 'custom-tooltip';
+        document.body.appendChild(tooltipDiv);
         function showCustomTooltip(event, title, detail) {
-            if (!tooltipDiv) { tooltipDiv = document.createElement('div'); tooltipDiv.className = 'custom-tooltip'; document.body.appendChild(tooltipDiv); }
-            tooltipDiv.innerHTML = `<strong>${escapeHtml(title)}</strong>${detail ? escapeHtml(detail) : ''}`;
+            tooltipDiv.innerHTML = `<strong>${escapeHtml(title)}</strong>${detail ? '<br>'+escapeHtml(detail) : ''}`;
             const rect = event.target.getBoundingClientRect();
-            tooltipDiv.style.left = rect.left + 'px';
-            tooltipDiv.style.top = (rect.top - 70) + 'px';
+            tooltipDiv.style.left = (rect.left + window.scrollX) + 'px';
+            tooltipDiv.style.top = (rect.top + window.scrollY - 70) + 'px';
             tooltipDiv.classList.add('show');
         }
         function hideCustomTooltip() { if (tooltipDiv) tooltipDiv.classList.remove('show'); }
         
         async function loadMyTasks() {
             try {
-                const res = await fetch('/Calendar/GetMyTasks'); const tasks = await res.json();
+                const res = await fetch('/Calendar/GetMyTasks'); 
+                const tasks = await res.json();
                 const select = document.getElementById('taskSelect');
+                if(!select) return;
                 select.innerHTML = '<option value="">@Localizer["ChooseATask"]</option>';
-                if (tasks?.length) tasks.forEach(t => { let opt = document.createElement('option'); opt.value = t.id; opt.dataset.title = t.title; opt.dataset.project = t.projectName; opt.textContent = `${t.projectName} - ${t.title}`; select.appendChild(opt); });
-                else select.innerHTML = '<option disabled>@Localizer["NoPendingTasks"]</option>';
-                select.onchange = () => { let opt = select.options[select.selectedIndex]; selectedTaskId = opt.value ? parseInt(opt.value) : null; selectedTaskTitle = opt.dataset?.title; };
+                if (tasks?.length) {
+                    tasks.forEach(t => { 
+                        let opt = document.createElement('option'); 
+                        opt.value = t.id; 
+                        opt.dataset.title = t.title; 
+                        opt.dataset.project = t.projectName; 
+                        opt.textContent = `${t.projectName} - ${t.title}`; 
+                        select.appendChild(opt); 
+                    });
+                } else {
+                    select.innerHTML = '<option disabled>@Localizer["NoPendingTasks"]</option>';
+                }
+                select.onchange = () => { 
+                    let opt = select.options[select.selectedIndex]; 
+                    selectedTaskId = opt.value ? parseInt(opt.value) : null; 
+                    selectedTaskTitle = opt.dataset?.title; 
+                };
             } catch(e) { console.error(e); }
         }
         
         window.saveScheduledTask = async function() {
-            const taskId = document.getElementById('taskSelect').value, start = document.getElementById('startTimeInput').value, end = document.getElementById('endTimeInput').value, color = document.getElementById('eventColorSelect').value;
+            const taskId = document.getElementById('taskSelect').value, 
+                  start = document.getElementById('startTimeInput').value, 
+                  end = document.getElementById('endTimeInput').value, 
+                  color = document.getElementById('eventColorSelect').value;
             if (!taskId || !start || !end) return Swal.fire('@Localizer["Error"]', '@Localizer["MissingFields"]', 'warning');
             if (new Date(start) >= new Date(end)) return Swal.fire('@Localizer["Error"]', '@Localizer["EndAfterStart"]', 'warning');
             try {
-                const res = await fetch('/Calendar/CreateScheduledEvent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ taskId: parseInt(taskId), startTime: start, endTime: end, color }) });
+                const res = await fetch('/Calendar/CreateScheduledEvent', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ taskId: parseInt(taskId), startTime: start, endTime: end, color }) 
+                });
                 const result = await res.json();
                 if (result.success) {
                     Swal.fire('@Localizer["Success"]', '@Localizer["ScheduledSuccessfully"]', 'success');
                     bootstrap.Modal.getInstance(document.getElementById('setTaskModal')).hide();
-                    calendar.refetchEvents(); loadScheduledTasksByDate();
-                    document.getElementById('taskSelect').value = ''; document.getElementById('startTimeInput').value = ''; document.getElementById('endTimeInput').value = '';
+                    calendar.refetchEvents(); 
+                    loadScheduledTasksByDate();
+                    document.getElementById('taskSelect').value = ''; 
+                    document.getElementById('startTimeInput').value = ''; 
+                    document.getElementById('endTimeInput').value = '';
                 } else Swal.fire('Error', result.message, 'error');
             } catch(e) { Swal.fire('Error', 'Server error', 'error'); }
         };
         
         async function loadScheduledTasksByDate() {
-            const date = document.getElementById('todoDateFilter').value;
-            if (!date) return;
+            const dateInput = document.getElementById('todoDateFilter');
+            if (!dateInput || !dateInput.value) return;
+            const date = dateInput.value;
             try {
                 const res = await fetch(`/Calendar/GetScheduledTasksByDate?date=${date}`);
                 const tasks = await res.json();
                 const container = document.getElementById('todoListContainer');
-                if (!tasks?.length) { container.innerHTML = '<div class="text-muted text-center py-4"><i class="fas fa-inbox me-2"></i>@Localizer["NoScheduledTasks"]</div>'; return; }
+                if(!container) return;
+                if (!tasks?.length) { 
+                    container.innerHTML = '<div class="text-muted text-center py-4"><i class="fas fa-inbox me-2"></i>@Localizer["NoScheduledTasks"]</div>'; 
+                    return; 
+                }
                 container.innerHTML = tasks.map(t => `
                     <div class="scheduled-item" style="border-left-color: ${t.color}">
-                        <div class="d-flex justify-content-between"><div><div class="scheduled-time"><i class="far fa-clock"></i> ${escapeHtml(t.start)} - ${escapeHtml(t.end)}</div><div class="scheduled-title">${escapeHtml(t.title)}</div></div>
-                        <button class="delete-scheduled-btn" onclick="deleteScheduledEvent(${t.id})"><i class="fas fa-trash-alt"></i></button></div>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="scheduled-time"><i class="far fa-clock"></i> ${escapeHtml(t.start)} - ${escapeHtml(t.end)}</div>
+                                <div class="scheduled-title">${escapeHtml(t.title)}</div>
+                            </div>
+                            <button class="delete-scheduled-btn" onclick="deleteScheduledEvent(${t.id})"><i class="fas fa-trash-alt"></i></button>
+                        </div>
                     </div>`).join('');
             } catch(e) { console.error(e); }
         }
         
-        function escapeHtml(t) { if(!t) return ''; const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+        function escapeHtml(t) { 
+            if(!t) return ''; 
+            const d=document.createElement('div'); 
+            d.textContent=t; 
+            return d.innerHTML; 
+        }
+        
         window.deleteScheduledEvent = async function(id) {
-            if(!await Swal.fire({title:'@Localizer["DeleteQuestion"]',text:'@Localizer["CannotUndo"]',icon:'warning',showCancelButton:true,confirmButtonColor:'#ef4444',confirmButtonText:'@Localizer["YesDelete"]', cancelButtonText:'@Localizer["Cancel"]'}).then(r=>r.isConfirmed)) return;
+            if(!await Swal.fire({
+                title:'@Localizer["DeleteQuestion"]',
+                text:'@Localizer["CannotUndo"]',
+                icon:'warning',
+                showCancelButton:true,
+                confirmButtonColor:'#ef4444',
+                confirmButtonText:'@Localizer["YesDelete"]', 
+                cancelButtonText:'@Localizer["Cancel"]'
+            }).then(r=>r.isConfirmed)) return;
             try{
                 const res=await fetch(`/Calendar/DeleteScheduledEvent?id=${id}`,{method:'POST'});
-                if((await res.json()).success){ calendar.refetchEvents(); loadScheduledTasksByDate(); Swal.fire('Deleted','','success'); }
-            }catch(e){ Swal.fire('Error','','error'); }
+                if((await res.json()).success){ 
+                    calendar.refetchEvents(); 
+                    loadScheduledTasksByDate(); 
+                    Swal.fire('Deleted','','success'); 
+                }
+            } catch(e){ Swal.fire('Error','','error'); }
         };
-
-        window.showColorPicker = function(eventId, currentColor) {
+        
+        // Hiển thị chọn màu cho event (gọi từ eventClick)
+        window.showColorPicker = async function(eventId, currentColor) {
             const colors = [
                 { val: '#818cf8', name: '@Localizer["Purple"]' }, { val: '#f472b6', name: '@Localizer["Pink"]' },
                 { val: '#fb923c', name: '@Localizer["Orange"]' }, { val: '#fbbf24', name: '@Localizer["Yellow"]' },
                 { val: '#4ade80', name: '@Localizer["Green"]' }, { val: '#2dd4bf', name: '@Localizer["Teal"]' },
                 { val: '#60a5fa', name: '@Localizer["Blue"]' }
             ];
-
-            // build swatch buttons html; clicking sets window._swalSelectedColor and highlights selection
-            let swatchesHtml = '<div class="d-flex gap-2 flex-wrap">' + colors.map(c => `
-                <button type="button" class="color-swatch swal-swatch" data-color="${c.val}" title="${c.name}" style="background:${c.val}; margin:4px;" onclick="(function(btn){window._swalSelectedColor='${c.val}'; document.querySelectorAll('.swal-swatch').forEach(s=>s.classList.remove('selected')); btn.classList.add('selected');})(this)"></button>`).join('') + '</div>';
-
-            // initialize global selected color to currentColor
-            window._swalSelectedColor = currentColor || colors[0].val;
-
-            Swal.fire({
-                title: '@Localizer["Color"]',
-                html: `<div class=\"text-center mb-2\">@Localizer["Color"]</div>${swatchesHtml}`,
+            
+            const swatchesHtml = '<div class="d-flex gap-2 flex-wrap justify-content-center">' + 
+                colors.map(c => `<button type="button" class="color-swatch swal-swatch" data-color="${c.val}" style="background:${c.val}; width:40px; height:40px; border-radius:50%; border:2px solid white; box-shadow:0 1px 3px rgba(0,0,0,0.2); cursor:pointer;"></button>`).join('') + 
+                '</div>';
+            
+            let selectedColor = currentColor || colors[0].val;
+            
+            const result = await Swal.fire({
+                title: 'Chọn màu cho sự kiện',
+                html: swatchesHtml,
                 showCancelButton: true,
-                confirmButtonText: '@Localizer["Save"]',
-                cancelButtonText: '@Localizer["Cancel"]',
+                confirmButtonText: 'Lưu',
+                cancelButtonText: 'Hủy',
                 didOpen: () => {
-                    // mark the current color as selected inside the modal
-                    const initial = window._swalSelectedColor;
-                    document.querySelectorAll('.swal-swatch').forEach(s=>{ if(s.dataset.color===initial) s.classList.add('selected'); });
-                },
-                preConfirm: () => window._swalSelectedColor || currentColor
-            }).then(async (result) => {
-                if (result.isConfirmed) {
-                    try {
-                        const chosen = result.value || currentColor;
-                        const res = await fetch(`/Calendar/UpdateScheduledEventColor?id=${eventId}&color=${encodeURIComponent(chosen)}`, { method: 'POST' });
-                        if ((await res.json()).success) { calendar.refetchEvents(); loadScheduledTasksByDate(); Swal.fire('Updated!','','success'); }
-                    } catch (e) { Swal.fire('Error','','error'); }
+                    const swatches = document.querySelectorAll('.swal-swatch');
+                    swatches.forEach(sw => {
+                        if(sw.dataset.color === selectedColor) sw.style.outline = '3px solid #000';
+                        sw.addEventListener('click', () => {
+                            selectedColor = sw.dataset.color;
+                            swatches.forEach(s => s.style.outline = 'none');
+                            sw.style.outline = '3px solid #000';
+                        });
+                    });
                 }
             });
+            
+            if (result.isConfirmed) {
+                try {
+                    const res = await fetch(`/Calendar/UpdateScheduledEventColor?id=${eventId}&color=${encodeURIComponent(selectedColor)}`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        calendar.refetchEvents(); 
+                        loadScheduledTasksByDate(); 
+                        Swal.fire('Cập nhật màu thành công!', '', 'success');
+                    } else Swal.fire('Lỗi', data.message, 'error');
+                } catch(e) { Swal.fire('Lỗi', 'Không thể cập nhật màu', 'error'); }
+            }
         };
         
         function openSetTaskModal(start,end){
-            document.getElementById('taskSelect').value=''; document.getElementById('startTimeInput').value=start; document.getElementById('endTimeInput').value=end;
-            // ensure swatch selection reflects hidden color input
+            const modalEl = document.getElementById('setTaskModal');
+            if(!modalEl) return;
+            document.getElementById('taskSelect').value=''; 
+            document.getElementById('startTimeInput').value=start; 
+            document.getElementById('endTimeInput').value=end;
             const defaultColor = getRandomPastelColor();
             document.getElementById('eventColorSelect').value = defaultColor;
             document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('selected'));
             const sw = document.querySelector(`.color-swatch[data-color="${defaultColor}"]`);
             if(sw) sw.classList.add('selected');
             selectedTaskId=null;
-            new bootstrap.Modal(document.getElementById('setTaskModal')).show();
+            new bootstrap.Modal(modalEl).show();
         }
         
-        // Auto Plan
         async function loadUnplannedTasks(){
             try{
-                const res=await fetch('/Calendar/GetAllTasks'); const tasks=await res.json(); const cont=document.getElementById('tasksListContainer');
-                if(!tasks?.length){ cont.innerHTML='<div class="text-center py-3 text-muted"><i class="fas fa-check-circle me-2"></i>@Localizer["NoPendingTasks"]</div>'; return; }
-                cont.innerHTML=tasks.map(t=>`<div class="task-item mb-2 p-3 border rounded shadow-sm bg-white" data-id="${t.id}"><div class="d-flex gap-2 align-items-center"><input type="checkbox" class="task-checkbox form-check-input" data-id="${t.id}" onchange="toggleTaskSelection(this)"><strong class="ms-2">${escapeHtml(t.projectName)} - ${escapeHtml(t.title)}</strong>${t.isOverdue?'<span class="badge bg-danger ms-auto">@Localizer["Overdue"]</span>':''}</div>${t.deadline?`<div class="mt-2 text-muted small ms-4"><i class="far fa-calendar-alt"></i> @Localizer["Deadline"]: ${t.deadline}</div>`:''}</div>`).join('');
-            }catch(e){ document.getElementById('tasksListContainer').innerHTML='<div class="text-danger">@Localizer["Error"]</div>'; }
+                const dateInput = document.getElementById('aiPlanStartDate');
+                if(dateInput && !dateInput.value) {
+                    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+                    dateInput.value = tomorrow.toISOString().split('T')[0];
+                }
+                const res = await fetch('/Calendar/GetAllTasks'); 
+                const tasks = await res.json(); 
+                const cont = document.getElementById('tasksListContainer');
+                if(!cont) return;
+                if(!tasks?.length){ 
+                    cont.innerHTML = '<div class="text-center py-5 text-muted"><i class="fas fa-check-circle fa-2x mb-3 text-success"></i><br>@Localizer["NoPendingTasks"]</div>'; 
+                    return; 
+                }
+                
+                const groups = tasks.reduce((acc, t) => {
+                    const p = t.projectName || "Khác";
+                    if(!acc[p]) acc[p] = [];
+                    acc[p].push(t);
+                    return acc;
+                }, {});
+                
+                let html = '';
+                const today = new Date();
+                
+                for(const proj in groups) {
+                    const projectTasks = groups[proj];
+                    const hasUrgent = projectTasks.some(t => {
+                        if(t.isOverdue) return true;
+                        if(t.deadline) {
+                            const d = new Date(t.deadline);
+                            const diff = (d - today) / (1000 * 60 * 60 * 24);
+                            return diff >= 0 && diff <= 3;
+                        }
+                        return false;
+                    });
+                    html += `
+                        <div class="project-group mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <h6 class="mb-0 fw-bold" style="color: #4f46e5;"><i class="fas fa-folder-open me-2"></i>${escapeHtml(proj)}</h6>
+                                ${hasUrgent ? '<span class="badge bg-warning text-dark ms-2 x-small shadow-sm"><i class="fas fa-exclamation-triangle me-1"></i>Sắp đến hạn</span>' : ''}
+                            </div>
+                            <div class="task-items-list d-flex flex-column gap-2">
+                                ${projectTasks.map(t => `
+                                    <div class="task-item p-3 border-0 rounded-3 bg-light transition-all" style="border-left: 4px solid ${t.isOverdue ? '#ef4444' : '#e2e8f0'} !important;">
+                                        <div class="d-flex align-items-center">
+                                            <div class="form-check m-0 p-0">
+                                                <input type="checkbox" class="task-checkbox form-check-input ms-0" data-id="${t.id}" ${selectedTasks.includes(t.id) ? 'checked' : ''} onchange="toggleTaskSelection(this)">
+                                            </div>
+                                            <div class="ms-3 flex-grow-1">
+                                                <div class="fw-bold text-dark small">${escapeHtml(t.title)}</div>
+                                            </div>
+                                            ${t.isOverdue ? '<span class="badge bg-danger rounded-pill x-small px-2 py-1">QUÁ HẠN</span>' : ''}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                cont.innerHTML = html;
+            } catch(e){ 
+                document.getElementById('tasksListContainer').innerHTML = '<div class="text-danger text-center py-4">@Localizer["Error"]</div>'; 
+            }
         }
-        window.toggleTaskSelection=function(cb){
-            const tid=parseInt(cb.dataset.id);
+        
+        window.toggleTaskSelection = function(cb){
+            const tid = parseInt(cb.dataset.id);
             if(cb.checked){
                 if(!selectedTasks.includes(tid)) selectedTasks.push(tid);
-            }else{
-                selectedTasks=selectedTasks.filter(id=>id!==tid);
+            } else {
+                selectedTasks = selectedTasks.filter(id => id !== tid);
             }
         };
-        window.analyzeWithAI=async function(){
-            if(!selectedTasks.length) return Swal.fire('No tasks','Select at least one task to analyze','warning');
-            Swal.fire({title:'AI is analyzing...',html:'Determining importance and optimal scheduling...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
+        
+        window.analyzeWithAI = async function(){
+            if(!selectedTasks.length) return Swal.fire('Chưa chọn việc','Vui lòng chọn ít nhất một công việc để phân tích','warning');
+            const startDate = document.getElementById('aiPlanStartDate').value;
+            if(!startDate) return Swal.fire('Chưa chọn ngày','Vui lòng chọn ngày bắt đầu lên lịch','warning');
+            
+            Swal.fire({title:'AI đang phân tích...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
             try{
-                const res=await fetch('/Calendar/AnalyzeTasksWithAI',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({taskIds:selectedTasks})});
-                const result=await res.json(); Swal.close();
+                const res = await fetch('/Calendar/AnalyzeTasksWithAI', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({ taskIds: selectedTasks, startDate: startDate })
+                });
+                const result = await res.json(); 
+                Swal.close();
                 if(result.success){
                     bootstrap.Modal.getInstance(document.getElementById('autoPlanModal')).hide();
                     renderAISuggestions(result.data);
                     new bootstrap.Modal(document.getElementById('aiApprovalModal')).show();
-                } else Swal.fire('Error',result.message,'error');
-            }catch(e){ Swal.close(); Swal.fire('Error','Server error','error'); }
+                } else Swal.fire('Error', result.message, 'error');
+            } catch(e){ 
+                Swal.close(); 
+                Swal.fire('Error','Server error','error'); 
+            }
         };
         
         let currentAISuggestions = [];
         function renderAISuggestions(suggestions) {
             currentAISuggestions = suggestions;
             const container = document.getElementById('aiSuggestionsContainer');
+            if(!container) return;
             container.innerHTML = suggestions.map((s, index) => `
                 <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="card-title fw-bold mb-0 text-dark">${escapeHtml(s.title)}</h6>
-                            <span class="badge rounded-pill" style="background-color: ${s.color}; font-size: 0.75rem;">${escapeHtml(s.importance)}</span>
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label small text-muted fw-semibold">@Localizer["StartTime"]</label>
-                                <input type="datetime-local" class="form-control ai-start-time" data-index="${index}" value="${s.startTime}" />
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small text-muted fw-semibold">@Localizer["EndTime"]</label>
-                                <input type="datetime-local" class="form-control ai-end-time" data-index="${index}" value="${s.endTime}" />
-                            </div>
+                        <h6 class="card-title fw-bold text-dark">${escapeHtml(s.title)}</h6>
+                        <div class="row g-2">
+                            <div class="col-6"><input type="datetime-local" class="form-control ai-start-time" data-index="${index}" value="${s.startTime}" /></div>
+                            <div class="col-6"><input type="datetime-local" class="form-control ai-end-time" data-index="${index}" value="${s.endTime}" /></div>
                         </div>
                     </div>
                 </div>
             `).join('');
         }
-
+        
         window.saveAIApprovedTasks = async function() {
             const eventsToSave = [];
-            let hasError = false;
-            
             document.querySelectorAll('.ai-start-time').forEach(el => {
                 const index = el.dataset.index;
-                const startTime = el.value;
-                const endTime = document.querySelector(`.ai-end-time[data-index="${index}"]`).value;
-                
-                if(!startTime || !endTime || new Date(startTime) >= new Date(endTime)) {
-                    hasError = true;
-                }
-                
                 eventsToSave.push({
                     taskId: currentAISuggestions[index].taskId,
-                    startTime: startTime,
-                    endTime: endTime,
+                    startTime: el.value,
+                    endTime: document.querySelector(`.ai-end-time[data-index="${index}"]`).value,
                     color: currentAISuggestions[index].color
                 });
             });
             
-            if(hasError) return Swal.fire('Error', 'Please ensure all times are valid and end time is after start time.', 'warning');
-            
             Swal.fire({title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
-            
             try {
-                const res = await fetch('/Calendar/SaveScheduledEvents', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(eventsToSave)
+                const res = await fetch('/Calendar/SaveScheduledEvents', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(eventsToSave) 
                 });
                 const data = await res.json();
                 Swal.close();
                 if(data.success) {
-                    Swal.fire('@Localizer["Success"]', '@Localizer["ScheduledSuccessfully"]', 'success');
                     bootstrap.Modal.getInstance(document.getElementById('aiApprovalModal')).hide();
-                    calendar.refetchEvents();
+                    calendar.refetchEvents(); 
                     loadScheduledTasksByDate();
-                    selectedTasks = [];
-                } else {
-                    Swal.fire('Error', data.message, 'error');
-                }
-            } catch(e) {
-                Swal.close();
-                Swal.fire('Error', 'Server error', 'error');
+                    Swal.fire('@Localizer["Success"]', '', 'success');
+                } else Swal.fire('Error', data.message, 'error');
+            } catch(e) { 
+                Swal.close(); 
+                Swal.fire('Error', 'Server error', 'error'); 
             }
         };
         
-        // Draggable Todo Sidebar
         function makeDraggable(el, handle) {
+            if(!el || !handle) return;
             let startX, startY, startLeft, startTop;
             handle.addEventListener('mousedown', (e) => {
                 if(e.target.closest('.btn-close')) return;
-                e.preventDefault();
                 startX = e.clientX; startY = e.clientY;
                 const rect = el.getBoundingClientRect();
                 startLeft = rect.left; startTop = rect.top;
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-                el.classList.add('dragging');
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('mouseup', stopDrag);
             });
-            function onMouseMove(e) {
-                let left = startLeft + (e.clientX - startX);
-                let top = startTop + (e.clientY - startY);
-                left = Math.min(window.innerWidth - 20, Math.max(0, left));
-                top = Math.min(window.innerHeight - 100, Math.max(20, top));
-                el.style.left = left + 'px';
-                el.style.top = top + 'px';
-                el.style.right = 'auto';
+            function drag(e) {
+                el.style.left = (startLeft + e.clientX - startX) + 'px';
+                el.style.top = (startTop + e.clientY - startY) + 'px';
+                el.style.right = 'auto'; el.style.bottom = 'auto';
             }
-            function onMouseUp() {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                el.classList.remove('dragging');
+            function stopDrag() { 
+                document.removeEventListener('mousemove', drag); 
+                document.removeEventListener('mouseup', stopDrag); 
             }
         }
         
-        document.addEventListener('DOMContentLoaded', function() {
-            const calendarEl = document.getElementById('calendar');
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                locale: '@(System.Globalization.CultureInfo.CurrentCulture.Name.StartsWith("vi") ? "vi" : "en")',
-                initialView: 'timeGridWeek', slotMinTime: '06:00:00', slotMaxTime: '22:00:00',
-                headerToolbar: { left: 'prev,next today todoToggle', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
-                customButtons: { todoToggle: { html: `<i class="fas fa-list-ul"></i> ${'@Localizer["TodoList"]'}`, click: () => { let sb = document.getElementById('todoSidebar'); sb.style.display = sb.style.display === 'none' ? 'flex' : 'none'; if(sb.style.display !== 'none') { let df = document.getElementById('todoDateFilter'); if(!df.value) df.value = new Date().toISOString().slice(0,10); loadScheduledTasksByDate(); } } } },
-                events: '/Calendar/GetScheduledEvents', editable: false, selectable: true, eventDisplay: 'block',
-                select: (info) => { let s = new Date(info.start.getTime() - info.start.getTimezoneOffset()*60000).toISOString().slice(0,16); let e = new Date(info.end.getTime() - info.end.getTimezoneOffset()*60000).toISOString().slice(0,16); openSetTaskModal(s,e); },
-                eventClick: (info) => {
-                    info.jsEvent.preventDefault();
-                    Swal.fire({
-                        title: '@Localizer["TaskOptions"]',
-                        text: info.event.title,
-                        icon: 'question',
-                        showCancelButton: true,
-                        showDenyButton: true,
-                        confirmButtonText: '<i class="fas fa-palette"></i> @Localizer["ChangeColor"]',
-                        denyButtonText: '<i class="fas fa-trash-alt"></i> @Localizer["Delete"]',
-                        cancelButtonText: '@Localizer["Cancel"]',
-                        confirmButtonColor: '#818cf8',
-                        denyButtonColor: '#ef4444'
-                    }).then((result) => {
-                        if (result.isConfirmed) showColorPicker(info.event.id, info.event.backgroundColor);
-                        else if (result.isDenied) deleteScheduledEvent(info.event.id);
-                    });
-                },
-                // Định dạng nội dung event: tên project ở trên, task ở dưới (cho mọi view)
-                eventContent: (arg) => { 
-                    let parts = (arg.event.title || '').split(' - '); 
-                    let proj = parts[0] || ''; 
-                    let task = parts.slice(1).join(' - ') || arg.event.title; 
-                    return { html: `<div style="font-weight:600; font-size:0.75rem; margin-bottom:2px;">${escapeHtml(proj)}</div><div style="font-size:0.7rem;">${escapeHtml(task)}</div>` }; 
-                },
-                eventDidMount: (info) => {
-                    let full = info.event.title;
-                    if(info.event.extendedProps?.description) full += '\n' + info.event.extendedProps.description;
-                    info.el.addEventListener('mouseenter', (e) => showCustomTooltip(e, info.event.title, info.event.extendedProps?.description));
-                    info.el.addEventListener('mouseleave', hideCustomTooltip);
-                },
-                nowIndicator: true, height: 'auto'
-            });
-            calendar.render();
-            loadMyTasks();
+        function toggleSidebar(id) {
+            const sb = document.getElementById(id);
+            if(!sb) return;
+            sb.style.display = (sb.style.display === 'flex') ? 'none' : 'flex';
+            if(sb.style.display === 'flex' && id === 'todoSidebar') loadScheduledTasksByDate();
+            if(sb.style.display === 'flex' && id === 'workScheduleSidebar') loadWorkSchedule();
+        }
+        
+        async function loadWorkSchedule() {
+            try {
+                const res = await fetch('/WorkSchedule/GetMySchedule');
+                const result = await res.json();
+                if(result.success) {
+                    const s = result.data;
+                    document.getElementById('wsStart').value = s.defaultStartHour;
+                    document.getElementById('wsEnd').value = s.defaultEndHour;
+                    document.getElementById('wsLunchStart').value = s.lunchStart;
+                    document.getElementById('wsLunchEnd').value = s.lunchEnd;
+                    document.querySelectorAll('#wsForm input[type="checkbox"]').forEach(cb => cb.checked = s.workingDays.includes(cb.value));
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        window.saveWorkSchedule = async function() {
+            const data = {
+                defaultStartHour: document.getElementById('wsStart').value,
+                defaultEndHour: document.getElementById('wsEnd').value,
+                lunchStart: document.getElementById('wsLunchStart').value,
+                lunchEnd: document.getElementById('wsLunchEnd').value,
+                selectedWorkingDays: Array.from(document.querySelectorAll('#wsForm input[name="SelectedWorkingDays"]:checked')).map(cb => cb.value)
+            };
             
-            // Sidebar initial state
-            let sb = document.getElementById('todoSidebar');
-            sb.style.display = 'flex';
-            makeDraggable(sb, document.getElementById('todoHeader'));
-            document.getElementById('closeTodoSidebar').onclick = () => sb.style.display = 'none';
-            document.getElementById('todoDateFilter').value = new Date().toISOString().slice(0,10);
-            document.getElementById('todoDateFilter').addEventListener('change', loadScheduledTasksByDate);
-            loadScheduledTasksByDate();
-            document.getElementById('openSetTaskFromSidebarBtn').onclick = () => { let n=new Date(); let s=new Date(n.getTime()-n.getTimezoneOffset()*60000).toISOString().slice(0,16); let e=new Date(n.getTime()+3600000-n.getTimezoneOffset()*60000).toISOString().slice(0,16); openSetTaskModal(s,e); };
-            document.getElementById('openAutoPlanModalBtn').onclick = () => { selectedTasks=[]; loadUnplannedTasks(); new bootstrap.Modal(document.getElementById('autoPlanModal')).show(); };
+            Swal.fire({title:'Đang lưu...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+            try {
+                const res = await fetch('/WorkSchedule/UpdateMySchedule', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(data) 
+                });
+                const result = await res.json();
+                Swal.close();
+                if(result.success) { 
+                    Swal.fire('Thành công', '', 'success'); 
+                    document.getElementById('workScheduleSidebar').style.display = 'none'; 
+                } else Swal.fire('Lỗi', result.message, 'error');
+            } catch(e) { 
+                Swal.close(); 
+                Swal.fire('Error', 'Server error', 'error'); 
+            }
+        };
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                makeDraggable(document.getElementById('todoSidebar'), document.getElementById('todoHeader'));
+                makeDraggable(document.getElementById('workScheduleSidebar'), document.getElementById('wsHeader'));
+                
+                const calendarEl = document.getElementById('calendar');
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    locale: '@(System.Globalization.CultureInfo.CurrentCulture.Name.StartsWith("vi") ? "vi" : "en")',
+                    initialView: 'timeGridWeek',
+                    headerToolbar: { 
+                        left: 'prev,next today todoToggle workSchedule', 
+                        center: 'title', 
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay' 
+                    },
+                    customButtons: { 
+                        todoToggle: { html: '<i class="fas fa-list-ul"></i>', click: () => toggleSidebar('todoSidebar') },
+                        workSchedule: { html: '<i class="fas fa-user-clock"></i>', click: () => toggleSidebar('workScheduleSidebar') }
+                    },
+                    events: '/Calendar/GetScheduledEvents', 
+                    selectable: true,
+                    select: (info) => { 
+                        let s = info.startStr.slice(0,16), e = info.endStr.slice(0,16); 
+                        openSetTaskModal(s,e); 
+                    },
+                    eventClick: (info) => {
+                        info.jsEvent.preventDefault();
+                        // Hiển thị menu: Đổi màu hoặc Xóa
+                        Swal.fire({
+                            title: info.event.title,
+                            text: 'Bạn muốn làm gì?',
+                            icon: 'question',
+                            showDenyButton: true,
+                            showCancelButton: true,
+                            confirmButtonText: '<i class="fas fa-palette"></i> Đổi màu',
+                            denyButtonText: '<i class="fas fa-trash-alt"></i> Xóa',
+                            cancelButtonText: 'Đóng'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                showColorPicker(info.event.id, info.event.backgroundColor);
+                            } else if (result.isDenied) {
+                                deleteScheduledEvent(info.event.id);
+                            }
+                        });
+                    },
+                    eventDidMount: (info) => {
+                        info.el.addEventListener('mouseenter', (e) => showCustomTooltip(e, info.event.title));
+                        info.el.addEventListener('mouseleave', hideCustomTooltip);
+                    }
+                });
+                calendar.render();
+                loadMyTasks();
+                
+                // Sidebar setup
+                const dateFilter = document.getElementById('todoDateFilter');
+                if(dateFilter) {
+                    dateFilter.value = new Date().toISOString().slice(0,10);
+                    dateFilter.addEventListener('change', loadScheduledTasksByDate);
+                    loadScheduledTasksByDate();
+                }
+                const setTaskBtn = document.getElementById('openSetTaskFromSidebarBtn');
+                if(setTaskBtn) setTaskBtn.onclick = () => { 
+                    let n=new Date(); 
+                    let s=new Date(n.getTime()-n.getTimezoneOffset()*60000).toISOString().slice(0,16); 
+                    let e=new Date(n.getTime()+3600000-n.getTimezoneOffset()*60000).toISOString().slice(0,16); 
+                    openSetTaskModal(s,e); 
+                };
+                const autoPlanBtn = document.getElementById('openAutoPlanModalBtn');
+                if(autoPlanBtn) autoPlanBtn.onclick = () => { 
+                    selectedTasks=[]; 
+                    loadUnplannedTasks(); 
+                    new bootstrap.Modal(document.getElementById('autoPlanModal')).show(); 
+                };
+            } catch (err) { console.error(err); }
         });
     </script>
 }
