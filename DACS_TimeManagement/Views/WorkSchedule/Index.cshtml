@@ -1,0 +1,103 @@
+@model DACS_TimeManagement.ViewModels.WorkScheduleViewModel
+
+@{
+    ViewData["Title"] = "Cấu hình lịch làm việc cá nhân";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Helper mapping English days to Vietnamese
+    var dayNames = new Dictionary<string, string>
+    {
+        { "Monday", "Thứ Hai" },
+        { "Tuesday", "Thứ Ba" },
+        { "Wednesday", "Thứ Tư" },
+        { "Thursday", "Thứ Năm" },
+        { "Friday", "Thứ Sáu" },
+        { "Saturday", "Thứ Bảy" },
+        { "Sunday", "Chủ Nhật" }
+    };
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h4 class="fw-bold mb-0 text-primary"><i class="fas fa-user-clock me-2"></i> @ViewData["Title"]</h4>
+                    <p class="text-muted small mt-2">Cấu hình này sẽ được sử dụng bởi AI để tự động sắp xếp công việc vào lịch của bạn.</p>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show rounded-3" role="alert">
+                            <i class="fas fa-check-circle me-2"></i> @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Edit" method="post">
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="DefaultStartHour" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-hourglass-start text-muted"></i></span>
+                                    <input asp-for="DefaultStartHour" type="time" class="form-control" />
+                                </div>
+                                <span asp-validation-for="DefaultStartHour" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="DefaultEndHour" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-hourglass-end text-muted"></i></span>
+                                    <input asp-for="DefaultEndHour" type="time" class="form-control" />
+                                </div>
+                                <span asp-validation-for="DefaultEndHour" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="LunchStart" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-utensils text-muted"></i></span>
+                                    <input asp-for="LunchStart" type="time" class="form-control" />
+                                </div>
+                                <span asp-validation-for="LunchStart" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LunchEnd" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-coffee text-muted"></i></span>
+                                    <input asp-for="LunchEnd" type="time" class="form-control" />
+                                </div>
+                                <span asp-validation-for="LunchEnd" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold d-block">@Html.DisplayNameFor(m => m.SelectedWorkingDays)</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                @foreach (var day in Model.AllDays)
+                                {
+                                    var isChecked = Model.SelectedWorkingDays.Contains(day);
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" name="SelectedWorkingDays" value="@day" id="day_@day" @(isChecked ? "checked" : "")>
+                                        <label class="form-check-label" for="day_@day">@dayNames[day]</label>
+                                    </div>
+                                }
+                            </div>
+                            <span asp-validation-for="SelectedWorkingDays" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm"><i class="fas fa-save me-2"></i>Lưu cấu hình</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

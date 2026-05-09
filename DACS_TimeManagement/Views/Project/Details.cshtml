@@ -335,7 +335,37 @@
         color: #34d399 !important;
         border: 1px solid rgba(52, 211, 153, 0.3);
     }
+
+    .ai-response-content {
+        color: var(--pastel-dark);
+        font-size: 0.95rem;
+    }
+    .ai-response-content h1, .ai-response-content h2, .ai-response-content h3 {
+        color: var(--primary);
+        margin-top: 1.5rem;
+        font-weight: 700;
+    }
+    .ai-response-content ul, .ai-response-content ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .ai-response-content li {
+        margin-bottom: 0.5rem;
+    }
+    .ai-response-content code {
+        background: rgba(0,0,0,0.05);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #e11d48;
+    }
+    .ai-response-content blockquote {
+        border-left: 4px solid var(--primary);
+        padding-left: 1rem;
+        font-style: italic;
+        color: var(--pastel-muted);
+    }
 </style>
+
 <div class="project-details-container my-4" data-aos="fade-up">
     <!-- Alert messages -->
     @if (TempData["ErrorMessage"] != null)
@@ -445,6 +475,29 @@
                     <a asp-controller="WorkTask" asp-action="Index" asp-route-projectId="@Model.Id" class="btn btn-pastel-primary rounded-pill px-4 py-2 shadow-sm">
                         Go to Kanban Board <i class="fas fa-arrow-right ms-2"></i>
                     </a>
+                </div>
+            </div>
+
+            <!-- AI Project Strategy Section -->
+            <div class="card border-0 shadow-xl rounded-4 bg-pastel-card mb-4 overflow-hidden">
+                <div class="card-header bg-transparent border-pastel p-4 pb-0 pt-4 pb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="icon-circle" style="background: rgba(168, 85, 247, 0.12);"><i class="fas fa-brain text-purple" style="color: #a855f7;"></i></div>
+                            <h5 class="fw-bold mb-0 text-pastel-dark">AI Project Strategy</h5>
+                        </div>
+                        <button id="generateProjectAI" class="btn btn-sm btn-pastel-primary rounded-pill px-3 shadow-sm">
+                            <i class="fas fa-magic me-1"></i> Generate Plan
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div id="projectAIContent" class="ai-strategy-content small text-dark">
+                        <div class="text-center py-4 text-pastel-muted">
+                            <i class="fas fa-robot fs-1 mb-3 opacity-25"></i>
+                            <p>Click "Generate Plan" to get an AI-powered project roadmap, checklist, and timeline estimation.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -704,6 +757,8 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         let isLoadingComments = false;
         let currentUserId = null; // sẽ được gán từ server
@@ -1142,5 +1197,61 @@
             if (input) input.value = '';
             document.getElementById('attachmentPreview')?.classList.add('d-none');
         }
+        // Gemini AI Project Integration
+        document.getElementById('generateProjectAI')?.addEventListener('click', async function() {
+            const btn = this;
+            const contentDiv = document.getElementById('projectAIContent');
+            
+            // Show loading state
+            btn.disabled = true;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Analyzing...';
+            contentDiv.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                    <h5 class="text-primary fw-bold">Gemini is analyzing project structure...</h5>
+                    <p class="text-muted">Breaking down tasks and suggesting improvements</p>
+                </div>`;
+
+            try {
+                // Prepare data
+                const requestData = {
+                    goal: {
+                        title: "Master Project Goals",
+                        description: @Html.Raw(Json.Serialize(Model.Description ?? "Complete the project successfully."))
+                    },
+                    project: {
+                        name: @Html.Raw(Json.Serialize(Model.Name)),
+                        detail: @Html.Raw(Json.Serialize(Model.Description ?? "No specific details."))
+                    }
+                };
+
+                const response = await fetch('/api/ai/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.result) {
+                    contentDiv.style.opacity = 0;
+                    contentDiv.innerHTML = `<div class="ai-response-content">${marked.parse(data.result)}</div>`;
+                    
+                    setTimeout(() => {
+                        contentDiv.style.transition = 'opacity 0.5s ease';
+                        contentDiv.style.opacity = 1;
+                    }, 100);
+                } else {
+                    throw new Error(data.error || 'Failed to generate content');
+                }
+            } catch (e) {
+                console.error(e);
+                contentDiv.innerHTML = `<div class="alert alert-danger rounded-4"><i class="fas fa-exclamation-triangle me-2"></i><strong>Error:</strong> ${e.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
     </script>
-}
+}

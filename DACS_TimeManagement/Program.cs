@@ -65,6 +65,8 @@ builder.Services.AddScoped<IGoalRepository, GoalRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddSingleton<ICryptoService, CryptoService>();
 builder.Services.AddScoped<IGoalService, GoalService>();
+builder.Services.AddScoped<IGeminiService, GeminiService>();
+builder.Services.AddScoped<IUserWorkScheduleService, UserWorkScheduleService>();
 
 var app = builder.Build();
 

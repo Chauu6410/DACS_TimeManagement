@@ -7,10 +7,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
+using System;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http;
+using Microsoft.Extensions.Logging;
+using System.Threading;
 
 namespace DACS_TimeManagement.Services
 {
@@ -22,15 +25,20 @@ namespace DACS_TimeManagement.Services
         private readonly IMemoryCache _cache;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _config;
+        private readonly IGeminiService _geminiService;
+        private readonly ILogger<GoalService> _logger;
 
-        public GoalService(ApplicationDbContext db, IHubContext<GoalHub> hubContext, IMemoryCache cache, IHttpClientFactory httpClientFactory, IConfiguration config)
+        public GoalService(ApplicationDbContext db, IHubContext<GoalHub> hubContext, IMemoryCache cache, IHttpClientFactory httpClientFactory, IConfiguration config, IGeminiService geminiService, ILogger<GoalService> logger)
         {
             _db = db;
             _hubContext = hubContext;
             _cache = cache;
             _httpClientFactory = httpClientFactory;
             _config = config;
+            _geminiService = geminiService;
+            _logger = logger;
         }
+
 
         public async Task<GoalDetailDto> CreateAsync(CreateGoalDto dto, string userId)
         {
@@ -430,147 +438,134 @@ namespace DACS_TimeManagement.Services
             double daysLeft = (target.Date - now.Date).TotalDays;
             daysLeft = Math.Max(1.0, daysLeft);
 
-            string promptData = "";
-            var localPieces = new List<string>();
-
-            if (goal.Type == GoalType.TimeBased)
+            try
             {
-                double remainingHours = Math.Max(0, (goal.TargetHours ?? 0) - goal.CompletedHours);
+                string projectName = "N/A";
+                string projectDetail = "N/A";
+
+                if (goal.ProjectId.HasValue)
+                {
+                    var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == goal.ProjectId.Value);
+                    if (project != null)
+                    {
+                        projectName = project.Name;
+                        projectDetail = project.Description ?? "No details provided.";
+                    }
+                }
+
+                // Determine user's language preference (fallback to culture if profile not set)
+                var profile = await _db.Set<UserProfile>().AsNoTracking().FirstOrDefaultAsync(up => up.UserId == userId);
+                var lang = profile?.Language ?? System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName ?? "en";
+                bool isVi = lang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
+
+                string context = isVi
+                    ? "Bạn là một cố vấn chiến lược và chuyên gia hiệu suất."
+                    : "You are a strategic advisor and performance expert.";
+
+                string goalText = isVi
+                    ? "Dựa trên dữ liệu dưới đây, hãy: 1. Phân tích mức độ khó của mục tiêu (Dễ/Trung bình/Khó) dựa trên thời gian còn lại và tiến độ. 2. Đưa ra 3 hành động cụ thể, ngắn gọn, ưu tiên theo thứ tự. Trả lời bằng tiếng Việt, ngắn gọn."
+                    : "Based on the data below, please: 1. Analyze the difficulty of the goal (Easy/Average/Hard) based on remaining time and progress. 2. Provide 3 concise, prioritized actions. Reply in English, concisely.";
+
                 
-                // Chuẩn bị Prompt cho OpenAI
-                promptData = $"Mục tiêu cá nhân: {goal.Title}\n" +
-                             $"Mô tả: {goal.Description ?? "Không có"}\n" +
-                             $"Tổng số giờ mục tiêu: {goal.TargetHours}\n" +
-                             $"Số giờ đã hoàn thành: {goal.CompletedHours}\n" +
-                             $"Số giờ còn lại: {remainingHours}\n" +
-                             $"Số ngày còn lại: {daysLeft} ngày (Hạn chót: {goal.TargetDate:dd/MM/yyyy}).\n" +
-                             $"Hãy đóng vai một chuyên gia quản lý thời gian, đưa ra chiến lược làm việc (như số giờ mỗi ngày, chia nhỏ phiên làm việc, cảnh báo rủi ro nếu có) để hoàn thành mục tiêu này.";
+                var progressInfo = goal.Type == DACS_TimeManagement.Models.GoalType.TaskBased 
+                    ? $"Tiến độ: {goal.CompletedTasks}/{goal.TargetTasks} công việc đã hoàn thành."
+                    : $"Tiến độ: {goal.CompletedHours:F1}/{goal.TargetHours:F1} giờ đã thực hiện.";
 
-                // Fallback cục bộ
-                localPieces.Add($"📊 **Tổng quan:** Bạn còn {remainingHours:F1} giờ phải hoàn thành trong {daysLeft} ngày tới.");
-                if (remainingHours <= 0)
-                {
-                    localPieces.Add("🎉 **Tuyệt vời!** Bạn đã hoàn thành hoặc vượt mục tiêu thời gian đề ra.");
-                }
-                else
-                {
-                    double hoursPerDay = remainingHours / daysLeft;
-                    localPieces.Add($"⚡ **Kế hoạch Cụ thể:** Để kịp tiến độ, bạn cần duy trì **{hoursPerDay:F1} giờ / ngày**.");
-                    if (hoursPerDay > 8)
-                        localPieces.Add("⚠️ **Cảnh báo Khả thi:** Số giờ yêu cầu mỗi ngày quá cao (>8 giờ). Bạn nên cân nhắc gia hạn thêm thời gian.");
-                    else if (hoursPerDay > 4)
-                        localPieces.Add("🔥 **Chiến thuật Pomodoro:** Gợi ý chia nhỏ thành 4-6 phiên làm việc, mỗi phiên 25-50 phút, xen kẽ nghỉ dài.");
-                    else
-                        localPieces.Add("💡 **Chiến thuật Dễ dàng:** Lịch trình hoàn toàn nằm trong tầm tay.");
-                }
-            }
-            else
-            {
-                int projectId = goal.ProjectId ?? 0;
-                var tasks = await _db.WorkTasks
-                    .AsNoTracking()
-                    .Where(t => t.ProjectId == projectId && t.AssigneeId == userId && t.Status != Models.TaskStatus.Completed)
-                    .ToListAsync();
+                string userInput = $@"
+Dữ liệu Mục tiêu:
+- Tiêu đề: {goal.Title}
+- Mô tả: {goal.Description ?? "Không có"}
+- Trạng thái: {goal.Status}
+- Loại: {goal.Type}
+- {progressInfo}
+- Hạn chót: {goal.TargetDate:dd/MM/yyyy} (Còn khoảng {daysLeft:F0} ngày)
 
-                var remainingTasks = tasks.Count;
-                var urgentTasks = tasks.Where(t => t.Priority == Priority.Urgent).Take(3).ToList();
-                var highTasks = tasks.Where(t => t.Priority == Priority.High).Take(3).ToList();
-                var overdueTasks = tasks.Where(t => t.EndDate < now).Take(3).ToList();
+Thông tin Dự án liên kết:
+- Tên dự án: {projectName}
+- Chi tiết: {projectDetail}
+";
 
-                // Chuẩn bị Prompt cho OpenAI
-                var taskNames = string.Join(", ", tasks.Take(5).Select(t => t.Title));
-                promptData = $"Dự án liên kết có {remainingTasks} công việc chưa hoàn thành.\n" +
-                             $"Số ngày còn lại: {daysLeft} ngày (Hạn chót: {goal.TargetDate:dd/MM/yyyy}).\n" +
-                             $"Số task quá hạn: {overdueTasks.Count}\n" +
-                             $"Số task khẩn cấp (Urgent): {urgentTasks.Count}\n" +
-                             $"Một số task tiêu biểu: {taskNames}...\n" +
-                             $"Hãy đóng vai một chuyên gia quản lý dự án, đưa ra chiến lược phân bổ nguồn lực và thứ tự ưu tiên các công việc để hoàn thành dự án đúng hạn.";
+                string prompt = _geminiService.BuildAdvancedPrompt(context, goalText, userInput);
 
-                // Fallback cục bộ
-                localPieces.Add($"📊 **Tổng quan:** Dự án còn {remainingTasks} công việc chưa hoàn thành.");
-                if (remainingTasks == 0)
-                {
-                    localPieces.Add("🎉 **Tuyệt vời!** Bạn không còn công việc nào tồn đọng trong dự án này.");
-                }
-                else
-                {
-                    double tasksPerDay = Math.Ceiling(remainingTasks / daysLeft);
-                    localPieces.Add($"⚡ **Chỉ tiêu:** Cần xử lý tối thiểu **{tasksPerDay} task / ngày** để đảm bảo đúng hạn.");
-                    if (overdueTasks.Any())
-                    {
-                        localPieces.Add("\n🚨 **XỬ LÝ KHẨN CẤP (QUÁ HẠN):**");
-                        foreach (var t in overdueTasks) localPieces.Add($"- Khắc phục ngay: *{t.Title}*");
-                    }
-                    if (urgentTasks.Any())
-                    {
-                        localPieces.Add("\n🔥 **ƯU TIÊN HÀNG ĐẦU (URGENT):**");
-                        foreach (var t in urgentTasks) 
-                            if (!overdueTasks.Any(ot => ot.Id == t.Id)) localPieces.Add($"- *{t.Title}*");
-                    }
-                    if (!overdueTasks.Any() && !urgentTasks.Any() && highTasks.Any())
-                    {
-                        localPieces.Add("\n⭐ **BƯỚC TIẾP THEO (HIGH PRIORITY):**");
-                        foreach (var t in highTasks) localPieces.Add($"- Cần làm: *{t.Title}*");
-                    }
-                }
-            }
+                // Use a cancellation token with timeout to avoid hanging requests
+                int timeoutSeconds = _config.GetValue<int>("Gemini:TimeoutSeconds", 15);
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
-            string aiResponse = "";
-            string apiKey = _config["OpenAI:ApiKey"];
-            
-            if (!string.IsNullOrEmpty(apiKey))
-            {
+                string aiResponse;
                 try
                 {
-                    var client = _httpClientFactory.CreateClient();
-                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-                    
-                    var model = _config["OpenAI:Model"] ?? "gpt-4o-mini";
-                    
-                    var payload = new
-                    {
-                        model = model,
-                        messages = new[]
-                        {
-                            new { role = "system", content = "Bạn là một trợ lý AI quản lý thời gian chuyên nghiệp. Phân tích dữ liệu người dùng cung cấp và đưa ra một kế hoạch hành động cụ thể, cá nhân hóa. Sử dụng tiếng Việt, định dạng Markdown (có gạch đầu dòng, in đậm) và thêm các emoji sinh động. Câu văn ngắn gọn, đi thẳng vào vấn đề (tối đa 200 từ)." },
-                            new { role = "user", content = promptData }
-                        },
-                        temperature = 0.7
-                    };
-                    
-                    var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-                    var response = await client.PostAsync("https://api.openai.com/v1/chat/completions", content);
-                    
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseString = await response.Content.ReadAsStringAsync();
-                        using var doc = JsonDocument.Parse(responseString);
-                        var message = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
-                        
-                        aiResponse = $"🤖 **AI ACTION PLAN (Powered by LLM)**\n" +
-                                     $"*Cập nhật lúc: {now:dd/MM/yyyy HH:mm}*\n\n" + message;
-                    }
+                    aiResponse = await _geminiService.GenerateContent(prompt, cts.Token);
                 }
-                catch (Exception)
+                catch (OperationCanceledException)
                 {
-                    // Ignore exception to fallback to local pieces
+                    _logger?.LogWarning("AI request timed out after {Seconds}s for goal {GoalId}", timeoutSeconds, goalId);
+                    aiResponse = "Lỗi: Yêu cầu tới dịch vụ AI đã hết thời gian chờ. Vui lòng thử lại sau.";
                 }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Exception while calling AI for goal {GoalId}", goalId);
+                    aiResponse = "Lỗi khi kết nối tới dịch vụ AI. Vui lòng thử lại sau.";
+                }
+
+                if (string.IsNullOrWhiteSpace(aiResponse))
+                {
+                    aiResponse = "AI không trả về nội dung. Vui lòng thử lại sau hoặc kiểm tra cấu hình API.";
+                }
+
+                // Post-process: remove polite greetings / intros to keep response concise
+                try
+                {
+                    var lines = aiResponse.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).ToList();
+                    // Remove common opening greetings
+                    while (lines.Count > 0 && (lines[0].StartsWith("Chào", StringComparison.OrdinalIgnoreCase)
+                                               || lines[0].StartsWith("Xin chào", StringComparison.OrdinalIgnoreCase)
+                                               || lines[0].StartsWith("Hello", StringComparison.OrdinalIgnoreCase)
+                                               || lines[0].StartsWith("Hi", StringComparison.OrdinalIgnoreCase)
+                                               || lines[0].StartsWith("Dear", StringComparison.OrdinalIgnoreCase)
+                                               || lines[0].StartsWith("Bạn là", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        lines.RemoveAt(0);
+                    }
+
+                    // If there's a short summary line right after greeting, drop it as well to shorten
+                    if (lines.Count > 0 && lines[0].Length < 120 && lines[0].EndsWith(".", StringComparison.Ordinal))
+                    {
+                        lines.RemoveAt(0);
+                    }
+
+                    // Rebuild limited content (keep up to first 30 non-empty lines)
+                    var trimmed = string.Join("\n\n", lines.Take(30));
+
+                    // Final truncate to a smaller size to avoid huge UI text
+                    const int maxStoredLength = 3000;
+                    if (trimmed.Length > maxStoredLength)
+                        trimmed = trimmed.Substring(0, maxStoredLength - 1) + "…";
+
+                    aiResponse = trimmed;
+                }
+                catch
+                {
+                    // If any error during trimming, keep original but ensure size limit
+                    const int maxStoredLength = 3000;
+                    if (aiResponse.Length > maxStoredLength)
+                        aiResponse = aiResponse.Substring(0, maxStoredLength - 1) + "…";
+                }
+
+                // Persist concise AI plan
+                goal.AIActionPlan = aiResponse;
+                goal.UpdatedAt = DateTime.UtcNow;
+
+                _db.PersonalGoals.Update(goal);
+                await _db.SaveChangesAsync();
+
+                return goal.AIActionPlan;
             }
-            
-            if (string.IsNullOrEmpty(aiResponse))
+            catch (Exception ex)
             {
-                // Sử dụng kết quả tính toán cục bộ
-                aiResponse = $"🤖 **CHIẾN LƯỢC HÀNH ĐỘNG AI (Hệ thống phân tích)**\n" +
-                             $"*Cập nhật lúc: {now:dd/MM/yyyy HH:mm}*\n\n" + string.Join("\n", localPieces);
+                // Fallback if AI fails
+                return $"Error generating strategy: {ex.Message}";
             }
 
-            goal.AIActionPlan = aiResponse;
-            goal.UpdatedAt = DateTime.UtcNow;
-            
-            _db.PersonalGoals.Update(goal);
-            await _db.SaveChangesAsync();
-
-            return goal.AIActionPlan;
         }
     }
 }

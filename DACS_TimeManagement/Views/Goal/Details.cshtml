@@ -315,34 +315,87 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             loadProgressChart();
             updateProgressDisplays();
 
-            // AI Regeneration
+            // Gemini AI Integration
             document.querySelectorAll('.regenerate-ai-btn').forEach(btn => {
                 btn.addEventListener('click', async function() {
                     const goalId = this.dataset.goalId;
                     const contentDiv = document.getElementById(`aiContent-${goalId}`);
                     
-                    this.classList.add('fa-spin');
-                    contentDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> ' + @Html.Raw(Json.Serialize(Localizer["Analyzing"].Value)) + '</div>';
-
+                    // Show loading state
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Analyzing...';
+                    contentDiv.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                            <h5 class="text-primary fw-bold">Gemini is thinking...</h5>
+                            <p class="text-muted">Crafting your personalized strategy plan</p>
+                        </div>`;
 
                     try {
-                        const response = await fetch(`/Goal/RegenerateAIStrategy?goalId=${goalId}`, { method: 'POST' });
+                        // Prepare data
+                        const requestData = {
+                            goal: {
+                                title: @Html.Raw(Json.Serialize(Model.Title)),
+                                description: @Html.Raw(Json.Serialize(Model.Description ?? "")),
+                                status: "@Model.Status",
+                                type: "@Model.Type",
+                                completedTasks: @Model.CompletedTasks,
+                                targetTasks: @(Model.TargetTasks ?? 0),
+                                completedHours: @Model.CompletedHours,
+                                targetHours: @(Model.TargetHours ?? 0.0),
+                                targetDate: "@Model.TargetDate.ToString("yyyy-MM-ddTHH:mm:ss")"
+                            },
+                            project: {
+                                name: @Html.Raw(Json.Serialize(Model.Project?.Name ?? "General")),
+                                detail: @Html.Raw(Json.Serialize(Model.Project?.Description ?? "No specific project details."))
+                            }
+                        };
+
+
+                        const response = await fetch('/api/ai/generate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(requestData)
+                        });
+
                         const data = await response.json();
-                        if (data.success) {
-                            contentDiv.innerHTML = data.actionPlan.replace(/\n/g, '<br/>');
-                        }
- else {
-                            Swal.fire('Error', 'Failed to regenerate AI strategy.', 'error');
+
+                        if (response.ok && data.result) {
+                            // Use marked.js for premium formatting
+                            contentDiv.style.opacity = 0;
+                            contentDiv.innerHTML = `<div class="ai-response-content">${marked.parse(data.result)}</div>`;
+                            
+                            // Smooth fade in
+                            setTimeout(() => {
+                                contentDiv.style.transition = 'opacity 0.5s ease';
+                                contentDiv.style.opacity = 1;
+                            }, 100);
+                        } else {
+                            throw new Error(data.error || 'Failed to generate content');
                         }
                     } catch (e) {
-                        contentDiv.innerHTML = '<span class="text-danger">Error connecting to AI service.</span>';
+                        console.error(e);
+                        const checkConnMsg = @Html.Raw(Json.Serialize(langCode == "vi" ? "Vui lòng kiểm tra API Key và kết nối." : "Please check your API Key and connection."));
+                        const errMsg = e?.message || checkConnMsg;
+                        contentDiv.innerHTML = `
+                            <div class="alert alert-danger rounded-4">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>${@Html.Raw(Json.Serialize(langCode == "vi" ? "Lỗi" : "Error"))}:</strong> ${errMsg}
+                            </div>`;
+                        Swal.fire({
+                            icon: 'error',
+                            title: ${@Html.Raw(Json.Serialize(langCode == "vi" ? "AI tạo thất bại" : "AI Generation Failed"))},
+                            text: errMsg
+                        });
                     } finally {
-                        this.classList.remove('fa-spin');
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-sync-alt me-1"></i> Update';
                     }
                 });
             });
@@ -601,6 +654,35 @@
     .chart-container { position: relative; margin: auto; height: 250px; width: 100%; }
     .x-small { font-size: 0.75rem; }
     .italic { font-style: italic; }
+    
+    .ai-response-content {
+        color: #334155;
+        font-size: 0.95rem;
+    }
+    .ai-response-content h1, .ai-response-content h2, .ai-response-content h3 {
+        color: #4f46e5;
+        margin-top: 1.5rem;
+        font-weight: 700;
+    }
+    .ai-response-content ul, .ai-response-content ol {
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    .ai-response-content li {
+        margin-bottom: 0.5rem;
+    }
+    .ai-response-content code {
+        background: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #e11d48;
+    }
+    .ai-response-content blockquote {
+        border-left: 4px solid #6366f1;
+        padding-left: 1rem;
+        font-style: italic;
+        color: #64748b;
+    }
     
     .timeline-item { transition: all 0.3s ease; border-bottom: 1px solid rgba(0,0,0,0.03); }
     .timeline-item:hover { background: rgba(99, 102, 241, 0.05); transform: translateX(4px); }

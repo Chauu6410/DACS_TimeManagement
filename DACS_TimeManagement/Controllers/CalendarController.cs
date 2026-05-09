@@ -12,11 +12,15 @@ namespace DACS_TimeManagement.Controllers
     {
         private readonly ICalendarRepository _calendarRepo;
         private readonly ApplicationDbContext _context;
+        private readonly DACS_TimeManagement.Services.Interfaces.IGeminiService _geminiService;
+        private readonly DACS_TimeManagement.Services.Interfaces.IUserWorkScheduleService _workScheduleService;
 
-        public CalendarController(ICalendarRepository calendarRepo, ApplicationDbContext context)
+        public CalendarController(ICalendarRepository calendarRepo, ApplicationDbContext context, DACS_TimeManagement.Services.Interfaces.IGeminiService geminiService, DACS_TimeManagement.Services.Interfaces.IUserWorkScheduleService workScheduleService)
         {
             _calendarRepo = calendarRepo;
             _context = context;
+            _geminiService = geminiService;
+            _workScheduleService = workScheduleService;
         }
 
         // GET: Calendar/Index
@@ -104,7 +108,10 @@ namespace DACS_TimeManagement.Controllers
 
             var tasksQuery = await _context.WorkTasks
                 .Include(t => t.Project)
-                .Where(t => (t.AssigneeId == userId || (t.UserId == userId && string.IsNullOrEmpty(t.AssigneeId))) && !scheduledTaskIds.Contains(t.Id))
+                .Where(t => (t.AssigneeId == userId || (t.UserId == userId && string.IsNullOrEmpty(t.AssigneeId))) 
+                         && !scheduledTaskIds.Contains(t.Id) 
+                         && t.EndDate.Date >= today)
+
                 .Select(t => new
                 {
                     id = t.Id,
@@ -186,6 +193,11 @@ namespace DACS_TimeManagement.Controllers
                 if (task == null)
                     return BadRequest(new { success = false, message = "Task not found or not allowed" });
 
+                // Check overlap
+                var overlapError = await GetOverlapError(userId, request.StartTime, request.EndTime);
+                if (overlapError != null)
+                    return BadRequest(new { success = false, message = overlapError });
+
                 var se = new ScheduledEvent
                 {
                     TaskId = request.TaskId,
@@ -203,6 +215,24 @@ namespace DACS_TimeManagement.Controllers
             {
                 return BadRequest(new { success = false, message = ex.Message });
             }
+        }
+
+        private async Task<string?> GetOverlapError(string userId, DateTime start, DateTime end, int? excludeId = null)
+        {
+            var overlap = await _context.ScheduledEvents
+                .Include(se => se.Task)
+                .Where(se => se.Task != null && (se.Task.AssigneeId == userId || (se.Task.UserId == userId && string.IsNullOrEmpty(se.Task.AssigneeId))))
+                .Where(se => se.Id != excludeId)
+                .Where(se => (start >= se.StartTime && start < se.EndTime) || 
+                             (end > se.StartTime && end <= se.EndTime) || 
+                             (start <= se.StartTime && end >= se.EndTime))
+                .FirstOrDefaultAsync();
+
+            if (overlap != null)
+            {
+                return $"Trùng lịch với: {overlap.Task?.Title} ({overlap.StartTime:HH:mm} - {overlap.EndTime:HH:mm})";
+            }
+            return null;
         }
 
 // DTO để binding từ client
@@ -259,6 +289,7 @@ public class ScheduledEventDto
         public class AIPlanRequest
         {
             public List<int> TaskIds { get; set; } = new List<int>();
+            public DateTime? StartDate { get; set; }
         }
 
         // POST: Calendar/AnalyzeTasksWithAI
@@ -277,65 +308,96 @@ public class ScheduledEventDto
                 .Where(t => request.TaskIds.Contains(t.Id) && (t.AssigneeId == userId || (t.UserId == userId && string.IsNullOrEmpty(t.AssigneeId))))
                 .ToListAsync();
 
-            var suggestions = new List<object>();
-            var currentTime = DateTime.Today.AddDays(1).AddHours(8); // Start tomorrow 8 AM
+            if (!tasks.Any())
+                return BadRequest(new { success = false, message = "Tasks not found or you don't have access" });
 
-            foreach (var task in tasks.OrderBy(t => t.EndDate)) // Prioritize earlier deadlines
+            var schedule = await _workScheduleService.GetOrCreateDefaultAsync(userId);
+            var startDate = request.StartDate?.ToString("yyyy-MM-dd") ?? DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+            var refDate = request.StartDate ?? DateTime.Today.AddDays(1);
+
+            var busyEvents = await _context.ScheduledEvents
+                .Include(se => se.Task)
+                .Where(se => se.Task != null && (se.Task.AssigneeId == userId || (se.Task.UserId == userId && string.IsNullOrEmpty(se.Task.AssigneeId)))
+                             && se.StartTime >= refDate.Date 
+                             && se.StartTime <= refDate.Date.AddDays(14))
+                .Select(se => new { Start = se.StartTime.ToString("yyyy-MM-ddTHH:mm"), End = se.EndTime.ToString("yyyy-MM-ddTHH:mm"), Title = se.Task.Title })
+                .ToListAsync();
+
+            var busyJson = System.Text.Json.JsonSerializer.Serialize(busyEvents);
+
+            string allowedColors = "#818cf8, #f472b6, #fb923c, #fbbf24, #4ade80, #2dd4bf, #60a5fa";
+
+            string context = $@"Bạn là một AI chuyên gia lập lịch trình TUYỆT ĐỐI KHÔNG TRÙNG LỊCH. 
+CÁC QUY TẮC TỬ THỦ:
+1. KHÔNG GHI ĐÈ: 'Busy Slots' là các khung giờ ĐÃ CÓ CHỦ. Tuyệt đối không xếp task mới vào đó.
+2. KHÔNG TỰ TRÙNG: Các task mới bạn đang xếp cũng phải nối tiếp nhau, không được trùng giờ nhau.
+3. GIỜ LÀM: {schedule.DefaultStartHour:HH:mm} - {schedule.DefaultEndHour:HH:mm}. Nghỉ trưa: {schedule.LunchStart:HH:mm} - {schedule.LunchEnd:HH:mm}. 
+4. THỜI GIAN: Bắt đầu từ {startDate} lúc {schedule.DefaultStartHour:HH:mm}. Nếu hết giờ làm việc, hãy chuyển sang ngày tiếp theo.
+5. MÀU SẮC: Chọn trong [{allowedColors}].
+6. ĐỊNH DẠNG: Chỉ trả về JSON ARRAY.";
+
+            var taskData = tasks.Select(t => new {
+                Id = t.Id,
+                Title = (t.Project != null ? t.Project.Name + " - " : "") + t.Title,
+                Deadline = t.EndDate.ToString("yyyy-MM-dd")
+            });
+            var jsonInput = System.Text.Json.JsonSerializer.Serialize(taskData);
+
+            var prompt = $@"{context}
+DANH SÁCH LỊCH ĐÃ CÓ (BUSY SLOTS - CẤM XẾP TRÙNG):
+{busyJson}
+
+DANH SÁCH TASK MỚI CẦN XẾP LỊCH:
+{jsonInput}
+
+Yêu cầu đầu ra JSON Array mẫu:
+[
+  {{
+    ""taskId"": id,
+    ""title"": ""tên"",
+    ""startTime"": ""yyyy-MM-ddTHH:mm"",
+    ""endTime"": ""yyyy-MM-ddTHH:mm"",
+    ""color"": ""chọn 1 mã màu từ danh sách cho sẵn"",
+    ""importance"": ""Critical/High/Normal""
+  }}
+]";
+
+            try 
             {
-                // Skip lunch break
-                if (currentTime.TimeOfDay >= new TimeSpan(12, 0, 0) && currentTime.TimeOfDay < new TimeSpan(13, 30, 0))
-                {
-                    currentTime = currentTime.Date.AddHours(13).AddMinutes(30);
-                }
-
-                // Move to next day if it's too late
-                if (currentTime.TimeOfDay >= new TimeSpan(21, 0, 0))
-                {
-                    currentTime = currentTime.Date.AddDays(1).AddHours(8);
-                }
-
-                string importance;
-                string color;
-                int durationMinutes;
+                string aiResponse = await _geminiService.GenerateContent(prompt);
                 
-                var daysUntilDeadline = (task.EndDate - DateTime.Today).TotalDays;
-
-                if (daysUntilDeadline < 0)
+                // Remove Markdown formatting if Gemini wraps response in ```json ... ```
+                string cleanJson = aiResponse.Trim();
+                if (cleanJson.StartsWith("```json"))
                 {
-                    importance = "Critical (Overdue)";
-                    color = "#ef4444"; // Red
-                    durationMinutes = 90;
+                    cleanJson = cleanJson.Substring(7);
+                    if (cleanJson.EndsWith("```"))
+                        cleanJson = cleanJson.Substring(0, cleanJson.Length - 3);
                 }
-                else if (daysUntilDeadline <= 2)
+                else if (cleanJson.StartsWith("```"))
                 {
-                    importance = "High (Approaching Deadline)";
-                    color = "#f59e0b"; // Orange
-                    durationMinutes = 60;
+                    cleanJson = cleanJson.Substring(3);
+                    if (cleanJson.EndsWith("```"))
+                        cleanJson = cleanJson.Substring(0, cleanJson.Length - 3);
                 }
-                else
+                
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var suggestions = System.Text.Json.JsonSerializer.Deserialize<List<System.Text.Json.JsonElement>>(cleanJson.Trim(), options);
+
+                string? warning = null;
+                if (suggestions != null && suggestions.Count < tasks.Count)
                 {
-                    importance = "Normal";
-                    color = "#10b981"; // Green
-                    durationMinutes = 45;
+                    warning = $"AI chỉ xếp được {suggestions.Count}/{tasks.Count} công việc. Một số công việc không thể tìm thấy khoảng trống phù hợp trong lịch trình hiện tại của bạn.";
                 }
 
-                var startTime = currentTime;
-                var endTime = currentTime.AddMinutes(durationMinutes);
-
-                suggestions.Add(new
-                {
-                    taskId = task.Id,
-                    title = (task.Project != null ? task.Project.Name + " - " : "") + task.Title,
-                    startTime = startTime.ToString("yyyy-MM-ddTHH:mm"),
-                    endTime = endTime.ToString("yyyy-MM-ddTHH:mm"),
-                    color = color,
-                    importance = importance
-                });
-
-                currentTime = endTime.AddMinutes(15); // 15 min break
+                return Ok(new { success = true, data = suggestions, warning = warning });
             }
-
-            return Ok(new { success = true, data = suggestions });
+            catch (Exception ex)
+            {
+                // Declare aiResponse outside the try block or just use a generic error message, 
+                // but since we can't easily access aiResponse here without refactoring, I'll return a clear message.
+                return BadRequest(new { success = false, message = "Lỗi khi xử lý phản hồi từ AI: " + ex.Message });
+            }
         }
 
         // POST: Calendar/SaveScheduledEvents
@@ -361,6 +423,19 @@ public class ScheduledEventDto
             {
                 if (validTaskIds.Contains(req.TaskId))
                 {
+                    // Backend validation for each suggestion
+                    var overlapError = await GetOverlapError(userId, req.StartTime, req.EndTime);
+                    if (overlapError != null)
+                    {
+                        return BadRequest(new { success = false, message = $"Lỗi: '{req.StartTime:HH:mm}' {overlapError}" });
+                    }
+
+                    // Also check overlap with other items in this batch
+                    if (eventsToSave.Any(e => (req.StartTime >= e.StartTime && req.StartTime < e.EndTime) || (req.EndTime > e.StartTime && req.EndTime <= e.EndTime)))
+                    {
+                         return BadRequest(new { success = false, message = $"Lỗi: AI đề xuất hai task mới trùng nhau tại {req.StartTime:HH:mm}" });
+                    }
+
                     eventsToSave.Add(new ScheduledEvent
                     {
                         TaskId = req.TaskId,

@@ -192,15 +192,16 @@
                                         </div>
                                         <span class="x-small fw-bold text-uppercase letter-spacing-1">@Localizer["AIStrategy"]</span>
                                     </div>
-                                    <button class="btn btn-sm btn-link text-primary p-0 regenerate-ai-btn" data-goal-id="@goal.Id" title="@Localizer["UpdateStrategy"]">
+                                    <button class="btn btn-sm btn-link text-primary p-0 regenerate-ai-btn hover-scale" data-goal-id="@goal.Id" title="@Localizer["UpdateStrategy"]">
                                         <i class="fas fa-sync-alt"></i>
                                     </button>
                                 </div>
                                 <div class="ai-content-scroll" id="aiContent-@goal.Id">
                                     @if (!string.IsNullOrEmpty(goal.AIActionPlan))
                                     {
-                                        <div class="ai-text small">
-                                            @Html.Raw(goal.AIActionPlan.Replace("\n", "<br/>"))
+                                        <div class="ai-response-content initial-markdown" data-raw="@goal.AIActionPlan">
+                                            @* Content will be rendered by JS below *@
+                                            <div class="text-muted x-small italic">Rendering...</div>
                                         </div>
                                     }
                                     else
@@ -390,6 +391,8 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Fetch Global Streak
@@ -400,6 +403,15 @@
                     if (streakEl) streakEl.innerText = data.streak;
                 })
                 .catch(err => console.error("Error fetching streak:", err));
+
+            // Render initial markdown content
+            document.querySelectorAll('.initial-markdown').forEach(el => {
+                const raw = el.dataset.raw;
+                if (raw) {
+                    el.innerHTML = marked.parse(raw);
+                }
+            });
+
 
             // Search Functionality
             const searchInput = document.getElementById('goalSearch');
@@ -535,10 +547,11 @@
                     .then(data => {
                         icon.classList.remove('fa-spin');
                         if (data.success) {
-                            contentBox.innerHTML = `<div class="ai-text small">${data.actionPlan.replace(/\\n/g, '<br/>')}</div>`;
+                            contentBox.innerHTML = `<div class="ai-response-content">${marked.parse(data.actionPlan)}</div>`;
                         } else {
                             contentBox.innerHTML = '<p class="text-danger x-small mb-0">Không thể tạo kế hoạch lúc này.</p>';
                         }
+
                     })
                     .catch(err => {
                         icon.classList.remove('fa-spin');
@@ -798,8 +811,35 @@
     .btn-pastel-primary { background: #e0e7ff; color: #4f46e5; border: none; transition: all 0.2s; }
     .btn-pastel-primary:hover { background: #c7d2fe; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
 
+    .ai-response-content {
+        color: #334155;
+        font-size: 0.85rem;
+    }
+    .ai-response-content h1, .ai-response-content h2, .ai-response-content h3 {
+        color: #4f46e5;
+        margin-top: 1rem;
+        font-size: 1rem;
+        font-weight: 700;
+    }
+    .ai-response-content ul, .ai-response-content ol {
+        padding-left: 1.2rem;
+        margin-bottom: 0.5rem;
+    }
+    .ai-response-content li {
+        margin-bottom: 0.25rem;
+    }
+    .ai-response-content code {
+        background: rgba(0,0,0,0.05);
+        padding: 1px 4px;
+        border-radius: 4px;
+        color: #e11d48;
+    }
+
     .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
     .hover-lift:hover { transform: translateY(-2px); }
+
+    .hover-scale { transition: transform 0.2s; }
+    .hover-scale:hover { transform: scale(1.2); }
 
     .hover-scale { transition: transform 0.2s; }
     .hover-scale:hover { transform: scale(1.2); background: white !important; }
