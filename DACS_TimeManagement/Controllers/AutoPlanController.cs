@@ -77,7 +77,7 @@ namespace DACS_TimeManagement.Controllers
             var prompt = _geminiService.BuildAdvancedPrompt(context, goalText, userInputText);
 
             // 3) Call Gemini with timeout and handle errors like GoalService
-            int timeoutSeconds = _config.GetValue<int>("Gemini:TimeoutSeconds", 20);
+            int timeoutSeconds = _config.GetValue<int>("Gemini:TimeoutSeconds", 60);
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
@@ -99,7 +99,7 @@ namespace DACS_TimeManagement.Controllers
                 return StatusCode(502, new { error = msg, detail = ex.Message });
             }
 
-            // Post-process: remove greetings and trim similar to GoalService
+            // Post-process: remove greetings if any, but do NOT truncate lines since it's JSON
             if (string.IsNullOrWhiteSpace(aiRaw)) aiRaw = isVi ? "AI không trả về nội dung." : "AI returned empty content.";
             try
             {
@@ -109,15 +109,14 @@ namespace DACS_TimeManagement.Controllers
                                            || lines[0].StartsWith("Hello", StringComparison.OrdinalIgnoreCase)
                                            || lines[0].StartsWith("Hi", StringComparison.OrdinalIgnoreCase)
                                            || lines[0].StartsWith("Dear", StringComparison.OrdinalIgnoreCase)
-                                           || lines[0].StartsWith("Bạn", StringComparison.OrdinalIgnoreCase)))
+                                           || lines[0].StartsWith("Bạn", StringComparison.OrdinalIgnoreCase)
+                                           || lines[0].StartsWith("Dưới đây", StringComparison.OrdinalIgnoreCase)
+                                           || lines[0].StartsWith("Here is", StringComparison.OrdinalIgnoreCase)))
                 {
                     lines.RemoveAt(0);
                 }
                 if (lines.Count > 0 && lines[0].Length < 120 && lines[0].EndsWith(".", StringComparison.Ordinal)) lines.RemoveAt(0);
-                var trimmed = string.Join("\n\n", lines.Take(30));
-                const int maxStoredLength = 3000;
-                if (trimmed.Length > maxStoredLength) trimmed = trimmed.Substring(0, maxStoredLength - 1) + "…";
-                aiRaw = trimmed;
+                aiRaw = string.Join("\n", lines);
             }
             catch { }
 

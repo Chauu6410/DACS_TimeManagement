@@ -28,7 +28,7 @@ namespace DACS_TimeManagement.Controllers
             try
             {
                 string context = "Bạn là một cố vấn chiến lược và chuyên gia hiệu suất.";
-                string goalText = "Dựa trên dữ liệu dưới đây, hãy: 1. Phân tích mức độ khó của mục tiêu (Dễ/Trung bình/Khó). 2. Đưa ra chiến lược hành động chi tiết để hoàn thành đúng hạn.";
+                string goalText = "Dựa trên dữ liệu dưới đây, hãy: 1. Phân tích mức độ khó của mục tiêu (Dễ/Trung bình/Khó). 2. Đưa ra chiến lược hành động chi tiết để hoàn thành đúng hạn. Trả lời bằng tiếng Việt, sử dụng Markdown nhẹ nhàng và phong cách quyết đoán.";
                 
                 string progressInfo = request.Goal.Type == "TaskBased" 
                     ? $"Tiến độ: {request.Goal.CompletedTasks}/{request.Goal.TargetTasks} task." 

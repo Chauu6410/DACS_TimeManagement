@@ -364,25 +364,27 @@ Yêu cầu đầu ra JSON Array mẫu:
 
             try 
             {
-                string aiResponse = await _geminiService.GenerateContent(prompt);
+                string aiRaw = await _geminiService.GenerateContent(prompt);
                 
-                // Remove Markdown formatting if Gemini wraps response in ```json ... ```
-                string cleanJson = aiResponse.Trim();
-                if (cleanJson.StartsWith("```json"))
+                // 1. Check for explicit error messages from GeminiService
+                if (aiRaw.StartsWith("Lỗi", StringComparison.OrdinalIgnoreCase) || 
+                    aiRaw.StartsWith("Error", StringComparison.OrdinalIgnoreCase) ||
+                    aiRaw.StartsWith("AI không", StringComparison.OrdinalIgnoreCase) ||
+                    aiRaw.StartsWith("Đã xảy ra", StringComparison.OrdinalIgnoreCase))
                 {
-                    cleanJson = cleanJson.Substring(7);
-                    if (cleanJson.EndsWith("```"))
-                        cleanJson = cleanJson.Substring(0, cleanJson.Length - 3);
+                    return BadRequest(new { success = false, message = aiRaw });
                 }
-                else if (cleanJson.StartsWith("```"))
+
+                // 2. Try to extract JSON array
+                string? cleanJson = ExtractJsonArray(aiRaw);
+                if (string.IsNullOrEmpty(cleanJson))
                 {
-                    cleanJson = cleanJson.Substring(3);
-                    if (cleanJson.EndsWith("```"))
-                        cleanJson = cleanJson.Substring(0, cleanJson.Length - 3);
+                    // If not a JSON array, it might be a conversational refusal/error
+                    return BadRequest(new { success = false, message = "AI không trả về đúng định dạng lịch trình. Phản hồi: " + aiRaw });
                 }
                 
                 var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var suggestions = System.Text.Json.JsonSerializer.Deserialize<List<System.Text.Json.JsonElement>>(cleanJson.Trim(), options);
+                var suggestions = System.Text.Json.JsonSerializer.Deserialize<List<System.Text.Json.JsonElement>>(cleanJson, options);
 
                 string? warning = null;
                 if (suggestions != null && suggestions.Count < tasks.Count)
@@ -394,10 +396,47 @@ Yêu cầu đầu ra JSON Array mẫu:
             }
             catch (Exception ex)
             {
-                // Declare aiResponse outside the try block or just use a generic error message, 
-                // but since we can't easily access aiResponse here without refactoring, I'll return a clear message.
                 return BadRequest(new { success = false, message = "Lỗi khi xử lý phản hồi từ AI: " + ex.Message });
             }
+        }
+
+        // Helper: tries to extract first JSON array from text
+        private static string? ExtractJsonArray(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return null;
+            var trimmed = text.Trim();
+            
+            // Handle markdown code blocks
+            if (trimmed.Contains("```"))
+            {
+                int start = trimmed.IndexOf("[");
+                int end = trimmed.LastIndexOf("]");
+                if (start >= 0 && end > start)
+                {
+                    return trimmed.Substring(start, end - start + 1);
+                }
+            }
+
+            if (trimmed.StartsWith("["))
+            {
+                int depth = 0;
+                for (int i = 0; i < trimmed.Length; i++)
+                {
+                    if (trimmed[i] == '[') depth++;
+                    else if (trimmed[i] == ']')
+                    {
+                        depth--;
+                        if (depth == 0) return trimmed.Substring(0, i + 1);
+                    }
+                }
+            }
+            
+            // Final fallback: try to find any [ ... ]
+            int fStart = trimmed.IndexOf("[");
+            int fEnd = trimmed.LastIndexOf("]");
+            if (fStart >= 0 && fEnd > fStart) return trimmed.Substring(fStart, fEnd - fStart + 1);
+
+            return null;
         }
 
         // POST: Calendar/SaveScheduledEvents

@@ -84,6 +84,9 @@ app.UseRouting();
 
 // Localization Middleware
 var localizationOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<RequestLocalizationOptions>>();
+
+// Api
+var apiKey = builder.Configuration["AiSettings:ApiKey"];
 app.UseRequestLocalization(localizationOptions.Value);
 
 // Thứ tự quan trọng: Authentication TRƯỚC Authorization

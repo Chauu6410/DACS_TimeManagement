@@ -463,8 +463,8 @@ namespace DACS_TimeManagement.Services
                     : "You are a strategic advisor and performance expert.";
 
                 string goalText = isVi
-                    ? "Dựa trên dữ liệu dưới đây, hãy: 1. Phân tích mức độ khó của mục tiêu (Dễ/Trung bình/Khó) dựa trên thời gian còn lại và tiến độ. 2. Đưa ra 3 hành động cụ thể, ngắn gọn, ưu tiên theo thứ tự. Trả lời bằng tiếng Việt, ngắn gọn."
-                    : "Based on the data below, please: 1. Analyze the difficulty of the goal (Easy/Average/Hard) based on remaining time and progress. 2. Provide 3 concise, prioritized actions. Reply in English, concisely.";
+                    ? "Dựa trên dữ liệu dưới đây, hãy: 1. Phân tích mức độ khó của mục tiêu (Dễ/Trung bình/Khó) dựa trên thời gian còn lại và tiến độ. 2. Đưa ra 3 hành động cụ thể, ngắn gọn, ưu tiên theo thứ tự. Trả lời bằng tiếng Việt, ngắn gọn, sử dụng Markdown nhẹ."
+                    : "Based on the data below, please: 1. Analyze the difficulty of the goal (Easy/Average/Hard) based on remaining time and progress. 2. Provide 3 concise, prioritized actions. Reply in English, concisely, using light Markdown.";
 
                 
                 var progressInfo = goal.Type == DACS_TimeManagement.Models.GoalType.TaskBased 
@@ -488,7 +488,7 @@ Thông tin Dự án liên kết:
                 string prompt = _geminiService.BuildAdvancedPrompt(context, goalText, userInput);
 
                 // Use a cancellation token with timeout to avoid hanging requests
-                int timeoutSeconds = _config.GetValue<int>("Gemini:TimeoutSeconds", 15);
+                int timeoutSeconds = _config.GetValue<int>("Gemini:TimeoutSeconds", 60);
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
                 string aiResponse;
@@ -499,17 +499,25 @@ Thông tin Dự án liên kết:
                 catch (OperationCanceledException)
                 {
                     _logger?.LogWarning("AI request timed out after {Seconds}s for goal {GoalId}", timeoutSeconds, goalId);
-                    aiResponse = "Lỗi: Yêu cầu tới dịch vụ AI đã hết thời gian chờ. Vui lòng thử lại sau.";
+                    return "Lỗi: Yêu cầu tới dịch vụ AI đã hết thời gian chờ. Vui lòng thử lại sau.";
                 }
                 catch (Exception ex)
                 {
                     _logger?.LogError(ex, "Exception while calling AI for goal {GoalId}", goalId);
-                    aiResponse = "Lỗi khi kết nối tới dịch vụ AI. Vui lòng thử lại sau.";
+                    return "Lỗi khi kết nối tới dịch vụ AI. Vui lòng thử lại sau.";
                 }
 
                 if (string.IsNullOrWhiteSpace(aiResponse))
                 {
-                    aiResponse = "AI không trả về nội dung. Vui lòng thử lại sau hoặc kiểm tra cấu hình API.";
+                    return "Lỗi: AI không trả về nội dung. Vui lòng thử lại sau hoặc kiểm tra cấu hình API.";
+                }
+
+                // Do not save error messages to the database
+                if (aiResponse.StartsWith("Lỗi", StringComparison.OrdinalIgnoreCase) || 
+                    aiResponse.StartsWith("Error", StringComparison.OrdinalIgnoreCase) ||
+                    aiResponse.StartsWith("AI không", StringComparison.OrdinalIgnoreCase))
+                {
+                    return aiResponse;
                 }
 
                 // Post-process: remove polite greetings / intros to keep response concise

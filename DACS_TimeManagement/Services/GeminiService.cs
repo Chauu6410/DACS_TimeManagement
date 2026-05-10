@@ -27,7 +27,7 @@ namespace DACS_TimeManagement.Services
             _model = _config["Gemini:ModelName"] ?? "gemini-1.5-flash-latest";
             _apiVersion = _config["Gemini:ApiVersion"] ?? "v1beta";
             _maxPromptLength = _config.GetValue<int>("Gemini:MaxPromptLength", 1900);
-            _maxPromptLength = _config.GetValue<int>("Gemini:MaxPromptLength", 1900);
+            _maxPromptLength = _config.GetValue<int>("Gemini:MaxPromptLength", 8000);
         }
 
 
@@ -64,16 +64,31 @@ namespace DACS_TimeManagement.Services
                     }
                 }
             };
-
             try
             {
-                var json = JsonSerializer.Serialize(requestBody);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                int retryCount = 0;
+                const int maxRetries = 2;
+                HttpResponseMessage response = null;
+                string responseBody = null;
 
-                var response = await _httpClient.PostAsync(url, content, cancellationToken)
-                                                 .ConfigureAwait(false);
-                var responseBody = await response.Content.ReadAsStringAsync()
-                                                   .ConfigureAwait(false);
+                while (retryCount <= maxRetries)
+                {
+                    var json = JsonSerializer.Serialize(requestBody);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    response = await _httpClient.PostAsync(url, content, cancellationToken).ConfigureAwait(false);
+                    responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                    if (response.StatusCode == HttpStatusCode.TooManyRequests && retryCount < maxRetries)
+                    {
+                        retryCount++;
+                        _logger.LogWarning("Gemini API Rate Limit hit (429). Retrying {Count}/{Max} after delay...", retryCount, maxRetries);
+                        await Task.Delay(2000 * retryCount, cancellationToken); // Simple backoff
+                        continue;
+                    }
+
+                    break;
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -135,6 +150,20 @@ namespace DACS_TimeManagement.Services
 
         private string HandleApiError(HttpStatusCode statusCode, string responseBody = null)
         {
+            string detailedMessage = string.Empty;
+            if (!string.IsNullOrEmpty(responseBody))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(responseBody);
+                    if (doc.RootElement.TryGetProperty("error", out var err) && err.TryGetProperty("message", out var msg))
+                    {
+                        detailedMessage = $" Chi tiết: {msg.GetString()}";
+                    }
+                }
+                catch { }
+            }
+
             if (statusCode == HttpStatusCode.BadRequest)
             {
                 if (responseBody != null && (responseBody.Contains("too long", StringComparison.OrdinalIgnoreCase) ||
@@ -144,30 +173,30 @@ namespace DACS_TimeManagement.Services
                 if (responseBody != null && responseBody.Contains("API_KEY", StringComparison.OrdinalIgnoreCase))
                     return "Lỗi 400: API Key không hợp lệ. Vui lòng kiểm tra lại cấu hình.";
 
-                return "Lỗi 400: Yêu cầu không hợp lệ (Prompt quá dài hoặc ký tự lạ). Hãy thử lại với nội dung ngắn gọn hơn.";
+                return "Lỗi 400: Yêu cầu không hợp lệ (Prompt quá dài hoặc ký tự lạ)." + detailedMessage;
             }
 
             return statusCode switch
             {
-                HttpStatusCode.NotFound => "Lỗi 404: Không tìm thấy Model hoặc Endpoint. Kiểm tra cấu hình ModelName.",
-                HttpStatusCode.TooManyRequests => "Lỗi 429: Hệ thống quá tải. Vui lòng đợi rồi thử lại.",
-                HttpStatusCode.Unauthorized => "Lỗi 401: API Key không hợp lệ.",
-                _ => $"Lỗi hệ thống ({statusCode}): Vui lòng liên hệ quản trị viên."
+                HttpStatusCode.NotFound => "Lỗi 404: Không tìm thấy Model hoặc Endpoint. Kiểm tra cấu hình ModelName." + detailedMessage,
+                HttpStatusCode.TooManyRequests => "Lỗi 429: Hệ thống quá tải. Vui lòng đợi rồi thử lại." + detailedMessage,
+                HttpStatusCode.Unauthorized => "Lỗi 401: API Key không hợp lệ." + detailedMessage,
+                HttpStatusCode.Forbidden => "Lỗi 403: Bị từ chối truy cập." + detailedMessage,
+                _ => $"Lỗi hệ thống ({statusCode}): Vui lòng liên hệ quản trị viên." + detailedMessage
             };
         }
 
-        // Giảm mạnh giới hạn nhập của người dùng xuống còn 500 ký tự
-        private const int MaxUserInputLength = 500;
+        // Cho phép nhập dài hơn để chứa đủ JSON tasks cho AutoPlan
+        private const int MaxUserInputLength = 6000;
 
         public string BuildAdvancedPrompt(string context, string goal, string userInput)
         {
-            // Cắt user input nếu dài quá
+            // Cắt user input nếu quá dài
             var safeUserInput = TruncateSafe(userInput, MaxUserInputLength);
 
-            // Tạo prompt siêu tối giản – không xuống dòng thừa, không markdown nặng
-            var prompt = $"Vai trò: {context} | Mục tiêu: {goal} | Dữ liệu: {safeUserInput} | Yêu cầu: phân tích độ khó (công việc còn lại/thời gian), đưa ra 3-5 hành động chiến lược, lời khuyên tối ưu. Tiếng Việt, Markdown nhẹ, phong cách quyết đoán.";
+            var prompt = $"Vai trò: {context}\n\nMục tiêu: {goal}\n\nDữ liệu:\n{safeUserInput}";
 
-            // Ensure total length stays within configured limits (default 1900)
+            // Ensure total length stays within configured limits
             if (prompt.Length > _maxPromptLength)
             {
                 prompt = TruncateSafe(prompt, _maxPromptLength);
