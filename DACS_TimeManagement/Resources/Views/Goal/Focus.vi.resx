@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="FocusMode" xml:space="preserve"><value>Chế độ tập trung</value></data>
+  <data name="StartFocusSession" xml:space="preserve"><value>Bắt đầu phiên tập trung</value></data>
+  <data name="SelectTaskFrom" xml:space="preserve"><value>Chọn một nhiệm vụ từ <strong>{0}</strong> để bắt đầu theo dõi.</value></data>
+  <data name="Status" xml:space="preserve"><value>Trạng thái</value></data>
+  <data name="Progress" xml:space="preserve"><value>Tiến độ</value></data>
+  <data name="NoLinkedTasksFound" xml:space="preserve"><value>Không tìm thấy nhiệm vụ liên kết nào.</value></data>
+  <data name="PleaseAddTasks" xml:space="preserve"><value>Vui lòng thêm nhiệm vụ vào dự án trước khi tập trung.</value></data>
+  <data name="EnterZenMode" xml:space="preserve"><value>Vào chế độ Zen</value></data>
+  <data name="BackToDetails" xml:space="preserve"><value>Quay lại chi tiết</value></data>
+  <data name="SeaFoam" xml:space="preserve"><value>Bọt biển</value></data>
+  <data name="Ocean" xml:space="preserve"><value>Đại dương</value></data>
+  <data name="Forest" xml:space="preserve"><value>Rừng</value></data>
+  <data name="Clouds" xml:space="preserve"><value>Mây trời</value></data>
+  <data name="Flowers" xml:space="preserve"><value>Hoa cỏ</value></data>
+  <data name="Mountains" xml:space="preserve"><value>Núi rừng</value></data>
+  <data name="SelectATaskToStart" xml:space="preserve"><value>Chọn một nhiệm vụ để bắt đầu</value></data>
+  <data name="TrackingFocusTime" xml:space="preserve"><value>Đang theo dõi thời gian tập trung</value></data>
+  <data name="Start" xml:space="preserve"><value>Bắt đầu</value></data>
+  <data name="Stop" xml:space="preserve"><value>Dừng</value></data>
+  <data name="Reset" xml:space="preserve"><value>Đặt lại</value></data>
+  <data name="SessionNote" xml:space="preserve"><value>Ghi chú phiên tập trung</value></data>
+  <data name="WhatDidYouAchieve" xml:space="preserve"><value>Bạn đã đạt được những gì trong phiên tập trung này? (bắt buộc)</value></data>
+  <data name="SaveSession" xml:space="preserve"><value>Lưu phiên tập trung</value></data>
+  <data name="ExitFocus" xml:space="preserve"><value>Thoát khỏi Focus</value></data>
+  <data name="Saving" xml:space="preserve"><value>Đang lưu...</value></data>
+  <data name="SessionSaved" xml:space="preserve"><value>Đã lưu phiên tập trung!</value></data>
+  <data name="ErrorSavingSession" xml:space="preserve"><value>Lỗi khi lưu phiên tập trung. Vui lòng thử lại.</value></data>
+  <data name="SessionSavedDescription" xml:space="preserve"><value>Phiên tập trung của bạn đã được ghi nhận.</value></data>
+  <data name="UnknownError" xml:space="preserve"><value>Lỗi không xác định</value></data>
+  <data name="Error" xml:space="preserve"><value>Lỗi</value></data>
+  <data name="ExitWarning" xml:space="preserve"><value>Bạn có muốn thoát? Dữ liệu phiên tập trung chưa được lưu sẽ bị mất.</value></data>
+  <data name="ExitSessionTitle" xml:space="preserve"><value>Thoát phiên?</value></data>
+  <data name="Exit" xml:space="preserve"><value>Thoát</value></data>
+  <data name="Stay" xml:space="preserve"><value>Ở lại</value></data>
+  <data name="TaskRequiredTitle" xml:space="preserve"><value>Cần chọn nhiệm vụ</value></data>
+  <data name="TaskRequiredDescription" xml:space="preserve"><value>Vui lòng chọn một nhiệm vụ cụ thể trước khi bắt đầu phiên tập trung.</value></data>
+  <data name="Saved" xml:space="preserve"><value>Đã lưu</value></data>
+  <data name="SessionAlreadySaved" xml:space="preserve"><value>Phiên đã được lưu, không thể bắt đầu lại. Vui lòng thoát.</value></data>
+</root>

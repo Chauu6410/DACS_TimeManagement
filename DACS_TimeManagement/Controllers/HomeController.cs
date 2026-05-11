@@ -46,21 +46,26 @@ namespace DACS_TimeManagement.Controllers
 
             // 1. Core Task Metrics
             var tasks = await _taskRepo.GetAllAsync(userId);
-            ViewBag.TotalTasks = tasks.Count();
-            ViewBag.CompletedTasks = tasks.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed);
-            ViewBag.InProgressTasks = tasks.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.InProgress);
-            
-            // 2. Schedule Data
             var today = DateTime.Today;
+
+            var model = new DashboardViewModel
+            {
+                TotalTasks = tasks.Count(),
+                CompletedTasks = tasks.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed),
+                InProgressTasks = tasks.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.InProgress),
+                AllTasks = tasks.ToList()
+            };
+
+            // 2. Schedule Data
             var todayEvents = await _calendarRepo.GetEventsInRangeAsync(userId, today, today.AddDays(1).AddTicks(-1));
-            ViewBag.TodayEvents = todayEvents.Select(e => new {
+            model.TodayEvents = todayEvents.Select(e => new DashboardEventDto {
                 Title = e.Subject,
                 StartTime = e.StartTime,
-                Description = e.Description ?? "No description",
+                Description = e.Description ?? string.Empty,
                 Status = "Scheduled"
             }).ToList();
 
-            ViewBag.RecentTasks = tasks.OrderBy(t => t.EndDate).Take(5).Select(t => new {
+            model.RecentTasks = tasks.OrderBy(t => t.EndDate).Take(5).Select(t => new DashboardTaskDto {
                 Id = t.Id,
                 Title = t.Title,
                 IsCompleted = t.Status == DACS_TimeManagement.Models.TaskStatus.Completed,
@@ -68,35 +73,22 @@ namespace DACS_TimeManagement.Controllers
                 DueDate = t.EndDate
             }).ToList();
 
-            // 3. Authentic Time & Analytics Data (Requirement 8)
+            // 3. Time & Analytics
             var last7Days = Enumerable.Range(0, 7).Select(i => today.AddDays(-6 + i)).ToList();
-            var weeklyHours = new double[7];
-            var weeklyTasks = new int[7];
-
-            // Get all time logs for user in last 7 days
             var recentLogs = await _context.TimeLogs
                 .Include(t => t.WorkTask)
                 .Where(t => t.WorkTask.UserId == userId && t.LogDate >= today.AddDays(-6) && t.LogDate <= today.AddDays(1))
                 .ToListAsync();
 
-            var totalHours = recentLogs.Sum(l => l.DurationHours);
-            ViewBag.HoursWorked = totalHours;
-
-            // Fill weekly hours array
+            model.HoursWorked = recentLogs.Sum(l => l.DurationHours);
             for (int i = 0; i < 7; i++)
             {
                 var date = last7Days[i].Date;
-                weeklyHours[i] = recentLogs.Where(l => l.LogDate.Date == date).Sum(l => l.DurationHours);
-                
-                // For tasks, let's track tasks that were actually completed on those days.
-                // Or simply tasks they have due on those days
-                weeklyTasks[i] = tasks.Count(t => t.EndDate.Date == date);
+                model.WeeklyHours[i] = recentLogs.Where(l => l.LogDate.Date == date).Sum(l => l.DurationHours);
+                model.WeeklyTasks[i] = tasks.Count(t => t.EndDate.Date == date);
             }
 
-            ViewBag.WeeklyHours = weeklyHours;
-            ViewBag.WeeklyTasks = weeklyTasks;
-
-            return View(tasks ?? new List<WorkTask>());
+            return View(model);
         }
 
 

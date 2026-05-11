@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="CreateProject" xml:space="preserve"><value>Create Project</value></data>
+  <data name="CreateNewProject" xml:space="preserve"><value>Create New Project</value></data>
+  <data name="CreateProjectHint" xml:space="preserve"><value>Set up a new project workspace</value></data>
+  <data name="ProjectName" xml:space="preserve"><value>Project Name</value></data>
+  <data name="Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+</root>

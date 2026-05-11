@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="ProjectDetails" xml:space="preserve"><value>Project Details</value></data>
+  <data name="ActiveProject" xml:space="preserve"><value>Active Project</value></data>
+  <data name="NoDescriptionProvided" xml:space="preserve"><value>No description provided.</value></data>
+</root>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Logout" xml:space="preserve"><value>Đăng xuất</value></data>
+  <data name="SeeYouNextTime" xml:space="preserve"><value>Hẹn gặp lại bạn!</value></data>
+  <data name="AreYouSureLogout" xml:space="preserve"><value>Bạn có chắc chắn muốn đăng xuất?</value></data>
+  <data name="NeedToLoginAgain" xml:space="preserve"><value>Bạn sẽ cần phải đăng nhập lại để truy cập vào tài khoản của mình.</value></data>
+  <data name="YesLogout" xml:space="preserve"><value>Vâng, Đăng xuất</value></data>
+  <data name="CancelGoBack" xml:space="preserve"><value>Hủy và quay lại</value></data>
+  <data name="YouHaveBeenLoggedOut" xml:space="preserve"><value>Bạn đã đăng xuất</value></data>
+  <data name="ThankYouForUsing" xml:space="preserve"><value>Cảm ơn bạn đã sử dụng TimeMaster. Hy vọng gặp lại bạn sớm!</value></data>
+  <data name="ReturnToHome" xml:space="preserve"><value>Quay lại Trang chủ</value></data>
+  <data name="LoginAgain" xml:space="preserve"><value>Đăng nhập lại</value></data>
+</root>

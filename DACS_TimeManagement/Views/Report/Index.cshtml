@@ -1,17 +1,19 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Reporting & Analytics";
+    ViewData["Title"] = Localizer["ReportingAnalytics"];
 }
 
 <div class="container-fluid" data-aos="fade-in">
     <!-- Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
-            <p class="text-pastel-muted small mb-0">Track your productivity and find bottlenecks.</p>
+            <p class="text-pastel-muted small mb-0">@Localizer["ReportingSubtitle"]</p>
         </div>
         <!-- Project Filter -->
         <div>
             <select id="projectFilter" class="form-select border-0 shadow-sm rounded-pill px-4 bg-white" style="min-width: 200px;">
-                <option value="">All Projects</option>
+                <option value="">@Localizer["AllProjects"]</option>
                 @if (ViewBag.Projects != null)
                 {
                     foreach (var project in ViewBag.Projects)
@@ -34,7 +36,7 @@
                         <div class="icon-circle bg-success-subtle text-success me-3 p-2 rounded-circle">
                             <i class="fas fa-check-double"></i>
                         </div>
-                        <h6 class="fw-bold mb-0">Task Completion (Last 7 Days)</h6>
+                        <h6 class="fw-bold mb-0">@Localizer["TaskCompletion7Days"]</h6>
                     </div>
                     <div id="completionChart" style="min-height: 250px;"></div>
                 </div>
@@ -49,7 +51,7 @@
                         <div class="icon-circle bg-info-subtle text-info me-3 p-2 rounded-circle">
                             <i class="fas fa-clock"></i>
                         </div>
-                        <h6 class="fw-bold mb-0">Hours Worked (Last 7 Days)</h6>
+                        <h6 class="fw-bold mb-0">@Localizer["HoursWorked7Days"]</h6>
                     </div>
                     <div id="hoursChart" style="min-height: 250px;"></div>
                 </div>
@@ -64,7 +66,7 @@
                         <div class="icon-circle bg-warning-subtle text-warning me-3 p-2 rounded-circle">
                             <i class="fas fa-chart-pie"></i>
                         </div>
-                        <h6 class="fw-bold mb-0">Task Distribution</h6>
+                        <h6 class="fw-bold mb-0">@Localizer["TaskDistribution"]</h6>
                     </div>
                     <div id="distributionChart" class="d-flex justify-content-center" style="min-height: 280px;"></div>
                 </div>
@@ -79,7 +81,7 @@
                         <div class="icon-circle bg-danger-subtle text-danger me-3 p-2 rounded-circle">
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
-                        <h6 class="fw-bold mb-0">Bottleneck Detection (Avg Dwell Time)</h6>
+                        <h6 class="fw-bold mb-0">@Localizer["BottleneckDetection"]</h6>
                     </div>
                     <div id="bottleneckChart" style="min-height: 280px;"></div>
                 </div>
@@ -94,19 +96,19 @@
                         <div class="icon-circle bg-orange-subtle text-orange me-3 p-2 rounded-circle">
                             <i class="fas fa-fire"></i>
                         </div>
-                        <h6 class="fw-bold mb-0">Productivity Heatmap (Last 7 Days)</h6>
+                        <h6 class="fw-bold mb-0">@Localizer["ProductivityHeatmap"]</h6>
                     </div>
                     <!-- Heatmap Grid -->
                     <div id="heatmapContainer" class="d-flex flex-wrap align-content-start py-3 px-2 gap-2" style="height: auto; flex-direction: row;">
                     </div>
                     <div class="d-flex justify-content-end align-items-center gap-2 mt-2 text-muted small">
-                        <span>Less</span>
+                        <span>@Localizer["Less"]</span>
                         <div class="heatmap-box"></div>
                         <div class="heatmap-box heat-1"></div>
                         <div class="heatmap-box heat-2"></div>
                         <div class="heatmap-box heat-3"></div>
                         <div class="heatmap-box heat-4"></div>
-                        <span>More</span>
+                        <span>@Localizer["More"]</span>
                     </div>
                 </div>
             </div>
@@ -184,7 +186,7 @@
             let completionChart = new ApexCharts(document.querySelector("#completionChart"), {
                 ...commonOptions,
                 chart: { type: 'bar', height: 250, toolbar: {show:false} },
-                series: [{ name: 'Completed Tasks', data: [] }],
+                series: [{ name: '@Localizer["CompletedTasks"]', data: [] }],
                 colors: ['#10b981'],
                 plotOptions: { bar: { borderRadius: 4, columnWidth: '40%' } }
             });
@@ -194,7 +196,7 @@
             let hoursChart = new ApexCharts(document.querySelector("#hoursChart"), {
                 ...commonOptions,
                 chart: { type: 'area', height: 250, toolbar: {show:false} },
-                series: [{ name: 'Hours Worked', data: [] }],
+                series: [{ name: '@Localizer["HoursWorked"]', data: [] }],
                 colors: ['#06b6d4'],
                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05 } }
             });
@@ -216,12 +218,39 @@
             let bottleneckChart = new ApexCharts(document.querySelector("#bottleneckChart"), {
                 ...commonOptions,
                 chart: { type: 'bar', height: 280, toolbar: {show:false} },
-                series: [{ name: 'Avg. Hours in Stage', data: [] }],
+                series: [{ name: '@Localizer["AvgHoursInStage"]', data: [] }],
                 colors: ['#ef4444'],
                 plotOptions: { bar: { borderRadius: 4, horizontal: true, distributed: true } },
                 legend: { show: false }
             });
             bottleneckChart.render();
+
+            // Translation Helper for Stage Names
+            function translateStage(stage) {
+                if (!stage) return '@Localizer["NoData"]';
+                const mapping = {
+                    'To Do': '@Localizer["ToDo"]',
+                    'Doing': '@Localizer["Doing"]',
+                    'Done': '@Localizer["Done"]',
+                    'In Progress': '@Localizer["InProgress"]',
+                    'Backlog': '@Localizer["Backlog"]',
+                    'Testing': '@Localizer["Testing"]',
+                    'Hoàn thành': '@Localizer["Done"]',
+                    'Đang làm': '@Localizer["Doing"]',
+                    'Kiểm thử': '@Localizer["Testing"]'
+                };
+                return mapping[stage] || stage;
+            }
+
+            function formatDateLabel(dateStr) {
+                const parts = dateStr.split('-');
+                if (parts.length < 3) return dateStr;
+                const isVietnamese = '@System.Threading.Thread.CurrentThread.CurrentUICulture.Name' === 'vi-VN';
+                if (isVietnamese) {
+                    return `${parts[2]}/${parts[1]}`; // DD/MM
+                }
+                return `${parts[1]}/${parts[2]}`; // MM/DD
+            }
 
             // Fetch Data Function
             function loadData(projectId = null) {
@@ -230,16 +259,16 @@
                 // Completion
                 $.get('/Report/GetPerformanceData' + urlSuffix, function(data) {
                     if (data && data.length > 0) {
-                        completionChart.updateSeries([{ name: 'Completed', data: data.map(d => d.count) }]);
-                        completionChart.updateOptions({ xaxis: { categories: data.map(d => d.date.split('-').slice(1).join('/')) }});
+                        completionChart.updateSeries([{ name: '@Localizer["CompletedTasks"]', data: data.map(d => d.count) }]);
+                        completionChart.updateOptions({ xaxis: { categories: data.map(d => formatDateLabel(d.date)) }});
                     }
                 });
 
                 // Hours
                 $.get('/Report/GetHoursWorkedData' + urlSuffix, function(data) {
                     if (data && data.length > 0) {
-                        hoursChart.updateSeries([{ name: 'Hours', data: data.map(d => d.hours) }]);
-                        hoursChart.updateOptions({ xaxis: { categories: data.map(d => d.date.split('-').slice(1).join('/')) }});
+                        hoursChart.updateSeries([{ name: '@Localizer["HoursWorked"]', data: data.map(d => d.hours) }]);
+                        hoursChart.updateOptions({ xaxis: { categories: data.map(d => formatDateLabel(d.date)) }});
                     }
                 });
 
@@ -247,21 +276,21 @@
                 $.get('/Report/GetTaskDistribution' + urlSuffix, function(data) {
                     if (data && data.length > 0) {
                         distributionChart.updateSeries(data.map(d => d.count));
-                        distributionChart.updateOptions({ labels: data.map(d => d.stage) });
+                        distributionChart.updateOptions({ labels: data.map(d => translateStage(d.stage)) });
                     } else {
                         distributionChart.updateSeries([1]);
-                        distributionChart.updateOptions({ labels: ['No Data'] });
+                        distributionChart.updateOptions({ labels: ['@Localizer["NoData"]'] });
                     }
                 });
 
                 // Bottleneck
                 $.get('/Report/GetBottleneckData' + urlSuffix, function(data) {
                     if (data && data.length > 0) {
-                        bottleneckChart.updateSeries([{ name: 'Avg. Hours in Stage', data: data.map(d => d.averageHours) }]);
-                        bottleneckChart.updateOptions({ xaxis: { categories: data.map(d => d.stage) }});
+                        bottleneckChart.updateSeries([{ name: '@Localizer["AvgHoursInStage"]', data: data.map(d => d.averageHours) }]);
+                        bottleneckChart.updateOptions({ xaxis: { categories: data.map(d => translateStage(d.stage)) }});
                     } else {
-                        bottleneckChart.updateSeries([{ name: 'Avg. Hours', data: [0] }]);
-                        bottleneckChart.updateOptions({ xaxis: { categories: ['No Data'] }});
+                        bottleneckChart.updateSeries([{ name: '@Localizer["AvgHoursInStage"]', data: [0] }]);
+                        bottleneckChart.updateOptions({ xaxis: { categories: ['@Localizer["NoData"]'] }});
                     }
                 });
 
@@ -298,7 +327,7 @@
                     else if (val > 3 && val <= 5) heatClass = 'heat-3';
                     else if (val > 5) heatClass = 'heat-4';
 
-                    html += `<div class="heatmap-box ${heatClass}" title="${dateStr}: ${val} hours log"></div>`;
+                    html += `<div class="heatmap-box ${heatClass}" title="${dateStr}: ${val} @Localizer["HoursLog"]"></div>`;
                 }
                 container.innerHTML = html;
             }

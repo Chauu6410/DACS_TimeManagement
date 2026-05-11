@@ -58,106 +58,112 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="WelcomeBack" xml:space="preserve">
-    <value>Chào mừng trở lại,</value>
-  </data>
-  <data name="Overview" xml:space="preserve">
-    <value>Tổng quan</value>
-  </data>
-  <data name="TotalTasks" xml:space="preserve">
-    <value>Tổng số nhiệm vụ</value>
-  </data>
-  <data name="Completed" xml:space="preserve">
-    <value>Đã hoàn thành</value>
-  </data>
-  <data name="InProgress" xml:space="preserve">
-    <value>Đang thực hiện</value>
-  </data>
-  <data name="HoursWorked" xml:space="preserve">
-    <value>Số giờ làm việc</value>
-  </data>
-  <data name="TodaySchedule" xml:space="preserve">
-    <value>Lịch trình hôm nay</value>
-  </data>
-  <data name="AddEvent" xml:space="preserve">
-    <value>Thêm sự kiện</value>
-  </data>
-  <data name="NoEventsToday" xml:space="preserve">
-    <value>Không có sự kiện nào hôm nay</value>
-  </data>
-  <data name="StartByAddingEvent" xml:space="preserve">
-    <value>Bắt đầu bằng cách thêm một sự kiện vào lịch của bạn.</value>
-  </data>
-  <data name="CreateNewEvent" xml:space="preserve">
-    <value>Tạo sự kiện mới</value>
-  </data>
-  <data name="RecentTasks" xml:space="preserve">
-    <value>Nhiệm vụ gần đây</value>
-  </data>
-  <data name="AddTask" xml:space="preserve">
-    <value>Thêm nhiệm vụ</value>
+  <data name="GoalDetails" xml:space="preserve">
+    <value>Goal Details</value>
   </data>
   <data name="Due" xml:space="preserve">
-    <value>Hạn:</value>
-  </data>
-  <data name="NoTasksYet" xml:space="preserve">
-    <value>Chưa có nhiệm vụ nào</value>
-  </data>
-  <data name="CreateFirstTaskToGetStarted" xml:space="preserve">
-    <value>Tạo nhiệm vụ đầu tiên của bạn để bắt đầu.</value>
-  </data>
-  <data name="CreateFirstTask" xml:space="preserve">
-    <value>Tạo nhiệm vụ đầu tiên</value>
-  </data>
-  <data name="WeeklyProductivity" xml:space="preserve">
-    <value>Năng suất hàng tuần</value>
-  </data>
-  <data name="HoursWorkedLabel" xml:space="preserve">
-    <value>Số giờ đã làm</value>
-  </data>
-  <data name="TasksCompletedLabel" xml:space="preserve">
-    <value>Nhiệm vụ đã xong</value>
-  </data>
-  <data name="Dashboard" xml:space="preserve">
-    <value>Bảng điều khiển</value>
-  </data>
-  <data name="Scheduled" xml:space="preserve">
-    <value>Đã lên lịch</value>
-  </data>
-  <data name="High" xml:space="preserve">
-    <value>Cao</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Trung bình</value>
-  </data>
-  <data name="Mon" xml:space="preserve">
-    <value>Thứ 2</value>
-  </data>
-  <data name="Tue" xml:space="preserve">
-    <value>Thứ 3</value>
-  </data>
-  <data name="Wed" xml:space="preserve">
-    <value>Thứ 4</value>
-  </data>
-  <data name="Thu" xml:space="preserve">
-    <value>Thứ 5</value>
-  </data>
-  <data name="Fri" xml:space="preserve">
-    <value>Thứ 6</value>
-  </data>
-  <data name="Sat" xml:space="preserve">
-    <value>Thứ 7</value>
-  </data>
-  <data name="Sun" xml:space="preserve">
-    <value>CN</value>
-  </data>
-  <data name="Urgent" xml:space="preserve">
-    <value>Khẩn cấp</value>
+    <value>Due:</value>
   </data>
   <data name="Edit" xml:space="preserve">
-    <value>Sửa</value>
+    <value>Edit</value>
   </data>
-  <data name="Delete" xml:space="preserve">
-    <value>Xóa</value>
+  <data name="Focus" xml:space="preserve">
+    <value>Focus</value>
+  </data>
+  <data name="OverallProgress" xml:space="preserve">
+    <value>Overall Progress</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Target" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Streak" xml:space="preserve">
+    <value>Streak</value>
+  </data>
+  <data name="Left" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="Overdue" xml:space="preserve">
+    <value>Overdue</value>
+  </data>
+  <data name="AIActionPlan" xml:space="preserve">
+    <value>AI Action Plan</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="NoStrategyGenerated" xml:space="preserve">
+    <value>No strategy generated yet. Click update to analyze your goal.</value>
+  </data>
+  <data name="ProgressHistory" xml:space="preserve">
+    <value>Progress History</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="HrsTotal" xml:space="preserve">
+    <value>hrs total</value>
+  </data>
+  <data name="JustNow" xml:space="preserve">
+    <value>Just now</value>
+  </data>
+  <data name="DeleteRecord" xml:space="preserve">
+    <value>Delete Record</value>
+  </data>
+  <data name="NoSessionsRecorded" xml:space="preserve">
+    <value>No focus sessions recorded yet.</value>
+  </data>
+  <data name="QuickActions" xml:space="preserve">
+    <value>Quick Actions</value>
+  </data>
+  <data name="EditGoal" xml:space="preserve">
+    <value>Edit Goal</value>
+  </data>
+  <data name="EnterFocusMode" xml:space="preserve">
+    <value>Enter Focus Mode</value>
+  </data>
+  <data name="DeleteGoal" xml:space="preserve">
+    <value>Delete Goal</value>
+  </data>
+  <data name="Insights" xml:space="preserve">
+    <value>Insights</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="LastUpdated" xml:space="preserve">
+    <value>Last Updated</value>
+  </data>
+  <data name="TargetDate" xml:space="preserve">
+    <value>Target Date</value>
+  </data>
+  <data name="GoalType" xml:space="preserve">
+    <value>Goal Type</value>
+  </data>
+  <data name="MaintainStreakTip" xml:space="preserve">
+    <value>Complete daily tasks to maintain your streak.</value>
+  </data>
+  <data name="Analyzing" xml:space="preserve">
+    <value>Analyzing...</value>
+  </data>
+  <data name="DeleteGoalTitle" xml:space="preserve">
+    <value>Delete Goal?</value>
+  </data>
+  <data name="DeleteGoalConfirm" xml:space="preserve">
+    <value>Are you sure you want to delete "{name}"?</value>
+  </data>
+  <data name="YesDelete" xml:space="preserve">
+    <value>Yes, Delete</value>
+  </data>
+  <data name="DeleteHistoryTitle" xml:space="preserve">
+    <value>Delete History?</value>
+  </data>
+  <data name="CannotUndo" xml:space="preserve">
+    <value>This action cannot be undone.</value>
   </data>
 </root>

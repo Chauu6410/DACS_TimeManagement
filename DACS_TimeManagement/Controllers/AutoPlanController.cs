@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DACS_TimeManagement.Services.Interfaces;
+using DACS_TimeManagement.Services;
 using DACS_TimeManagement.Models;
 using TaskStatusModel = DACS_TimeManagement.Models.TaskStatus;
 
@@ -84,7 +85,8 @@ namespace DACS_TimeManagement.Controllers
             string aiRaw;
             try
             {
-                aiRaw = await _geminiService.GenerateContent(prompt, cts.Token);
+                // Use lower temperature for schedule generation to favor deterministic plans
+                aiRaw = await _geminiService.GenerateContent(prompt, 0.2, cts.Token);
             }
             catch (OperationCanceledException)
             {

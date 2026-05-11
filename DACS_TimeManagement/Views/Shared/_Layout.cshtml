@@ -565,6 +565,27 @@
                     </div>
 
                     <div class="topbar-actions">
+                        <div class="dropdown me-2">
+                            <button class="btn btn-sm btn-light border shadow-sm rounded-pill px-3 dropdown-toggle d-flex align-items-center gap-2" type="button" id="langSwitch" data-bs-toggle="dropdown" aria-expanded="false">
+                                @if (langCode == "vi") { 
+                                    <img src="https://flagcdn.com/w20/vn.png" width="18" alt="VI"> <span>VI</span> 
+                                } else { 
+                                    <img src="https://flagcdn.com/w20/us.png" width="18" alt="EN"> <span>EN</span> 
+                                }
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg rounded-4" aria-labelledby="langSwitch">
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 @(langCode == "en" ? "active" : "")" href="/setlanguage?lang=en&returnUrl=@System.Net.WebUtility.UrlEncode(Context.Request.Path + Context.Request.QueryString)">
+                                        <img src="https://flagcdn.com/w20/us.png" width="20" alt="EN"> English
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 py-2 @(langCode == "vi" ? "active" : "")" href="/setlanguage?lang=vi&returnUrl=@System.Net.WebUtility.UrlEncode(Context.Request.Path + Context.Request.QueryString)">
+                                        <img src="https://flagcdn.com/w20/vn.png" width="20" alt="VI"> Tiếng Việt
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                         <div class="dropdown">
                             <div class="notification-bell" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-bell"></i>

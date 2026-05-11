@@ -1,6 +1,7 @@
+@inject IViewLocalizer Localizer
 @model DACS_TimeManagement.Models.PersonalGoal
 @{
-    ViewData["Title"] = "Focus Mode - " + Model.Title;
+    ViewData["Title"] = Localizer["FocusMode"] + " - " + Model.Title;
 }
 
 <div id="focusApp" class="focus-app">
@@ -11,8 +12,8 @@
                 <div class="glass-premium p-5 rounded-5 shadow-lg">
                     <div class="mb-4">
                         <i class="fas fa-brain fa-3x text-primary mb-3"></i>
-                        <h2 class="fw-bold">Start Focus Session</h2>
-                        <p class="text-muted">Select a task from <strong>@Model.Title</strong> to start tracking.</p>
+                        <h2 class="fw-bold">@Localizer["StartFocusSession"]</h2>
+                        <p class="text-muted">@Html.Raw(string.Format(Localizer["SelectTaskFrom"].Value, Model.Title))</p>
                     </div>
 
                     <div class="task-list-selection text-start mb-5" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
@@ -28,8 +29,8 @@
                                     <div class="flex-grow-1">
                                         <div class="fw-bold text-dark">@gt.WorkTask.Title</div>
                                         <div class="small text-muted">
-                                            Status: <span class="badge bg-light text-dark fw-normal border">@gt.WorkTask.Status</span>
-                                            • Progress: @gt.WorkTask.Progress%
+                                            @Localizer["Status"]: <span class="badge bg-light text-dark fw-normal border">@gt.WorkTask.Status</span>
+                                            • @Localizer["Progress"]: @gt.WorkTask.Progress%
                                         </div>
                                     </div>
                                     <div class="selection-indicator">
@@ -42,17 +43,17 @@
                         {
                             <div class="text-center py-4 bg-light rounded-4 border border-dashed">
                                 <i class="fas fa-clipboard-list fa-2x text-muted mb-2"></i>
-                                <p class="text-muted mb-0">No linked tasks found.</p>
-                                <p class="small text-muted">Please add tasks to the project before focusing.</p>
+                                <p class="text-muted mb-0">@Localizer["NoLinkedTasksFound"]</p>
+                                <p class="small text-muted">@Localizer["PleaseAddTasks"]</p>
                             </div>
                         }
                     </div>
 
                     <button id="btnEnterZen" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow">
-                        <i class="fas fa-bolt me-2"></i> Enter Zen Mode
+                        <i class="fas fa-bolt me-2"></i> @Localizer["EnterZenMode"]
                     </button>
                     <div class="mt-3">
-                        <a asp-action="Details" asp-route-id="@Model.Id" class="text-muted text-decoration-none small">Back to Details</a>
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="text-muted text-decoration-none small">@Localizer["BackToDetails"]</a>
                     </div>
                 </div>
             </div>
@@ -66,22 +67,22 @@
         <!-- Theme Selector Bar -->
         <div class="theme-bar">
             <button class="theme-btn active" data-theme="ocean" data-img="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1600&q=80">
-                <i class="fas fa-water"></i> Bọt biển
+                <i class="fas fa-water"></i> @Localizer["SeaFoam"]
             </button>
             <button class="theme-btn" data-theme="ocean-deep" data-img="https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1600&q=80">
-                <i class="fas fa-fish"></i> Đại dương
+                <i class="fas fa-fish"></i> @Localizer["Ocean"]
             </button>
             <button class="theme-btn" data-theme="forest" data-img="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=80">
-                <i class="fas fa-tree"></i> Rừng
+                <i class="fas fa-tree"></i> @Localizer["Forest"]
             </button>
             <button class="theme-btn" data-theme="clouds" data-img="https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&q=80">
-                <i class="fas fa-cloud-sun"></i> Mây trời
+                <i class="fas fa-cloud-sun"></i> @Localizer["Clouds"]
             </button>
             <button class="theme-btn" data-theme="flowers" data-img="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1600&q=80">
-                <i class="fas fa-seedling"></i> Hoa cỏ
+                <i class="fas fa-seedling"></i> @Localizer["Flowers"]
             </button>
             <button class="theme-btn" data-theme="mountains" data-img="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1600&q=80">
-                <i class="fas fa-mountain"></i> Núi rừng
+                <i class="fas fa-mountain"></i> @Localizer["Mountains"]
             </button>
         </div>
 
@@ -91,9 +92,9 @@
                 <h1 class="zen-goal-title text-white mb-1">@Model.Title</h1>
                 <p id="focusTaskName" class="text-white-50 fs-5">
                     @if (Model.Type == DACS_TimeManagement.Models.GoalType.TaskBased)
-                    {<span>Chọn một nhiệm vụ để bắt đầu</span>}
+                    {<span>@Localizer["SelectATaskToStart"]</span>}
                     else
-                    {<span>Đang theo dõi thời gian tập trung</span>}
+                    {<span>@Localizer["TrackingFocusTime"]</span>}
                 </p>
             </div>
 
@@ -102,13 +103,13 @@
                 
                 <div class="timer-controls">
                     <button id="startTimerBtn" class="btn btn-success btn-lg rounded-pill px-5 shadow">
-                        <i class="fas fa-play me-2"></i> Bắt đầu
+                        <i class="fas fa-play me-2"></i> @Localizer["Start"]
                     </button>
                     <button id="stopTimerBtn" class="btn btn-warning btn-lg rounded-pill px-5 shadow" disabled>
-                        <i class="fas fa-stop me-2"></i> Dừng
+                        <i class="fas fa-stop me-2"></i> @Localizer["Stop"]
                     </button>
                     <button id="resetTimerBtn" class="btn btn-secondary btn-lg rounded-pill px-4 shadow">
-                        <i class="fas fa-undo-alt me-2"></i> Đặt lại
+                        <i class="fas fa-undo-alt me-2"></i> @Localizer["Reset"]
                     </button>
                 </div>
 
@@ -116,19 +117,19 @@
                 <div id="noteSection" class="note-section mt-4" style="display: none;">
                     <div class="glass-card p-4 rounded-4">
                         <label class="form-label text-white fw-bold mb-2">
-                            <i class="fas fa-pen-alt me-2"></i> Ghi chú phiên tập trung
+                            <i class="fas fa-pen-alt me-2"></i> @Localizer["SessionNote"]
                         </label>
                         <textarea id="sessionNote" class="form-control bg-white bg-opacity-25 text-white border-0 rounded-3" rows="3" 
-                                  placeholder="Bạn đã đạt được những gì trong phiên tập trung này? (bắt buộc)"></textarea>
+                                  placeholder="@Localizer["WhatDidYouAchieve"]"></textarea>
                         <button id="saveSessionBtn" class="btn btn-primary rounded-pill mt-3 px-5 py-2 w-100 fw-bold" disabled>
-                            <i class="fas fa-save me-2"></i> Lưu phiên tập trung
+                            <i class="fas fa-save me-2"></i> @Localizer["SaveSession"]
                         </button>
                     </div>
                 </div>
             </div>
 
             <button id="exitZenBtn" class="btn btn-outline-light rounded-pill mt-5 px-4 py-2">
-                <i class="fas fa-sign-out-alt me-2"></i> Thoát khỏi Focus
+                <i class="fas fa-sign-out-alt me-2"></i> @Localizer["ExitFocus"]
             </button>
         </div>
     </div>
@@ -269,7 +270,7 @@
                 const body = new URLSearchParams();
                 body.append('goalId', '@Model.Id');
                 body.append('taskId', selectedTaskId || "");
-                body.append('durationHours', durationHours.toFixed(6));
+                body.append('durationSeconds', elapsedSeconds);
                 // Append note with optional duration summary
                 const durationStr = formatTime(elapsedSeconds);
                 const finalNote = `[Focus ${durationStr}] ${note}`;
@@ -297,21 +298,21 @@
                         exitZenBtn.disabled = false;
                         Swal.fire({
                             icon: 'success',
-                            title: 'Đã lưu thành công!',
-                            text: 'Phiên tập trung của bạn đã được ghi nhận.',
+                            title: '@Localizer["SessionSaved"]',
+                            text: '@Localizer["SessionSavedDescription"]',
                             timer: 2000,
                             showConfirmButton: false
                         }).then(() => {
                             window.location.href = '/Goal/Details/@Model.Id';
                         });
                     } else {
-                        throw new Error(data.message || 'Lỗi không xác định');
+                        throw new Error(data.message || '@Localizer["UnknownError"]');
                     }
                 } catch (error) {
                     console.error('Save error:', error);
                     saveSessionBtn.disabled = false;
-                    saveSessionBtn.innerHTML = '<i class="fas fa-save me-2"></i> Lưu phiên tập trung';
-                    Swal.fire('Lỗi', 'Không thể lưu dữ liệu. Vui lòng thử lại.', 'error');
+                    saveSessionBtn.innerHTML = '<i class="fas fa-save me-2"></i> @Localizer["SaveSession"]';
+                    Swal.fire('@Localizer["Error"]', '@Localizer["ErrorSavingSession"]', 'error');
                 }
             }
             
@@ -321,15 +322,15 @@
                     window.location.href = '/Goal/Details/@Model.Id';
                     return;
                 }
-                let warningMsg = 'Bạn có muốn thoát? Dữ liệu phiên tập trung chưa được lưu sẽ bị mất.';
+                let warningMsg = '@Localizer["ExitWarning"]';
                 if (elapsedSeconds > 0 && !sessionSaved) {
                     Swal.fire({
-                        title: 'Thoát phiên?',
+                        title: '@Localizer["ExitSessionTitle"]',
                         text: warningMsg,
                         icon: 'warning',
                         showCancelButton: true,
-                        confirmButtonText: 'Thoát',
-                        cancelButtonText: 'Ở lại'
+                        confirmButtonText: '@Localizer["Exit"]',
+                        cancelButtonText: '@Localizer["Stay"]'
                     }).then((result) => {
                         if (result.isConfirmed) {
                             window.location.href = '/Goal/Details/@Model.Id';
@@ -355,8 +356,8 @@
                     if (!selectedTaskId) {
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Cần chọn nhiệm vụ',
-                            text: 'Vui lòng chọn một nhiệm vụ cụ thể trước khi bắt đầu phiên tập trung.'
+                            title: '@Localizer["TaskRequiredTitle"]',
+                            text: '@Localizer["TaskRequiredDescription"]'
                         });
                         return;
                     }
@@ -377,7 +378,7 @@
                 // But still we might allow optional task selection? Not required.
                 selectedTaskId = null;
                 selectedTaskTitle = "@Model.Title";
-                focusTaskNameSpan.innerHTML = `<span>🧘 Theo dõi thời gian tập trung</span>`;
+                focusTaskNameSpan.innerHTML = `<span>🧘 @Localizer["TrackingFocusTime"]</span>`;
                 resetTimer();
             }
             
@@ -402,7 +403,7 @@
             // --- Timer event handlers ---
             startTimerBtn.addEventListener('click', () => {
                 if (sessionSaved) {
-                    Swal.fire('Đã lưu', 'Phiên đã được lưu, không thể bắt đầu lại. Vui lòng thoát.', 'info');
+                    Swal.fire('@Localizer["Saved"]', '@Localizer["SessionAlreadySaved"]', 'info');
                     return;
                 }
                 if (!isRunning) {

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="ProjectDetails" xml:space="preserve"><value>Chi tiết Dự án</value></data>
+  <data name="ActiveProject" xml:space="preserve"><value>Dự án đang hoạt động</value></data>
+  <data name="Edit" xml:space="preserve"><value>Sửa</value></data>
+  <data name="Invite" xml:space="preserve"><value>Mời</value></data>
+  <data name="NoDescriptionProvided" xml:space="preserve"><value>Không có mô tả nào được cung cấp.</value></data>
+  <data name="TotalTasks" xml:space="preserve"><value>Tổng số công việc</value></data>
+  <data name="Completed" xml:space="preserve"><value>Hoàn thành</value></data>
+  <data name="OverallProgress" xml:space="preserve"><value>Tiến độ chung</value></data>
+  <data name="ProjectKanbanBoard" xml:space="preserve"><value>Bảng Kanban Dự án</value></data>
+  <data name="ManageTasksTrackProgress" xml:space="preserve"><value>Quản lý công việc, theo dõi tiến độ và sắp xếp luồng công việc.</value></data>
+  <data name="GoToKanbanBoard" xml:space="preserve"><value>Đi đến Bảng Kanban</value></data>
+  <data name="AIProjectStrategy" xml:space="preserve"><value>Chiến lược Dự án bởi AI</value></data>
+  <data name="GeneratePlan" xml:space="preserve"><value>Tạo Kế hoạch</value></data>
+  <data name="ClickGeneratePlanToGetAI" xml:space="preserve"><value>Nhấp vào "Tạo Kế hoạch" để nhận lộ trình dự án, danh sách việc cần làm và ước tính thời gian bởi AI.</value></data>
+  <data name="Discussion" xml:space="preserve"><value>Thảo luận</value></data>
+  <data name="Messages" xml:space="preserve"><value>tin nhắn</value></data>
+  <data name="LoadingConversation" xml:space="preserve"><value>Đang tải cuộc trò chuyện...</value></data>
+  <data name="SendMessageToProjectGroup" xml:space="preserve"><value>Gửi tin nhắn tới nhóm dự án...</value></data>
+  <data name="InsertEmoji" xml:space="preserve"><value>Chèn biểu tượng cảm xúc</value></data>
+  <data name="RecordVoice" xml:space="preserve"><value>Ghi âm giọng nói</value></data>
+  <data name="LoadingGoalsRelatedToProject" xml:space="preserve"><value>Đang tải các mục tiêu liên quan tới dự án...</value></data>
+  <data name="Details" xml:space="preserve"><value>Chi tiết</value></data>
+  <data name="Created" xml:space="preserve"><value>Đã tạo</value></data>
+  <data name="Visibility" xml:space="preserve"><value>Quyền truy cập</value></data>
+  <data name="Private" xml:space="preserve"><value>Cá nhân</value></data>
+  <data name="Team" xml:space="preserve"><value>Nhóm</value></data>
+  <data name="Members" xml:space="preserve"><value>thành viên</value></data>
+  <data name="ProjectOwner" xml:space="preserve"><value>Chủ dự án</value></data>
+  <data name="NoMembersHaveJoinedYet" xml:space="preserve"><value>Chưa có thành viên tham gia.</value></data>
+  <data name="InviteNow" xml:space="preserve"><value>Mời ngay</value></data>
+  <data name="GoalContributions" xml:space="preserve"><value>Đóng góp mục tiêu</value></data>
+  <data name="RecordingVoice" xml:space="preserve"><value>Đang ghi âm...</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Hủy</value></data>
+  <data name="AttachFile" xml:space="preserve"><value>Đính kèm tệp</value></data>
+</root>

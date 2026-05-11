@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using Microsoft.Extensions.Localization;
+ 
 namespace DACS_TimeManagement.Controllers
 {
     [Authorize(Roles = "Admin")]
@@ -12,12 +14,14 @@ namespace DACS_TimeManagement.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-
-        public AdminController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+        private readonly IStringLocalizer<AdminController> _localizer;
+ 
+        public AdminController(ApplicationDbContext context, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, IStringLocalizer<AdminController> localizer)
         {
             _context = context;
             _userManager = userManager;
             _roleManager = roleManager;
+            _localizer = localizer;
         }
 
         public async Task<IActionResult> Index()
@@ -56,7 +60,7 @@ namespace DACS_TimeManagement.Controllers
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null || user.Email == "admin@gmail.com")
-                return Json(new { success = false, message = "Cannot change the role of this user." });
+                return Json(new { success = false, message = _localizer["CannotChangeRole"].Value });
 
             var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
 
@@ -67,12 +71,12 @@ namespace DACS_TimeManagement.Controllers
                 {
                     await _userManager.AddToRoleAsync(user, "User");
                 }
-                return Json(new { success = true, message = $"Demoted {user.Email} to Member.", isAdmin = false });
+                return Json(new { success = true, message = string.Format(_localizer["DemotedUser"].Value, user.Email), isAdmin = false });
             }
             else
             {
                 await _userManager.AddToRoleAsync(user, "Admin");
-                return Json(new { success = true, message = $"Promoted {user.Email} to Admin.", isAdmin = true });
+                return Json(new { success = true, message = string.Format(_localizer["PromotedUser"].Value, user.Email), isAdmin = true });
             }
         }
 
@@ -81,19 +85,107 @@ namespace DACS_TimeManagement.Controllers
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null || user.Email == "admin@gmail.com")
-                return Json(new { success = false, message = "Cannot lock/unlock this user." });
+                return Json(new { success = false, message = _localizer["CannotLockUser"].Value });
 
             var isLocked = await _userManager.IsLockedOutAsync(user);
             if (isLocked)
             {
                 await _userManager.SetLockoutEndDateAsync(user, null);
-                return Json(new { success = true, message = $"Unlocked account {user.Email}.", isLocked = false });
+                return Json(new { success = true, message = string.Format(_localizer["UnlockedUser"].Value, user.Email), isLocked = false });
             }
             else
             {
                 await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
-                return Json(new { success = true, message = $"Locked account {user.Email}.", isLocked = true });
+                return Json(new { success = true, message = string.Format(_localizer["LockedUser"].Value, user.Email), isLocked = true });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null || user.Email == "admin@gmail.com")
+                return Json(new { success = false, message = _localizer["UserNotFoundOrProtected"].Value });
+
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+                return Json(new { success = true, message = string.Format(_localizer["UserDeleted"].Value, user.Email) });
+
+            return Json(new { success = false, message = _localizer["FailedToDeleteUser"].Value });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BulkDelete([FromBody] List<string> userIds)
+        {
+            if (userIds == null || !userIds.Any()) return Json(new { success = false, message = _localizer["NoUsersSelected"].Value });
+
+            int count = 0;
+            foreach (var id in userIds)
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                if (user != null && user.Email != "admin@gmail.com")
+                {
+                    var result = await _userManager.DeleteAsync(user);
+                    if (result.Succeeded) count++;
+                }
+            }
+            return Json(new { success = true, message = string.Format(_localizer["BulkDeleted"].Value, count) });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BulkToggleAdmin([FromBody] List<string> userIds)
+        {
+            if (userIds == null || !userIds.Any()) return Json(new { success = false, message = _localizer["NoUsersSelected"].Value });
+
+            int promoted = 0;
+            int demoted = 0;
+            foreach (var id in userIds)
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                if (user != null && user.Email != "admin@gmail.com")
+                {
+                    var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                    if (isAdmin)
+                    {
+                        await _userManager.RemoveFromRoleAsync(user, "Admin");
+                        demoted++;
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, "Admin");
+                        promoted++;
+                    }
+                }
+            }
+            return Json(new { success = true, message = string.Format(_localizer["BulkAdminToggled"].Value, promoted, demoted) });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BulkToggleLockout([FromBody] List<string> userIds)
+        {
+            if (userIds == null || !userIds.Any()) return Json(new { success = false, message = _localizer["NoUsersSelected"].Value });
+
+            int locked = 0;
+            int unlocked = 0;
+            foreach (var id in userIds)
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                if (user != null && user.Email != "admin@gmail.com")
+                {
+                    var isLocked = await _userManager.IsLockedOutAsync(user);
+                    if (isLocked)
+                    {
+                        await _userManager.SetLockoutEndDateAsync(user, null);
+                        unlocked++;
+                    }
+                    else
+                    {
+                        await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
+                        locked++;
+                    }
+                }
+            }
+            return Json(new { success = true, message = string.Format(_localizer["BulkLockToggled"].Value, locked, unlocked) });
         }
     }
 }

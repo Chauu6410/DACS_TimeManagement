@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Register" xml:space="preserve"><value>Đăng ký</value></data>
+  <data name="CreateAccount" xml:space="preserve"><value>Tạo tài khoản</value></data>
+  <data name="JoinUs" xml:space="preserve"><value>Tham gia với chúng tôi để bắt đầu quản lý thời gian của bạn</value></data>
+  <data name="EmailAddress" xml:space="preserve"><value>Địa chỉ Email</value></data>
+  <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
+  <data name="ConfirmPassword" xml:space="preserve"><value>Xác nhận mật khẩu</value></data>
+  <data name="PasswordLengthTip" xml:space="preserve"><value>Mật khẩu phải có ít nhất 6 ký tự.</value></data>
+  <data name="AlreadyHaveAccount" xml:space="preserve"><value>Đã có tài khoản?</value></data>
+  <data name="SignIn" xml:space="preserve"><value>Đăng nhập</value></data>
+  <data name="OrRegisterWith" xml:space="preserve"><value>Hoặc đăng ký bằng</value></data>
+  <data name="ExternalRegisterTitle" xml:space="preserve"><value>Đăng ký bằng tài khoản {0}</value></data>
+</root>

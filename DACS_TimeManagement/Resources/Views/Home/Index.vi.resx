@@ -157,4 +157,22 @@
   <data name="NoCommitment" xml:space="preserve">
     <value>Không ràng buộc. Hủy bất cứ lúc nào.</value>
   </data>
+  <data name="Testimonial1" xml:space="preserve">
+    <value>"TimeMaster đã hoàn toàn thay đổi cách nhóm chúng tôi làm việc. Chúng tôi đã giảm 40% tình trạng chậm trễ dự án chỉ trong hai tháng."</value>
+  </data>
+  <data name="SarahJohnsonRole" xml:space="preserve">
+    <value>Quản lý sản phẩm, TechCorp</value>
+  </data>
+  <data name="Testimonial2" xml:space="preserve">
+    <value>"Mã hóa AES mang lại cho tôi sự an tâm. Cuối cùng cũng có một trình theo dõi thời gian tôn trọng quyền riêng tư."</value>
+  </data>
+  <data name="DavidChenRole" xml:space="preserve">
+    <value>Nhà phát triển tự do</value>
+  </data>
+  <data name="Testimonial3" xml:space="preserve">
+    <value>"Khoản đầu tư tốt nhất cho doanh nghiệp nhỏ của tôi. Chỉ riêng các tính năng báo cáo đã giúp tôi tiết kiệm hàng giờ mỗi tuần."</value>
+  </data>
+  <data name="EmilyRodriguezRole" xml:space="preserve">
+    <value>Người sáng lập Startup</value>
+  </data>
 </root>

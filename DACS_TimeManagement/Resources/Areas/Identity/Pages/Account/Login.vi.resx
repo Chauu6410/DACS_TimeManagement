@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Login" xml:space="preserve"><value>Đăng nhập</value></data>
+  <data name="WelcomeBack" xml:space="preserve"><value>Chào mừng trở lại</value></data>
+  <data name="LoginToAccount" xml:space="preserve"><value>Đăng nhập vào tài khoản của bạn</value></data>
+  <data name="EmailAddress" xml:space="preserve"><value>Địa chỉ Email</value></data>
+  <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
+  <data name="RememberMe" xml:space="preserve"><value>Ghi nhớ đăng nhập</value></data>
+  <data name="ForgotPassword" xml:space="preserve"><value>Quên mật khẩu?</value></data>
+  <data name="CreateAccount" xml:space="preserve"><value>Tạo tài khoản mới</value></data>
+  <data name="ResendConfirmation" xml:space="preserve"><value>Gửi lại email xác nhận</value></data>
+  <data name="OrContinueWith" xml:space="preserve"><value>Hoặc tiếp tục với</value></data>
+  <data name="ExternalLoginTitle" xml:space="preserve"><value>Đăng nhập bằng tài khoản {0}</value></data>
+</root>

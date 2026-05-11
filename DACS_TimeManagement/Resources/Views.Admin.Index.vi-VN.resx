@@ -34,4 +34,10 @@
   <data name="ConfirmBulkDelete" xml:space="preserve"><value>Bạn có muốn xóa tất cả người dùng đã chọn?</value></data>
   <data name="ConfirmBulkAdminToggle" xml:space="preserve"><value>Bạn có muốn chuyển đổi quyền Admin cho các người dùng đã chọn?</value></data>
   <data name="ConfirmBulkLockToggle" xml:space="preserve"><value>Bạn có muốn chuyển đổi trạng thái Khóa cho các người dùng đã chọn?</value></data>
+  <data name="WelcomeBack" xml:space="preserve"><value>Chào mừng trở lại</value></data>
+  <data name="SystemStatus" xml:space="preserve"><value>Trạng thái hệ thống</value></data>
+  <data name="Online" xml:space="preserve"><value>Trực tuyến</value></data>
+  <data name="ToggleAdminRole" xml:space="preserve"><value>Chuyển đổi quyền Quản trị</value></data>
+  <data name="ToggleLockStatus" xml:space="preserve"><value>Chuyển đổi trạng thái Khóa</value></data>
+  <data name="DeleteSelected" xml:space="preserve"><value>Xóa đã chọn</value></data>
 </root>

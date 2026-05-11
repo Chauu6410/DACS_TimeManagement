@@ -58,106 +58,76 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="WelcomeBack" xml:space="preserve">
-    <value>Chào mừng trở lại,</value>
+  <data name="KanbanBoard" xml:space="preserve">
+    <value>Kanban Board</value>
   </data>
-  <data name="Overview" xml:space="preserve">
-    <value>Tổng quan</value>
+  <data name="NoColumns" xml:space="preserve">
+    <value>No columns</value>
   </data>
-  <data name="TotalTasks" xml:space="preserve">
-    <value>Tổng số nhiệm vụ</value>
+  <data name="AddColumnsPrompt" xml:space="preserve">
+    <value>Start by adding columns to your project.</value>
   </data>
-  <data name="Completed" xml:space="preserve">
-    <value>Đã hoàn thành</value>
+  <data name="NoDescription" xml:space="preserve">
+    <value>No description</value>
   </data>
-  <data name="InProgress" xml:space="preserve">
-    <value>Đang thực hiện</value>
-  </data>
-  <data name="HoursWorked" xml:space="preserve">
-    <value>Số giờ làm việc</value>
-  </data>
-  <data name="TodaySchedule" xml:space="preserve">
-    <value>Lịch trình hôm nay</value>
-  </data>
-  <data name="AddEvent" xml:space="preserve">
-    <value>Thêm sự kiện</value>
-  </data>
-  <data name="NoEventsToday" xml:space="preserve">
-    <value>Không có sự kiện nào hôm nay</value>
-  </data>
-  <data name="StartByAddingEvent" xml:space="preserve">
-    <value>Bắt đầu bằng cách thêm một sự kiện vào lịch của bạn.</value>
-  </data>
-  <data name="CreateNewEvent" xml:space="preserve">
-    <value>Tạo sự kiện mới</value>
-  </data>
-  <data name="RecentTasks" xml:space="preserve">
-    <value>Nhiệm vụ gần đây</value>
-  </data>
-  <data name="AddTask" xml:space="preserve">
-    <value>Thêm nhiệm vụ</value>
+  <data name="Unassigned" xml:space="preserve">
+    <value>Unassigned</value>
   </data>
   <data name="Due" xml:space="preserve">
-    <value>Hạn:</value>
+    <value>Due:</value>
   </data>
-  <data name="NoTasksYet" xml:space="preserve">
-    <value>Chưa có nhiệm vụ nào</value>
+  <data name="AddTask" xml:space="preserve">
+    <value>Add Task</value>
   </data>
-  <data name="CreateFirstTaskToGetStarted" xml:space="preserve">
-    <value>Tạo nhiệm vụ đầu tiên của bạn để bắt đầu.</value>
+  <data name="EnterTaskTitle" xml:space="preserve">
+    <value>Enter task title...</value>
   </data>
-  <data name="CreateFirstTask" xml:space="preserve">
-    <value>Tạo nhiệm vụ đầu tiên</value>
+  <data name="DeleteTaskTitle" xml:space="preserve">
+    <value>Delete Task?</value>
   </data>
-  <data name="WeeklyProductivity" xml:space="preserve">
-    <value>Năng suất hàng tuần</value>
+  <data name="DeleteTaskText" xml:space="preserve">
+    <value>Are you sure you want to delete this task? This action cannot be undone.</value>
   </data>
-  <data name="HoursWorkedLabel" xml:space="preserve">
-    <value>Số giờ đã làm</value>
+  <data name="YesDelete" xml:space="preserve">
+    <value>Yes, Delete</value>
   </data>
-  <data name="TasksCompletedLabel" xml:space="preserve">
-    <value>Nhiệm vụ đã xong</value>
-  </data>
-  <data name="Dashboard" xml:space="preserve">
-    <value>Bảng điều khiển</value>
-  </data>
-  <data name="Scheduled" xml:space="preserve">
-    <value>Đã lên lịch</value>
-  </data>
-  <data name="High" xml:space="preserve">
-    <value>Cao</value>
-  </data>
-  <data name="Medium" xml:space="preserve">
-    <value>Trung bình</value>
-  </data>
-  <data name="Mon" xml:space="preserve">
-    <value>Thứ 2</value>
-  </data>
-  <data name="Tue" xml:space="preserve">
-    <value>Thứ 3</value>
-  </data>
-  <data name="Wed" xml:space="preserve">
-    <value>Thứ 4</value>
-  </data>
-  <data name="Thu" xml:space="preserve">
-    <value>Thứ 5</value>
-  </data>
-  <data name="Fri" xml:space="preserve">
-    <value>Thứ 6</value>
-  </data>
-  <data name="Sat" xml:space="preserve">
-    <value>Thứ 7</value>
-  </data>
-  <data name="Sun" xml:space="preserve">
-    <value>CN</value>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
   </data>
   <data name="Urgent" xml:space="preserve">
-    <value>Khẩn cấp</value>
+    <value>Urgent</value>
   </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Sửa</value>
+  <data name="High" xml:space="preserve">
+    <value>High</value>
   </data>
-  <data name="Delete" xml:space="preserve">
-    <value>Xóa</value>
+  <data name="Medium" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="Low" xml:space="preserve">
+    <value>Low</value>
+  </data>
+  <data name="ToDo" xml:space="preserve">
+    <value>To Do</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>In Progress</value>
+  </data>
+  <data name="Done" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>Testing</value>
+  </data>
+  <data name="EditTask" xml:space="preserve">
+    <value>Edit Task</value>
+  </data>
+  <data name="DeleteTask" xml:space="preserve">
+    <value>Delete Task</value>
+  </data>
+  <data name="Approve" xml:space="preserve">
+    <value>Approve</value>
+  </data>
+  <data name="Reject" xml:space="preserve">
+    <value>Reject</value>
   </data>
 </root>

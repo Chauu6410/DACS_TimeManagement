@@ -27,8 +27,10 @@ namespace DACS_TimeManagement.Services
         private readonly IConfiguration _config;
         private readonly IGeminiService _geminiService;
         private readonly ILogger<GoalService> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
+        private static readonly SemaphoreSlim _aiSemaphore = new SemaphoreSlim(1, 1);
 
-        public GoalService(ApplicationDbContext db, IHubContext<GoalHub> hubContext, IMemoryCache cache, IHttpClientFactory httpClientFactory, IConfiguration config, IGeminiService geminiService, ILogger<GoalService> logger)
+        public GoalService(ApplicationDbContext db, IHubContext<GoalHub> hubContext, IMemoryCache cache, IHttpClientFactory httpClientFactory, IConfiguration config, IGeminiService geminiService, ILogger<GoalService> logger, IServiceScopeFactory scopeFactory)
         {
             _db = db;
             _hubContext = hubContext;
@@ -37,6 +39,7 @@ namespace DACS_TimeManagement.Services
             _config = config;
             _geminiService = geminiService;
             _logger = logger;
+            _scopeFactory = scopeFactory;
         }
 
 
@@ -121,10 +124,10 @@ namespace DACS_TimeManagement.Services
                         var projectTasks = _db.WorkTasks.Where(t => t.ProjectId == goal.ProjectId.Value && t.AssigneeId == goal.UserId);
                         int total = await projectTasks.CountAsync();
                         int completed = await projectTasks.CountAsync(t => t.Status == Models.TaskStatus.Completed);
-                        
+
                         goal.TargetTasks = total;
                         goal.CompletedTasks = completed;
-                        
+
                         goal.TargetValue = total;
                         goal.CurrentValue = completed;
                     }
@@ -134,9 +137,9 @@ namespace DACS_TimeManagement.Services
                         goal.CompletedTasks = await _db.GoalTasks
                             .Where(gt => gt.GoalId == goalId)
                             .CountAsync(gt => gt.WorkTask.Status == Models.TaskStatus.Completed);
-                        
+
                         goal.TargetTasks = await _db.GoalTasks.CountAsync(gt => gt.GoalId == goalId);
-                        
+
                         goal.TargetValue = goal.TargetTasks ?? 0;
                         goal.CurrentValue = goal.CompletedTasks;
                     }
@@ -167,7 +170,24 @@ namespace DACS_TimeManagement.Services
                     // update status and records
                     await UpdateStatusAndHistoryAsync(goal, note);
                     await _db.SaveChangesAsync();
-                    
+
+                    // Trigger AI regeneration in background with a new scope to avoid context disposal
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using (var scope = _scopeFactory.CreateScope())
+                            {
+                                var scopedGoalService = scope.ServiceProvider.GetRequiredService<IGoalService>();
+                                await scopedGoalService.RegenerateSmartAIStrategyAsync(goalId, userId);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger?.LogError(ex, "Background AI update failed for goal {GoalId}", goalId);
+                        }
+                    });
+
                     break; // Thành công thì thoát vòng lặp
 
                 }
@@ -181,7 +201,7 @@ namespace DACS_TimeManagement.Services
                     {
                         throw new Exception("Hệ thống đang bận. Quá trình cập nhật bị xung đột dữ liệu, vui lòng thử lại sau.", ex);
                     }
-                    
+
                     foreach (var entry in ex.Entries)
                     {
                         await entry.ReloadAsync();
@@ -244,7 +264,7 @@ namespace DACS_TimeManagement.Services
                     .Where(g => g.ProjectId == task.ProjectId.Value)
                     .Select(g => g.Id)
                     .ToListAsync();
-                
+
                 goalIdsFromTasks.AddRange(projectGoalIds);
             }
 
@@ -268,21 +288,21 @@ namespace DACS_TimeManagement.Services
                 var cacheOptions = new MemoryCacheEntryOptions()
                     .SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
 
-                if (goal.CurrentValue <= 0) 
+                if (goal.CurrentValue <= 0)
                     cachedPrediction = "Hãy bắt đầu làm việc để AI có thể phân tích tốc độ của bạn.";
                 else
                 {
                     var timeTotal = (goal.TargetDate - goal.StartDate).TotalDays;
                     var timePassed = (DateTime.UtcNow - goal.StartDate).TotalDays;
 
-                    if (timePassed < 0.5) 
+                    if (timePassed < 0.5)
                         cachedPrediction = "AI đang thu thập thêm dữ liệu điểm tin...";
                     else
                     {
                         // Tốc độ trung bình: Giá trị/Ngày
                         double velocity = goal.CurrentValue / timePassed;
                         double remainingValue = goal.TargetValue - goal.CurrentValue;
-                        
+
                         if (velocity <= 0 || remainingValue <= 0)
                         {
                             cachedPrediction = "Dữ liệu hiện tại cho thấy bạn đang đi đúng lộ trình. Hãy duy trì phong độ!";
@@ -292,7 +312,7 @@ namespace DACS_TimeManagement.Services
 
                         double daysNeeded = remainingValue / velocity;
                         // Clamp daysNeeded to avoid DateTime overflow
-                        if (daysNeeded > 3650) daysNeeded = 3650; 
+                        if (daysNeeded > 3650) daysNeeded = 3650;
 
                         DateTime estimatedFinishDate = DateTime.UtcNow.AddDays(daysNeeded);
 
@@ -327,13 +347,13 @@ namespace DACS_TimeManagement.Services
             DateTime estimatedFinishDate = DateTime.UtcNow.AddDays(daysNeeded);
 
             if (estimatedFinishDate > goal.TargetDate) return "At Risk";
-            
+
             var progress = (goal.CurrentValue / Math.Max(1, goal.TargetValue)) * 100;
             if (progress >= 100) return "Completed";
             if (progress > 90) return "Finishing";
             if (estimatedFinishDate < goal.TargetDate.AddDays(-3)) return "Excellent";
             if (estimatedFinishDate < goal.TargetDate.AddDays(-1)) return "Ahead";
-            
+
             return "On Track";
         }
 
@@ -397,7 +417,7 @@ namespace DACS_TimeManagement.Services
                 targetTasks = goal.TargetTasks ?? 0
             });
         }
- 
+
         private double CalculateExpectedProgress(PersonalGoal goal)
         {
             var total = (goal.TargetDate - goal.StartDate).TotalSeconds;
@@ -428,21 +448,29 @@ namespace DACS_TimeManagement.Services
 
         public async Task<string> RegenerateSmartAIStrategyAsync(int goalId, string userId)
         {
-            var goal = await _db.PersonalGoals
-                .FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId);
-                
-            if (goal == null) return "Không tìm thấy mục tiêu.";
-
-            var now = DateTime.UtcNow;
-            var target = goal.TargetDate;
-            double daysLeft = (target.Date - now.Date).TotalDays;
-            daysLeft = Math.Max(1.0, daysLeft);
-
+            // Lock to prevent concurrent AI requests for the same goal
+            await _aiSemaphore.WaitAsync();
             try
             {
+                // Throttling: avoid spamming AI for the same goal recently
+                string throttleKey = $"AI_Throttle_{goalId}";
+                if (_cache.TryGetValue(throttleKey, out _))
+                {
+                    var existingGoal = await _db.PersonalGoals.AsNoTracking().FirstOrDefaultAsync(g => g.Id == goalId);
+                    return existingGoal?.AIActionPlan ?? "Phân tích đang được xử lý...";
+                }
+
+                var goal = await _db.PersonalGoals.FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId);
+                if (goal == null) return "Không tìm thấy mục tiêu.";
+
+                _cache.Set(throttleKey, true, TimeSpan.FromSeconds(30));
+
+                var now = DateTime.UtcNow;
+                var target = goal.TargetDate;
+                double daysLeft = Math.Max(1.0, (target.Date - now.Date).TotalDays);
+
                 string projectName = "N/A";
                 string projectDetail = "N/A";
-
                 if (goal.ProjectId.HasValue)
                 {
                     var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == goal.ProjectId.Value);
@@ -453,21 +481,16 @@ namespace DACS_TimeManagement.Services
                     }
                 }
 
-                // Determine user's language preference (fallback to culture if profile not set)
                 var profile = await _db.Set<UserProfile>().AsNoTracking().FirstOrDefaultAsync(up => up.UserId == userId);
                 var lang = profile?.Language ?? System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName ?? "en";
                 bool isVi = lang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
 
-                string context = isVi
-                    ? "Bạn là một cố vấn chiến lược và chuyên gia hiệu suất."
-                    : "You are a strategic advisor and performance expert.";
-
+                string context = isVi ? "Bạn là một cố vấn chiến lược và chuyên gia hiệu suất." : "You are a strategic advisor and performance expert.";
                 string goalText = isVi
                     ? "Dựa trên dữ liệu dưới đây, hãy: 1. Phân tích mức độ khó của mục tiêu (Dễ/Trung bình/Khó) dựa trên thời gian còn lại và tiến độ. 2. Đưa ra 3 hành động cụ thể, ngắn gọn, ưu tiên theo thứ tự. Trả lời bằng tiếng Việt, ngắn gọn, sử dụng Markdown nhẹ."
                     : "Based on the data below, please: 1. Analyze the difficulty of the goal (Easy/Average/Hard) based on remaining time and progress. 2. Provide 3 concise, prioritized actions. Reply in English, concisely, using light Markdown.";
 
-                
-                var progressInfo = goal.Type == DACS_TimeManagement.Models.GoalType.TaskBased 
+                var progressInfo = goal.Type == GoalType.TaskBased
                     ? $"Tiến độ: {goal.CompletedTasks}/{goal.TargetTasks} công việc đã hoàn thành."
                     : $"Tiến độ: {goal.CompletedHours:F1}/{goal.TargetHours:F1} giờ đã thực hiện.";
 
@@ -479,7 +502,6 @@ Dữ liệu Mục tiêu:
 - Loại: {goal.Type}
 - {progressInfo}
 - Hạn chót: {goal.TargetDate:dd/MM/yyyy} (Còn khoảng {daysLeft:F0} ngày)
-
 Thông tin Dự án liên kết:
 - Tên dự án: {projectName}
 - Chi tiết: {projectDetail}
@@ -487,7 +509,6 @@ Thông tin Dự án liên kết:
 
                 string prompt = _geminiService.BuildAdvancedPrompt(context, goalText, userInput);
 
-                // Use a cancellation token with timeout to avoid hanging requests
                 int timeoutSeconds = _config.GetValue<int>("Gemini:TimeoutSeconds", 60);
                 using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
 
@@ -512,19 +533,17 @@ Thông tin Dự án liên kết:
                     return "Lỗi: AI không trả về nội dung. Vui lòng thử lại sau hoặc kiểm tra cấu hình API.";
                 }
 
-                // Do not save error messages to the database
-                if (aiResponse.StartsWith("Lỗi", StringComparison.OrdinalIgnoreCase) || 
-                    aiResponse.StartsWith("Error", StringComparison.OrdinalIgnoreCase) ||
-                    aiResponse.StartsWith("AI không", StringComparison.OrdinalIgnoreCase))
+                if (aiResponse.StartsWith("Lỗi", StringComparison.OrdinalIgnoreCase)
+                    || aiResponse.StartsWith("Error", StringComparison.OrdinalIgnoreCase)
+                    || aiResponse.StartsWith("AI không", StringComparison.OrdinalIgnoreCase))
                 {
                     return aiResponse;
                 }
 
-                // Post-process: remove polite greetings / intros to keep response concise
                 try
                 {
-                    var lines = aiResponse.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(l => l.Trim()).ToList();
-                    // Remove common opening greetings
+                    var lines = aiResponse.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(l => l.Trim()).ToList();
                     while (lines.Count > 0 && (lines[0].StartsWith("Chào", StringComparison.OrdinalIgnoreCase)
                                                || lines[0].StartsWith("Xin chào", StringComparison.OrdinalIgnoreCase)
                                                || lines[0].StartsWith("Hello", StringComparison.OrdinalIgnoreCase)
@@ -535,16 +554,12 @@ Thông tin Dự án liên kết:
                         lines.RemoveAt(0);
                     }
 
-                    // If there's a short summary line right after greeting, drop it as well to shorten
                     if (lines.Count > 0 && lines[0].Length < 120 && lines[0].EndsWith(".", StringComparison.Ordinal))
                     {
                         lines.RemoveAt(0);
                     }
 
-                    // Rebuild limited content (keep up to first 30 non-empty lines)
                     var trimmed = string.Join("\n\n", lines.Take(30));
-
-                    // Final truncate to a smaller size to avoid huge UI text
                     const int maxStoredLength = 3000;
                     if (trimmed.Length > maxStoredLength)
                         trimmed = trimmed.Substring(0, maxStoredLength - 1) + "…";
@@ -553,27 +568,32 @@ Thông tin Dự án liên kết:
                 }
                 catch
                 {
-                    // If any error during trimming, keep original but ensure size limit
                     const int maxStoredLength = 3000;
                     if (aiResponse.Length > maxStoredLength)
                         aiResponse = aiResponse.Substring(0, maxStoredLength - 1) + "…";
                 }
 
-                // Persist concise AI plan
                 goal.AIActionPlan = aiResponse;
                 goal.UpdatedAt = DateTime.UtcNow;
-
                 _db.PersonalGoals.Update(goal);
                 await _db.SaveChangesAsync();
+
+                await _hubContext.Clients.User(userId).SendAsync("ReceiveAIPlanUpdate", new
+                {
+                    goalId = goal.Id,
+                    actionPlan = aiResponse
+                });
 
                 return goal.AIActionPlan;
             }
             catch (Exception ex)
             {
-                // Fallback if AI fails
                 return $"Error generating strategy: {ex.Message}";
             }
-
+            finally
+            {
+                _aiSemaphore.Release();
+            }
         }
     }
 }

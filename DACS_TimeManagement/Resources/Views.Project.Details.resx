@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="ProjectDetails" xml:space="preserve"><value>Project Details</value></data>
+  <data name="ActiveProject" xml:space="preserve"><value>Active Project</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Invite" xml:space="preserve"><value>Invite</value></data>
+  <data name="NoDescriptionProvided" xml:space="preserve"><value>No description provided.</value></data>
+  <data name="TotalTasks" xml:space="preserve"><value>Total Tasks</value></data>
+  <data name="Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="OverallProgress" xml:space="preserve"><value>Overall Progress</value></data>
+  <data name="ProjectKanbanBoard" xml:space="preserve"><value>Project Kanban Board</value></data>
+  <data name="ManageTasksTrackProgress" xml:space="preserve"><value>Manage tasks, track progress, and organize your workflow.</value></data>
+  <data name="GoToKanbanBoard" xml:space="preserve"><value>Go to Kanban Board</value></data>
+  <data name="AIProjectStrategy" xml:space="preserve"><value>AI Project Strategy</value></data>
+  <data name="GeneratePlan" xml:space="preserve"><value>Generate Plan</value></data>
+  <data name="ClickGeneratePlanToGetAI" xml:space="preserve"><value>Click "Generate Plan" to get an AI-powered project roadmap, checklist, and timeline estimation.</value></data>
+  <data name="Discussion" xml:space="preserve"><value>Discussion</value></data>
+  <data name="Messages" xml:space="preserve"><value>messages</value></data>
+  <data name="LoadingConversation" xml:space="preserve"><value>Loading conversation...</value></data>
+  <data name="SendMessageToProjectGroup" xml:space="preserve"><value>Send a message to the project group...</value></data>
+  <data name="InsertEmoji" xml:space="preserve"><value>Insert Emoji</value></data>
+  <data name="RecordVoice" xml:space="preserve"><value>Record Voice</value></data>
+  <data name="LoadingGoalsRelatedToProject" xml:space="preserve"><value>Loading goals that relate to this project...</value></data>
+  <data name="Details" xml:space="preserve"><value>Details</value></data>
+  <data name="Created" xml:space="preserve"><value>Created</value></data>
+  <data name="Visibility" xml:space="preserve"><value>Visibility</value></data>
+  <data name="Private" xml:space="preserve"><value>Private</value></data>
+  <data name="Team" xml:space="preserve"><value>Team</value></data>
+  <data name="Members" xml:space="preserve"><value>members</value></data>
+  <data name="ProjectOwner" xml:space="preserve"><value>Project Owner</value></data>
+  <data name="NoMembersHaveJoinedYet" xml:space="preserve"><value>No members have joined yet.</value></data>
+  <data name="InviteNow" xml:space="preserve"><value>Invite Now</value></data>
+</root>

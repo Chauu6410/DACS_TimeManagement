@@ -1,6 +1,8 @@
 @model DACS_TimeManagement.Models.Project
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Edit Project";
+    ViewData["Title"] = Localizer["EditProject"];
 }
 
 <div class="edit-project-container" data-aos="fade-up">
@@ -14,8 +16,8 @@
                             <i class="fas fa-edit fs-4"></i>
                         </div>
                         <div>
-                            <h4 class="mb-0 fw-bold">Edit Project</h4>
-                            <p class="opacity-75 small mb-0">Update project information</p>
+                            <h4 class="mb-0 fw-bold">@Localizer["EditProject"]</h4>
+                            <p class="opacity-75 small mb-0">@Localizer["EditProjectHint"]</p>
                         </div>
                     </div>
                 </div>
@@ -32,7 +34,7 @@
                             <!-- Project Name -->
                             <div class="col-12">
                                 <label asp-for="Name" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-tag text-primary me-1"></i> Project Name <span class="text-danger">*</span>
+                                    <i class="fas fa-tag text-primary me-1"></i> @Localizer["ProjectName"] <span class="text-danger">*</span>
                                 </label>
                                 <input asp-for="Name" class="form-control form-control-lg rounded-3" required />
                                 <span asp-validation-for="Name" class="text-danger small"></span>
@@ -41,7 +43,7 @@
                             <!-- Description -->
                             <div class="col-12">
                                 <label asp-for="Description" class="form-label fw-semibold mb-2">
-                                    <i class="fas fa-align-left text-primary me-1"></i> Description
+                                    <i class="fas fa-align-left text-primary me-1"></i> @Localizer["Description"]
                                 </label>
                                 <textarea asp-for="Description" class="form-control rounded-3" rows="5"></textarea>
                                 <span asp-validation-for="Description" class="text-danger small"></span>
@@ -53,10 +55,10 @@
                         <!-- Form Actions -->
                         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                             <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4 py-2">
-                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                                <i class="fas fa-arrow-left me-2"></i>@Localizer["Cancel"]
                             </a>
                             <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm">
-                                <i class="fas fa-save me-2"></i>Save Changes
+                                <i class="fas fa-save me-2"></i>@Localizer["SaveChanges"]
                             </button>
                         </div>
                     </form>

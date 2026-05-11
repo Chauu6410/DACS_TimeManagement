@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="ProjectDetails" xml:space="preserve"><value>Chi tiết dự án</value></data>
+  <data name="ActiveProject" xml:space="preserve"><value>Dự án đang hoạt động</value></data>
+  <data name="NoDescriptionProvided" xml:space="preserve"><value>Không có mô tả.</value></data>
+  <data name="Edit" xml:space="preserve"><value>Chỉnh sửa</value></data>
+  <data name="Invite" xml:space="preserve"><value>Mời</value></data>
+</root>

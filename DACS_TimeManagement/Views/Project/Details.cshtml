@@ -1,8 +1,10 @@
 @model DACS_TimeManagement.Models.Project
 @using System.Security.Claims
+@using Microsoft.AspNetCore.Mvc.Localization
 @using DACS_TimeManagement.Services
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Project Details";
+    ViewData["Title"] = Localizer["ProjectDetails"];
     var completedTasks = Model.Tasks?.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed) ?? 0;
     var totalTasks = Model.Tasks?.Count() ?? 0;
     var progressPct = totalTasks == 0 ? 0 : (int)((double)completedTasks / totalTasks * 100);
@@ -386,21 +388,21 @@
     <!-- Compact Hero banner -->
     <div class="card border-0 shadow-sm rounded-4 bg-gradient-primary mb-4 p-3 p-md-4 text-white">
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-3">
-            <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold shadow-sm">
+                <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold shadow-sm">
                 <span class="spinner-grow spinner-grow-sm me-2 text-pastel-primary" style="width: 0.5rem; height: 0.5rem;"></span>
-                Active Project
+                @Localizer["ActiveProject"]
             </span>
     @{ var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier); }
             <div class="d-flex gap-2">
-                @if (!string.IsNullOrEmpty(currentUserId) && currentUserId == Model.UserId)
-                {
-                    <button type="button" class="btn btn-light rounded-pill px-4 shadow-sm btn-sm fw-semibold" style="color: var(--primary);" data-bs-toggle="modal" data-bs-target="#editProjectModal">
-                        <i class="fas fa-pencil-alt me-2"></i>Edit
-                    </button>
-                    <button type="button" class="btn btn-outline-light-custom rounded-pill px-4 shadow-sm btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
-                        <i class="fas fa-user-plus me-2"></i>Invite
-                    </button>
-                }
+                    @if (!string.IsNullOrEmpty(currentUserId) && currentUserId == Model.UserId)
+                    {
+                        <button type="button" class="btn btn-light rounded-pill px-4 shadow-sm btn-sm fw-semibold" style="color: var(--primary);" data-bs-toggle="modal" data-bs-target="#editProjectModal">
+                            <i class="fas fa-pencil-alt me-2"></i>@Localizer["Edit"]
+                        </button>
+                        <button type="button" class="btn btn-outline-light-custom rounded-pill px-4 shadow-sm btn-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
+                            <i class="fas fa-user-plus me-2"></i>@Localizer["Invite"]
+                        </button>
+                    }
             </div>
         </div>
         <h3 class="fw-bold mb-2 text-white text-truncate" title="@Model.Name">
@@ -412,7 +414,7 @@
         }
         else
         {
-            <p class="mb-0 text-white opacity-90 fst-italic">No description provided.</p>
+            <p class="mb-0 text-white opacity-90 fst-italic">@Localizer["NoDescriptionProvided"]</p>
         }
     </div>
 
@@ -424,7 +426,7 @@
                     <div>
                         <div class="stats-icon mb-2"><i class="fas fa-tasks fa-2x"></i></div>
                         <div class="stats-number display-6 fw-bold">@totalTasks</div>
-                        <div class="stats-label text-muted small fw-semibold">Total Tasks</div>
+                        <div class="stats-label text-muted small fw-semibold">@Localizer["TotalTasks"]</div>
                     </div>
                     <i class="fas fa-clipboard-list fa-3x opacity-25"></i>
                 </div>
@@ -436,7 +438,7 @@
                     <div>
                         <div class="stats-icon mb-2"><i class="fas fa-check-circle fa-2x"></i></div>
                         <div class="stats-number display-6 fw-bold">@completedTasks</div>
-                        <div class="stats-label text-muted small fw-semibold">Completed</div>
+                        <div class="stats-label text-muted small fw-semibold">@Localizer["Completed"]</div>
                     </div>
                     <i class="fas fa-check-double fa-3x opacity-25"></i>
                 </div>
@@ -448,7 +450,7 @@
                     <div>
                         <div class="stats-icon mb-2"><i class="fas fa-chart-pie fa-2x"></i></div>
                         <div class="stats-number display-6 fw-bold">@progressPct%</div>
-                        <div class="stats-label text-muted small fw-semibold">Overall Progress</div>
+                        <div class="stats-label text-muted small fw-semibold">@Localizer["OverallProgress"]</div>
                     </div>
                     <i class="fas fa-percent fa-3x opacity-25"></i>
                 </div>
@@ -468,12 +470,12 @@
                             <i class="fas fa-chalkboard-user fs-4 text-pastel-info-dark"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-1 text-pastel-dark">Project Kanban Board</h5>
-                            <p class="small text-pastel-muted mb-0">Manage tasks, track progress, and organize your workflow.</p>
+                            <h5 class="fw-bold mb-1 text-pastel-dark">@Localizer["ProjectKanbanBoard"]</h5>
+                            <p class="small text-pastel-muted mb-0">@Localizer["ManageTasksTrackProgress"]</p>
                         </div>
                     </div>
                     <a asp-controller="WorkTask" asp-action="Index" asp-route-projectId="@Model.Id" class="btn btn-pastel-primary rounded-pill px-4 py-2 shadow-sm">
-                        Go to Kanban Board <i class="fas fa-arrow-right ms-2"></i>
+                        @Localizer["GoToKanbanBoard"] <i class="fas fa-arrow-right ms-2"></i>
                     </a>
                 </div>
             </div>
@@ -484,10 +486,10 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-2">
                             <div class="icon-circle" style="background: rgba(168, 85, 247, 0.12);"><i class="fas fa-brain text-purple" style="color: #a855f7;"></i></div>
-                            <h5 class="fw-bold mb-0 text-pastel-dark">AI Project Strategy</h5>
+                            <h5 class="fw-bold mb-0 text-pastel-dark">@Localizer["AIProjectStrategy"]</h5>
                         </div>
                         <button id="generateProjectAI" class="btn btn-sm btn-pastel-primary rounded-pill px-3 shadow-sm">
-                            <i class="fas fa-magic me-1"></i> Generate Plan
+                            <i class="fas fa-magic me-1"></i> @Localizer["GeneratePlan"]
                         </button>
                     </div>
                 </div>
@@ -495,7 +497,7 @@
                     <div id="projectAIContent" class="ai-strategy-content small text-dark">
                         <div class="text-center py-4 text-pastel-muted">
                             <i class="fas fa-robot fs-1 mb-3 opacity-25"></i>
-                            <p>Click "Generate Plan" to get an AI-powered project roadmap, checklist, and timeline estimation.</p>
+                            <p>@Localizer["ClickGeneratePlanToGetAI"]</p>
                         </div>
                     </div>
                 </div>
@@ -507,19 +509,19 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-2">
                             <div class="icon-circle"><i class="fas fa-comments text-pastel-primary"></i></div>
-                            <h5 class="fw-bold mb-0 text-pastel-dark">Discussion</h5>
+                            <h5 class="fw-bold mb-0 text-pastel-dark">@Localizer["Discussion"]</h5>
                         </div>
                         <span class="badge rounded-pill px-3 py-2 fw-semibold" style="background: rgba(99, 102, 241, 0.12); color: var(--primary);">
-                            <span id="commentCount">0</span> messages
+                            <span id="commentCount">0</span> @Localizer["Messages"]
                         </span>
                     </div>
                 </div>
                 <div class="card-body p-0 d-flex flex-column h-100 overflow-hidden">
                     <div id="chatMessages" class="p-4 flex-grow-1 custom-scrollbar" style="overflow-y: auto; background-color: var(--pastel-column-bg);">
                         <div class="d-flex h-100 justify-content-center align-items-center">
-                            <div class="text-center text-pastel-muted" id="loadingComments">
+                                <div class="text-center text-pastel-muted" id="loadingComments">
                                 <i class="fas fa-circle-notch fa-spin fs-3 mb-2 text-pastel-primary"></i>
-                                <div>Loading conversation...</div>
+                                <div>@Localizer["LoadingConversation"]</div>
                             </div>
                         </div>
                     </div>
@@ -537,24 +539,24 @@
                                         <i class="fas fa-circle rounded-circle text-danger" style="animation: blink 1s infinite; font-size: 0.6rem;"></i>
                                         <span id="recordingTimer">00:00</span>
                                     </div>
-                                    <div class="text-danger small fw-semibold">Recording Voice...</div>
-                                    <button type="button" class="btn-close" style="font-size: 0.7rem;" id="cancelRecordBtn" title="Cancel"></button>
+                                    <div class="text-danger small fw-semibold">@Localizer["RecordingVoice"]</div>
+                                    <button type="button" class="btn-close" style="font-size: 0.7rem;" id="cancelRecordBtn" title="@Localizer["Cancel"]"></button>
                                 </div>
-                                <label class="chat-media-btn mb-0" style="left: 6px;" title="Attach File">
+                                <label class="chat-media-btn mb-0" style="left: 6px;" title="@Localizer["AttachFile"]">
                                     <i class="fas fa-paperclip fs-6"></i>
                                     <input type="file" id="attachmentInput" class="d-none" accept="*/*">
                                 </label>
-                                <input type="text" class="form-control" id="commentContent" placeholder="Send a message to the project group..." autocomplete="off" style="font-size: 0.95rem;">
+                                <input type="text" class="form-control" id="commentContent" placeholder="@Localizer["SendMessageToProjectGroup"]" autocomplete="off" style="font-size: 0.95rem;">
                                 <div class="d-flex position-absolute" style="right: 6px; top: 50%; transform: translateY(-50%); z-index: 6;">
                                     <div class="dropdown d-inline-block dropup">
-                                        <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" data-bs-toggle="dropdown" aria-expanded="false" title="Insert Emoji">
+                                        <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" data-bs-toggle="dropdown" aria-expanded="false" title="@Localizer["InsertEmoji"]">
                                             <i class="far fa-smile fs-6"></i>
                                         </button>
                                         <div class="dropdown-menu dropdown-menu-end p-2 shadow-sm rounded-4 border-0" style="width: 260px; margin-bottom: 10px; background: var(--pastel-card-bg);">
                                             <div class="d-flex flex-wrap gap-1 justify-content-center" id="emojiPickerContent"></div>
                                         </div>
                                     </div>
-                                    <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" id="btnRecordVoice" title="Record Voice">
+                                    <button type="button" class="chat-media-btn position-relative" style="transform: none; top: initial;" id="btnRecordVoice" title="@Localizer["RecordVoice"]">
                                         <i class="fas fa-microphone fs-6" id="micIcon"></i>
                                     </button>
                                 </div>
@@ -576,12 +578,12 @@
                 <div class="card-header bg-transparent border-pastel p-4 pb-0 pt-4 pb-3 d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
                         <div class="icon-circle"><i class="fas fa-bullseye text-pastel-primary"></i></div>
-                        <h5 class="fw-bold mb-0 text-pastel-dark">Goal Contributions</h5>
+                        <h5 class="fw-bold mb-0 text-pastel-dark">@Localizer["GoalContributions"]</h5>
                     </div>
                 </div>
                 <div class="card-body p-3">
                     <div id="goalContributionContainer">
-                        <div class="text-muted small">Loading goals that relate to this project...</div>
+                        <div class="text-muted small">@Localizer["LoadingGoalsRelatedToProject"]</div>
                     </div>
                 </div>
             </div>
@@ -589,7 +591,7 @@
                 <div class="card-header bg-transparent border-pastel p-4 pb-0 pt-4 pb-3">
                     <div class="d-flex align-items-center gap-2">
                         <div class="icon-circle"><i class="fas fa-info-circle text-pastel-primary"></i></div>
-                        <h5 class="fw-bold mb-0 text-pastel-dark">Details</h5>
+                        <h5 class="fw-bold mb-0 text-pastel-dark">@Localizer["Details"]</h5>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -597,16 +599,16 @@
                         <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="text-pastel-muted"><i class="far fa-calendar-alt fs-5"></i></div>
-                                <h6 class="mb-0 fw-semibold text-pastel-dark">Created</h6>
+                                <h6 class="mb-0 fw-semibold text-pastel-dark">@Localizer["Created"]</h6>
                             </div>
                             <span class="text-pastel-muted fw-medium">@DateTimeHelper.FormatByLanguage(Model.CreatedDate, langCode)</span>
                         </li>                       
                         <li class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-3">
                                 <div class="text-pastel-muted"><i class="fas fa-shield-alt fs-5"></i></div>
-                                <h6 class="mb-0 fw-semibold text-pastel-dark">Visibility</h6>
+                                <h6 class="mb-0 fw-semibold text-pastel-dark">@Localizer["Visibility"]</h6>
                             </div>
-                            <span class="badge bg-pastel-success-dark badge-visibility rounded-pill shadow-sm">Private</span>
+                            <span class="badge bg-pastel-success-dark badge-visibility rounded-pill shadow-sm">@Localizer["Private"]</span>
                         </li>
                     </ul>
                 </div>
@@ -617,9 +619,9 @@
                 <div class="card-header bg-transparent border-pastel p-4 pb-0 pt-4 pb-3 d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center gap-2">
                         <div class="icon-circle"><i class="fas fa-users text-pastel-primary"></i></div>
-                        <h5 class="fw-bold mb-0 text-pastel-dark">Team</h5>
+                        <h5 class="fw-bold mb-0 text-pastel-dark">@Localizer["Team"]</h5>
                     </div>
-                    <span class="badge rounded-pill" style="background: rgba(99, 102, 241, 0.12); color: var(--primary);">@(memberList.Count + 1) members</span>
+                    <span class="badge rounded-pill" style="background: rgba(99, 102, 241, 0.12); color: var(--primary);">@(memberList.Count + 1) @Localizer["Members"]</span>
                 </div>
                 <div class="card-body p-4">
                     <div class="d-flex flex-column gap-3">
@@ -634,7 +636,7 @@
                                 </div>
                                 <div>
                                     <h6 class="fw-bold text-pastel-dark mb-0">@(Model.Owner?.UserName ?? "Owner")</h6>
-                                    <span class="badge bg-white rounded-pill px-2 py-1 mt-1 border shadow-sm" style="font-size: 0.8rem; color: var(--primary);">Project Owner</span>
+                                    <span class="badge bg-white rounded-pill px-2 py-1 mt-1 border shadow-sm" style="font-size: 0.8rem; color: var(--primary);">@Localizer["ProjectOwner"]</span>
                                 </div>
                             </div>
                         </div>
@@ -660,9 +662,9 @@
                         {
                             <div class="text-center p-4 border border-dashed border-pastel rounded-3 mt-2 bg-pastel-column-bg">
                                 <div class="text-pastel-muted mb-2"><i class="fas fa-user-friends fs-3"></i></div>
-                                <p class="text-pastel-muted small mb-3">No members have joined yet.</p>
+                                <p class="text-pastel-muted small mb-3">@Localizer["NoMembersHaveJoinedYet"]</p>
                                 <button type="button" class="btn btn-outline-pastel rounded-pill btn-sm px-3 shadow-sm bg-white" data-bs-toggle="modal" data-bs-target="#inviteMemberModal">
-                                    <i class="fas fa-plus me-1"></i> Invite Now
+                                    <i class="fas fa-plus me-1"></i> @Localizer["InviteNow"]
                                 </button>
                             </div>
                         }
@@ -1254,4 +1256,4 @@
             }
         });
     </script>
-}
+}

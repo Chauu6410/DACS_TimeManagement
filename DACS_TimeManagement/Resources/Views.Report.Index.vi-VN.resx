@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="ReportingAnalytics" xml:space="preserve"><value>Báo cáo &amp; Phân tích</value></data>
+  <data name="ReportingSubtitle" xml:space="preserve"><value>Theo dõi năng suất của bạn và tìm ra các điểm nghẽn.</value></data>
+  <data name="AllProjects" xml:space="preserve"><value>Tất cả dự án</value></data>
+  <data name="TaskCompletion7Days" xml:space="preserve"><value>Hoàn thành công việc (7 ngày qua)</value></data>
+  <data name="HoursWorked7Days" xml:space="preserve"><value>Số giờ đã làm việc (7 ngày qua)</value></data>
+  <data name="TaskDistribution" xml:space="preserve"><value>Phân bổ công việc</value></data>
+  <data name="BottleneckDetection" xml:space="preserve"><value>Phát hiện điểm nghẽn (Thời gian chờ trung bình)</value></data>
+  <data name="ProductivityHeatmap" xml:space="preserve"><value>Biểu đồ nhiệt năng suất (7 ngày qua)</value></data>
+  <data name="Less" xml:space="preserve"><value>Ít hơn</value></data>
+  <data name="More" xml:space="preserve"><value>Nhiều hơn</value></data>
+  <data name="CompletedTasks" xml:space="preserve"><value>Công việc đã hoàn thành</value></data>
+  <data name="HoursWorked" xml:space="preserve"><value>Số giờ đã làm việc</value></data>
+  <data name="AvgHoursInStage" xml:space="preserve"><value>Số giờ trung bình trong giai đoạn</value></data>
+  <data name="NoData" xml:space="preserve"><value>Không có dữ liệu</value></data>
+  <data name="HoursLog" xml:space="preserve"><value>giờ đã ghi nhận</value></data>
+  <data name="ToDo" xml:space="preserve"><value>Cần làm</value></data>
+  <data name="Doing" xml:space="preserve"><value>Đang làm</value></data>
+  <data name="Done" xml:space="preserve"><value>Hoàn thành</value></data>
+  <data name="InProgress" xml:space="preserve"><value>Đang thực hiện</value></data>
+  <data name="Backlog" xml:space="preserve"><value>Tồn đọng</value></data>
+  <data name="Testing" xml:space="preserve"><value>Kiểm thử</value></data>
+</root>

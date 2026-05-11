@@ -321,21 +321,21 @@
     <div class="work-schedule-body">
         <form id="wsForm">
             <div class="mb-3">
-                <label class="form-label fw-bold small">Giờ làm việc</label>
+                <label class="form-label fw-bold small">@Localizer["WorkingHours"]</label>
                 <div class="d-flex gap-2">
                     <input type="time" id="wsStart" class="form-control form-control-sm" required>
                     <input type="time" id="wsEnd" class="form-control form-control-sm" required>
                 </div>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold small">Nghỉ trưa</label>
+                <label class="form-label fw-bold small">@Localizer["LunchBreak"]</label>
                 <div class="d-flex gap-2">
                     <input type="time" id="wsLunchStart" class="form-control form-control-sm" required>
                     <input type="time" id="wsLunchEnd" class="form-control form-control-sm" required>
                 </div>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold small">Ngày làm việc</label>
+                <label class="form-label fw-bold small">@Localizer["WorkingDays"]</label>
                 <div class="d-flex flex-wrap gap-2">
                     @{
                         var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
@@ -349,7 +349,7 @@
                     }
                 </div>
             </div>
-            <button type="button" onclick="saveWorkSchedule()" class="btn btn-primary btn-sm w-100 rounded-pill shadow-sm">Lưu cấu hình</button>
+            <button type="button" onclick="saveWorkSchedule()" class="btn btn-primary btn-sm w-100 rounded-pill shadow-sm">@Localizer["SaveConfig"]</button>
         </form>
     </div>
 </div>
@@ -365,12 +365,12 @@
             <div class="modal-body p-4 bg-light">
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold small text-uppercase text-muted"><i class="far fa-calendar-check me-1"></i> Ngày bắt đầu lên lịch</label>
+                        <label class="form-label fw-bold small text-uppercase text-muted"><i class="far fa-calendar-check me-1"></i> @Localizer["AIPlanStartDate"]</label>
                         <input type="date" id="aiPlanStartDate" class="form-control border-0 shadow-sm rounded-3" />
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold small text-uppercase text-muted"><i class="fas fa-tasks me-1"></i> Chọn công việc (Theo Project)</label>
+                    <label class="form-label fw-bold small text-uppercase text-muted"><i class="fas fa-tasks me-1"></i> @Localizer["SelectTasksByProject"]</label>
                     <div id="tasksListContainer" class="border-0 rounded-4 p-3 bg-white shadow-sm" style="max-height: 450px; overflow-y: auto;">
                         <div class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin fa-2x mb-3"></i><br>@Localizer["Loading"]</div>
                     </div>
@@ -572,11 +572,11 @@
             let selectedColor = currentColor || colors[0].val;
             
             const result = await Swal.fire({
-                title: 'Chọn màu cho sự kiện',
+                title: '@Localizer["ChooseEventColor"]',
                 html: swatchesHtml,
                 showCancelButton: true,
-                confirmButtonText: 'Lưu',
-                cancelButtonText: 'Hủy',
+                confirmButtonText: '@Localizer["Save"]',
+                cancelButtonText: '@Localizer["Cancel"]',
                 didOpen: () => {
                     const swatches = document.querySelectorAll('.swal-swatch');
                     swatches.forEach(sw => {
@@ -597,7 +597,7 @@
                     if (data.success) {
                         calendar.refetchEvents(); 
                         loadScheduledTasksByDate(); 
-                        Swal.fire('Cập nhật màu thành công!', '', 'success');
+                        Swal.fire('@Localizer["ColorUpdatedSuccess"]', '', 'success');
                     } else Swal.fire('Lỗi', data.message, 'error');
                 } catch(e) { Swal.fire('Lỗi', 'Không thể cập nhật màu', 'error'); }
             }

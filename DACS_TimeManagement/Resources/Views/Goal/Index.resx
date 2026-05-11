@@ -59,168 +59,135 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="GoalManagement" xml:space="preserve">
-    <value>Quản lý mục tiêu</value>
+    <value>Goal Management</value>
   </data>
   <data name="SetUpNewGoal" xml:space="preserve">
-    <value>Thiết lập mục tiêu mới</value>
+    <value>Set Up New Goal</value>
   </data>
   <data name="TotalGoals" xml:space="preserve">
-    <value>Tổng số mục tiêu</value>
+    <value>Total Goals</value>
   </data>
   <data name="Completed" xml:space="preserve">
-    <value>Đã hoàn thành</value>
+    <value>Completed</value>
   </data>
   <data name="DayStreak" xml:space="preserve">
-    <value>Chuỗi ngày</value>
+    <value>Day Streak</value>
   </data>
   <data name="OverallProgress" xml:space="preserve">
-    <value>Tiến độ tổng thể</value>
+    <value>Overall Progress</value>
   </data>
   <data name="SearchGoals" xml:space="preserve">
-    <value>Tìm kiếm mục tiêu...</value>
+    <value>Search goals...</value>
   </data>
   <data name="Status" xml:space="preserve">
-    <value>Trạng thái</value>
+    <value>Status</value>
   </data>
   <data name="Type" xml:space="preserve">
-    <value>Loại</value>
+    <value>Type</value>
   </data>
   <data name="All" xml:space="preserve">
-    <value>Tất cả</value>
+    <value>All</value>
   </data>
   <data name="Active" xml:space="preserve">
-    <value>Đang hoạt động</value>
+    <value>Active</value>
   </data>
   <data name="Behind" xml:space="preserve">
-    <value>Trễ tiến độ</value>
+    <value>Behind</value>
   </data>
   <data name="ProjectBased" xml:space="preserve">
-    <value>Dự án</value>
+    <value>Project Based</value>
   </data>
   <data name="PersonalBased" xml:space="preserve">
-    <value>Cá nhân</value>
+    <value>Personal Based</value>
   </data>
   <data name="NoGoalsDefined" xml:space="preserve">
-    <value>Chưa có mục tiêu nào được xác định</value>
+    <value>No goals defined yet</value>
   </data>
   <data name="StartCreatingGoal" xml:space="preserve">
-    <value>Hãy bắt đầu bằng cách tạo một mục tiêu liên kết với dự án của bạn.</value>
+    <value>Start by creating a goal linked to your project.</value>
   </data>
   <data name="SetYourFirstGoal" xml:space="preserve">
-    <value>Thiết lập mục tiêu đầu tiên</value>
+    <value>Set Your First Goal</value>
   </data>
   <data name="Tasks" xml:space="preserve">
-    <value>Nhiệm vụ</value>
+    <value>Tasks</value>
   </data>
   <data name="Effort" xml:space="preserve">
-    <value>Nỗ lực</value>
+    <value>Effort</value>
   </data>
   <data name="Deadline" xml:space="preserve">
-    <value>Hạn chót</value>
+    <value>Deadline</value>
   </data>
   <data name="AIStrategy" xml:space="preserve">
-    <value>Chiến lược AI</value>
+    <value>AI Strategy</value>
   </data>
   <data name="AnalyzingData" xml:space="preserve">
-    <value>Đang phân tích dữ liệu để tìm chiến lược tối ưu...</value>
+    <value>Analyzing data to find optimal strategy...</value>
   </data>
   <data name="Focus" xml:space="preserve">
-    <value>Tập trung</value>
+    <value>Focus</value>
   </data>
   <data name="DetailsHistory" xml:space="preserve">
-    <value>Chi tiết &amp; Lịch sử</value>
+    <value>Details &amp; History</value>
   </data>
   <data name="Overdue" xml:space="preserve">
-    <value>Quá hạn</value>
+    <value>Overdue</value>
   </data>
   <data name="DueToday" xml:space="preserve">
-    <value>Hết hạn hôm nay</value>
+    <value>Due Today</value>
   </data>
   <data name="DaysLeft" xml:space="preserve">
-    <value>ngày còn lại</value>
+    <value>days left</value>
   </data>
   <data name="DeleteGoalTitle" xml:space="preserve">
-    <value>Xóa mục tiêu?</value>
+    <value>Delete Goal?</value>
   </data>
   <data name="DeleteGoalText" xml:space="preserve">
-    <value>Bạn có chắc chắn muốn xóa mục tiêu này không? Hành động này không thể hoàn tác.</value>
+    <value>Are you sure you want to delete this goal? This action cannot be undone.</value>
   </data>
   <data name="YesDelete" xml:space="preserve">
-    <value>Có, xóa nó</value>
+    <value>Yes, Delete</value>
   </data>
   <data name="Cancel" xml:space="preserve">
-    <value>Hủy</value>
+    <value>Cancel</value>
   </data>
   <data name="CompletedStatus" xml:space="preserve">
-    <value>Hoàn thành</value>
+    <value>Completed</value>
   </data>
   <data name="AtRisk" xml:space="preserve">
-    <value>Rủi ro</value>
+    <value>At Risk</value>
   </data>
   <data name="Finishing" xml:space="preserve">
-    <value>Đang về đích</value>
+    <value>Finishing</value>
   </data>
   <data name="Excellent" xml:space="preserve">
-    <value>Xuất sắc</value>
+    <value>Excellent</value>
   </data>
   <data name="Ahead" xml:space="preserve">
-    <value>Vượt tiến độ</value>
+    <value>Ahead</value>
   </data>
   <data name="OnTrack" xml:space="preserve">
-    <value>Đúng tiến độ</value>
+    <value>On Track</value>
   </data>
   <data name="StartingUp" xml:space="preserve">
-    <value>Đang khởi động</value>
+    <value>Starting Up</value>
   </data>
   <data name="Initializing" xml:space="preserve">
-    <value>Đang khởi tạo</value>
+    <value>Initializing</value>
   </data>
   <data name="RefreshData" xml:space="preserve">
-    <value>Làm mới dữ liệu</value>
+    <value>Refresh Data</value>
   </data>
   <data name="Edit" xml:space="preserve">
-    <value>Sửa</value>
+    <value>Edit</value>
   </data>
   <data name="Delete" xml:space="preserve">
-    <value>Xóa</value>
+    <value>Delete</value>
   </data>
   <data name="UpdateStrategy" xml:space="preserve">
-    <value>Cập nhật chiến lược</value>
+    <value>Update Strategy</value>
   </data>
   <data name="AIDataAnalyzing" xml:space="preserve">
-    <value>AI đang phân tích dữ liệu mới nhất...</value>
-  </data>
-  <data name="EditGoal" xml:space="preserve">
-    <value>Sửa mục tiêu</value>
-  </data>
-  <data name="UpdateObjectiveDetails" xml:space="preserve">
-    <value>Cập nhật thông tin chi tiết mục tiêu</value>
-  </data>
-  <data name="GoalTitle" xml:space="preserve">
-    <value>Tiêu đề mục tiêu</value>
-  </data>
-  <data name="LinkedProject" xml:space="preserve">
-    <value>Dự án liên kết</value>
-  </data>
-  <data name="SelectAProject" xml:space="preserve">
-    <value>-- Chọn một dự án --</value>
-  </data>
-  <data name="Description" xml:space="preserve">
-    <value>Mô tả</value>
-  </data>
-  <data name="TargetDate" xml:space="preserve">
-    <value>Ngày mục tiêu</value>
-  </data>
-  <data name="TargetHours" xml:space="preserve">
-    <value>Số giờ mục tiêu</value>
-  </data>
-  <data name="Hours" xml:space="preserve">
-    <value>giờ</value>
-  </data>
-  <data name="SaveChanges" xml:space="preserve">
-    <value>Lưu thay đổi</value>
-  </data>
-  <data name="Rendering" xml:space="preserve">
-    <value>Đang hiển thị...</value>
+    <value>AI is analyzing latest data...</value>
   </data>
 </root>

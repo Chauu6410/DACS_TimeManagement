@@ -130,4 +130,40 @@
   <data name="Reject" xml:space="preserve">
     <value>Từ chối</value>
   </data>
+  <data name="EditTaskDetail" xml:space="preserve">
+    <value>Sửa công việc</value>
+  </data>
+  <data name="UpdateTaskDetails" xml:space="preserve">
+    <value>Cập nhật chi tiết công việc và tiến độ</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Tiêu đề</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Mô tả</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Ngày bắt đầu</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>Ngày kết thúc</value>
+  </data>
+  <data name="Priority" xml:space="preserve">
+    <value>Độ ưu tiên</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Tiến độ (%)</value>
+  </data>
+  <data name="Assignee" xml:space="preserve">
+    <value>Người thực hiện</value>
+  </data>
+  <data name="PrivateTask" xml:space="preserve">
+    <value>Công việc riêng tư (Mã hóa)</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>Lưu thay đổi</value>
+  </data>
 </root>

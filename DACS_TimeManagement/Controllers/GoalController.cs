@@ -409,8 +409,9 @@ namespace DACS_TimeManagement.Controllers
         // POST: Goal/RecordFocusSession
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RecordFocusSession(int goalId, int? taskId, double durationHours, string? note = null)
+        public async Task<IActionResult> RecordFocusSession(int goalId, int? taskId, int durationSeconds, string? note = null)
         {
+            double durationHours = durationSeconds / 3600.0;
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var goal = await _db.PersonalGoals.FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId);
             

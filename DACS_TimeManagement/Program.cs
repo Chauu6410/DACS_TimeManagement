@@ -6,6 +6,8 @@ using DACS_TimeManagement.Services;
 using DACS_TimeManagement.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,12 +22,16 @@ builder.Services.AddControllersWithViews()
 
 // 1.1 CẤU HÌNH LOCALIZATION
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
     var supportedCultures = new[] { "en-US", "vi-VN" };
     options.SetDefaultCulture(supportedCultures[0])
            .AddSupportedCultures(supportedCultures)
            .AddSupportedUICultures(supportedCultures);
+
+    // Ensure cookie provider is checked before Accept-Language header so user selection persists
+    options.RequestCultureProviders.Insert(0, new CookieRequestCultureProvider());
 });
 
 builder.Services.AddSignalR();

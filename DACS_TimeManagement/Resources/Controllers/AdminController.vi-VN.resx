@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="0" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotChangeRole" xml:space="preserve">
+    <value>Không thể thay đổi quyền của người dùng này.</value>
+  </data>
+  <data name="DemotedUser" xml:space="preserve">
+    <value>Đã hạ quyền {0} xuống Thành viên.</value>
+  </data>
+  <data name="PromotedUser" xml:space="preserve">
+    <value>Đã nâng quyền {0} lên Quản trị viên.</value>
+  </data>
+  <data name="CannotLockUser" xml:space="preserve">
+    <value>Không thể khóa/mở khóa người dùng này.</value>
+  </data>
+  <data name="UnlockedUser" xml:space="preserve">
+    <value>Đã mở khóa tài khoản {0}.</value>
+  </data>
+  <data name="LockedUser" xml:space="preserve">
+    <value>Đã khóa tài khoản {0}.</value>
+  </data>
+  <data name="UserNotFoundOrProtected" xml:space="preserve">
+    <value>Không tìm thấy người dùng hoặc tài khoản bị bảo vệ.</value>
+  </data>
+  <data name="UserDeleted" xml:space="preserve">
+    <value>Đã xóa thành công người dùng {0}.</value>
+  </data>
+  <data name="FailedToDeleteUser" xml:space="preserve">
+    <value>Xóa người dùng thất bại.</value>
+  </data>
+  <data name="NoUsersSelected" xml:space="preserve">
+    <value>Chưa chọn người dùng nào.</value>
+  </data>
+  <data name="BulkDeleted" xml:space="preserve">
+    <value>Đã xóa thành công {0} người dùng.</value>
+  </data>
+  <data name="BulkAdminToggled" xml:space="preserve">
+    <value>Đã nâng quyền {0} và hạ quyền {1} người dùng.</value>
+  </data>
+  <data name="BulkLockToggled" xml:space="preserve">
+    <value>Đã khóa {0} và mở khóa {1} người dùng.</value>
+  </data>
+</root>
