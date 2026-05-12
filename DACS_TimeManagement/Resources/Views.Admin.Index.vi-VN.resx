@@ -34,10 +34,30 @@
   <data name="ConfirmBulkDelete" xml:space="preserve"><value>Bạn có muốn xóa tất cả người dùng đã chọn?</value></data>
   <data name="ConfirmBulkAdminToggle" xml:space="preserve"><value>Bạn có muốn chuyển đổi quyền Admin cho các người dùng đã chọn?</value></data>
   <data name="ConfirmBulkLockToggle" xml:space="preserve"><value>Bạn có muốn chuyển đổi trạng thái Khóa cho các người dùng đã chọn?</value></data>
-  <data name="WelcomeBack" xml:space="preserve"><value>Chào mừng trở lại</value></data>
-  <data name="SystemStatus" xml:space="preserve"><value>Trạng thái hệ thống</value></data>
-  <data name="Online" xml:space="preserve"><value>Trực tuyến</value></data>
-  <data name="ToggleAdminRole" xml:space="preserve"><value>Chuyển đổi quyền Quản trị</value></data>
-  <data name="ToggleLockStatus" xml:space="preserve"><value>Chuyển đổi trạng thái Khóa</value></data>
-  <data name="DeleteSelected" xml:space="preserve"><value>Xóa đã chọn</value></data>
+  <data name="EnableSelection" xml:space="preserve"><value>Bật chọn nhiều</value></data>
+  <data name="DisableSelection" xml:space="preserve"><value>Tắt chọn nhiều</value></data>
+  <data name="SearchEmailPlaceholder" xml:space="preserve"><value>Tìm theo email...</value></data>
+  <data name="SetAsAdmin" xml:space="preserve"><value>Gán quyền Admin</value></data>
+  <data name="RemoveAdmin" xml:space="preserve"><value>Gỡ quyền Admin</value></data>
+  <data name="ConfirmEmail" xml:space="preserve"><value>Xác thực Email</value></data>
+  <data name="Clear" xml:space="preserve"><value>Xóa chọn</value></data>
+  <data name="NoUsersSelected" xml:space="preserve"><value>Chưa chọn người dùng nào</value></data>
+  <data name="ConfirmSetAdmin" xml:space="preserve"><value>Gán quyền Admin cho các người dùng đã chọn?</value></data>
+  <data name="UsersUpdatedToAdmin" xml:space="preserve"><value>Đã gán quyền Admin thành công</value></data>
+  <data name="ConfirmRemoveAdmin" xml:space="preserve"><value>Gỡ quyền Admin của các người dùng đã chọn?</value></data>
+  <data name="AdminRoleRemoved" xml:space="preserve"><value>Đã gỡ quyền Admin thành công</value></data>
+  <data name="ConfirmLockUsers" xml:space="preserve"><value>Khóa các người dùng đã chọn?</value></data>
+  <data name="UsersLocked" xml:space="preserve"><value>Đã khóa người dùng thành công</value></data>
+  <data name="ConfirmUnlockUsers" xml:space="preserve"><value>Mở khóa các người dùng đã chọn?</value></data>
+  <data name="UsersUnlocked" xml:space="preserve"><value>Đã mở khóa người dùng thành công</value></data>
+  <data name="ConfirmEmails" xml:space="preserve"><value>Xác thực email cho các người dùng đã chọn?</value></data>
+  <data name="EmailsConfirmed" xml:space="preserve"><value>Đã xác thực email thành công</value></data>
+  <data name="ConfirmAction" xml:space="preserve"><value>Xác nhận hành động</value></data>
+  <data name="YesProceed" xml:space="preserve"><value>Vâng, tiếp tục</value></data>
+  <data name="Completed" xml:space="preserve"><value>Đã hoàn thành</value></data>
+  <data name="NetworkError" xml:space="preserve"><value>Lỗi mạng. Vui lòng thử lại.</value></data>
+  <data name="Error" xml:space="preserve"><value>Lỗi</value></data>
+  <data name="LastAccess" xml:space="preserve"><value>Truy cập cuối</value></data>
+  <data name="Never" xml:space="preserve"><value>Chưa bao giờ</value></data>
+  <data name="BulkEmailsConfirmed" xml:space="preserve"><value>Đã xác thực email thành công cho {0} người dùng.</value></data>
 </root>

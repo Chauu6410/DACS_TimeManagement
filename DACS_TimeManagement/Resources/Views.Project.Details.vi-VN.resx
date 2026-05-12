@@ -34,4 +34,59 @@
   <data name="RecordingVoice" xml:space="preserve"><value>Đang ghi âm...</value></data>
   <data name="Cancel" xml:space="preserve"><value>Hủy</value></data>
   <data name="AttachFile" xml:space="preserve"><value>Đính kèm tệp</value></data>
+  <data name="Link" xml:space="preserve"><value>Liên kết</value></data>
+  <data name="LinkExistingGoal" xml:space="preserve"><value>Liên kết Mục tiêu Hiện có</value></data>
+  <data name="SelectGoalToLinkDesc" xml:space="preserve"><value>Chọn một mục tiêu từ danh sách của bạn để liên kết với dự án này.</value></data>
+  <data name="CreateNewGoal" xml:space="preserve"><value>Tạo Mục tiêu Mới</value></data>
+  <data name="Close" xml:space="preserve"><value>Đóng</value></data>
+  <data name="Clear" xml:space="preserve"><value>Xóa</value></data>
+  <data name="SuggestedTasks" xml:space="preserve"><value>Công việc đề xuất</value></data>
+  <data name="ImportAllToKanbanTodo" xml:space="preserve"><value>Thêm tất cả vào Kanban "Cần làm"</value></data>
+  <data name="GeminiThinking" xml:space="preserve"><value>Gemini đang suy nghĩ...</value></data>
+  <data name="AddTeamMember" xml:space="preserve"><value>Thêm thành viên nhóm</value></data>
+  <data name="InviteColleaguesDesc" xml:space="preserve"><value>Mời đồng nghiệp cùng cộng tác</value></data>
+  <data name="InviteColleaguesDetail" xml:space="preserve"><value>Họ sẽ có quyền truy cập vào bảng dự án và các công việc ngay lập tức.</value></data>
+  <data name="ColleagueEmail" xml:space="preserve"><value>Email của đồng nghiệp</value></data>
+  <data name="UserMustRegistered" xml:space="preserve"><value>Người dùng phải có tài khoản đã đăng ký.</value></data>
+  <data name="SendInvite" xml:space="preserve"><value>Gửi lời mời</value></data>
+  <data name="ConnectionInterrupted" xml:space="preserve"><value>Kết nối bị gián đoạn. Vui lòng thử lại.</value></data>
+  <data name="Importing" xml:space="preserve"><value>Đang nhập...</value></data>
+  <data name="TasksImported" xml:space="preserve"><value>Đã nhập công việc!</value></data>
+  <data name="TasksImportedSuccess" xml:space="preserve"><value>Đã thêm {0} công việc vào bảng Kanban của bạn.</value></data>
+  <data name="FailedToImport" xml:space="preserve"><value>Lỗi khi nhập công việc.</value></data>
+  <data name="ProjectName" xml:space="preserve"><value>Tên dự án</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Lưu thay đổi</value></data>
+  <data name="Saving" xml:space="preserve"><value>Đang lưu...</value></data>
+  <data name="ErrorUpdatingProject" xml:space="preserve"><value>Có lỗi xảy ra khi cập nhật dự án.</value></data>
+  <data name="NetworkError" xml:space="preserve"><value>Có lỗi mạng. Vui lòng thử lại.</value></data>
+  <data name="NoMessagesYet" xml:space="preserve"><value>Chưa có tin nhắn</value></data>
+  <data name="BeFirstStartConversation" xml:space="preserve"><value>Hãy là người đầu tiên bắt đầu cuộc trò chuyện.</value></data>
+  <data name="FailedToLoadMessages" xml:space="preserve"><value>Không thể tải tin nhắn.</value></data>
+  <data name="DeleteMessageConfirm" xml:space="preserve"><value>Bạn có chắc chắn muốn xóa tin nhắn này không?</value></data>
+  <data name="FailedToDeleteMessage" xml:space="preserve"><value>Không thể xóa tin nhắn.</value></data>
+  <data name="ErrorDeletingMessage" xml:space="preserve"><value>Lỗi khi xóa tin nhắn.</value></data>
+  <data name="NoGoalsLinked" xml:space="preserve"><value>Chưa liên kết mục tiêu</value></data>
+  <data name="LinkProjectGoalDesc" xml:space="preserve"><value>Liên kết dự án này với mục tiêu cá nhân để theo dõi đóng góp.</value></data>
+  <data name="LinkGoal" xml:space="preserve"><value>Liên kết mục tiêu</value></data>
+  <data name="Information" xml:space="preserve"><value>Thông tin</value></data>
+  <data name="OnTrack" xml:space="preserve"><value>Đúng tiến độ</value></data>
+  <data name="AtRisk" xml:space="preserve"><value>Có rủi ro</value></data>
+  <data name="ViewDetails" xml:space="preserve"><value>Xem chi tiết</value></data>
+  <data name="UnlinkProject" xml:space="preserve"><value>Hủy liên kết</value></data>
+  <data name="AllGoalsLinked" xml:space="preserve"><value>Tất cả mục tiêu đã được liên kết hoặc chưa có mục tiêu nào.</value></data>
+  <data name="ErrorLoadingGoals" xml:space="preserve"><value>Lỗi khi tải mục tiêu.</value></data>
+  <data name="GoalLinked" xml:space="preserve"><value>Đã liên kết mục tiêu</value></data>
+  <data name="GoalLinkedDesc" xml:space="preserve"><value>Dự án này hiện đang đóng góp vào tiến trình mục tiêu của bạn.</value></data>
+  <data name="AreYouSure" xml:space="preserve"><value>Bạn có chắc chắn không?</value></data>
+  <data name="UnlinkConfirmDesc" xml:space="preserve"><value>Dự án này sẽ không còn đóng góp cho mục tiêu này nữa.</value></data>
+  <data name="YesUnlinkIt" xml:space="preserve"><value>Có, hủy liên kết!</value></data>
+  <data name="Unlinked" xml:space="preserve"><value>Đã hủy liên kết!</value></data>
+  <data name="UnlinkedSuccess" xml:space="preserve"><value>Mục tiêu đã được hủy liên kết khỏi dự án này.</value></data>
+  <data name="ErrorUnlinkingGoal" xml:space="preserve"><value>Lỗi khi hủy liên kết mục tiêu.</value></data>
+  <data name="MicAccessDenied" xml:space="preserve"><value>Không thể truy cập micro. Vui lòng kiểm tra quyền truy cập.</value></data>
+  <data name="Member" xml:space="preserve"><value>Thành viên</value></data>
+  <data name="EmailPlaceholder" xml:space="preserve"><value>ví dụ: alex@company.com</value></data>
+  <data name="Owner" xml:space="preserve"><value>Chủ sở hữu</value></data>
+  <data name="SeeMore" xml:space="preserve"><value>Xem thêm</value></data>
+  <data name="SeeLess" xml:space="preserve"><value>Thu gọn</value></data>
 </root>

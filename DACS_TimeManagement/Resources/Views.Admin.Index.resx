@@ -34,4 +34,30 @@
   <data name="ConfirmBulkDelete" xml:space="preserve"><value>Do you want to delete all selected users?</value></data>
   <data name="ConfirmBulkAdminToggle" xml:space="preserve"><value>Do you want to toggle Admin role for selected users?</value></data>
   <data name="ConfirmBulkLockToggle" xml:space="preserve"><value>Do you want to toggle Lock status for selected users?</value></data>
+  <data name="EnableSelection" xml:space="preserve"><value>Enable selection</value></data>
+  <data name="DisableSelection" xml:space="preserve"><value>Disable selection</value></data>
+  <data name="SearchEmailPlaceholder" xml:space="preserve"><value>Search email...</value></data>
+  <data name="SetAsAdmin" xml:space="preserve"><value>Set as Admin</value></data>
+  <data name="RemoveAdmin" xml:space="preserve"><value>Remove Admin</value></data>
+  <data name="ConfirmEmail" xml:space="preserve"><value>Confirm Email</value></data>
+  <data name="Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="NoUsersSelected" xml:space="preserve"><value>No users selected</value></data>
+  <data name="ConfirmSetAdmin" xml:space="preserve"><value>Set selected users as admin?</value></data>
+  <data name="UsersUpdatedToAdmin" xml:space="preserve"><value>Users updated to Admin</value></data>
+  <data name="ConfirmRemoveAdmin" xml:space="preserve"><value>Remove admin role from selected users?</value></data>
+  <data name="AdminRoleRemoved" xml:space="preserve"><value>Admin role removed</value></data>
+  <data name="ConfirmLockUsers" xml:space="preserve"><value>Lock selected users?</value></data>
+  <data name="UsersLocked" xml:space="preserve"><value>Users locked</value></data>
+  <data name="ConfirmUnlockUsers" xml:space="preserve"><value>Unlock selected users?</value></data>
+  <data name="UsersUnlocked" xml:space="preserve"><value>Users unlocked</value></data>
+  <data name="ConfirmEmails" xml:space="preserve"><value>Confirm email for selected users?</value></data>
+  <data name="EmailsConfirmed" xml:space="preserve"><value>Emails confirmed</value></data>
+  <data name="ConfirmAction" xml:space="preserve"><value>Confirm action</value></data>
+  <data name="YesProceed" xml:space="preserve"><value>Yes, proceed</value></data>
+  <data name="Completed" xml:space="preserve"><value>Completed</value></data>
+  <data name="NetworkError" xml:space="preserve"><value>Network error. Please try again.</value></data>
+  <data name="Error" xml:space="preserve"><value>Error</value></data>
+  <data name="LastAccess" xml:space="preserve"><value>Last Access</value></data>
+  <data name="Never" xml:space="preserve"><value>Never</value></data>
+  <data name="BulkEmailsConfirmed" xml:space="preserve"><value>Successfully confirmed email for {0} users.</value></data>
 </root>

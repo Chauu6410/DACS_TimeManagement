@@ -7,7 +7,7 @@
 
 <div class="admin-container" data-aos="fade-up">
 
-    <!-- KHẮC PHỤC BUG (3): Sinh sẵn Anti-forgery Token Ẩn để Fetch API Toggle Role/Lock luôn hoạt động -->
+    <!-- Anti-forgery token for fetch calls -->
     <form id="antiForgeryForm" method="post">@Html.AntiForgeryToken()</form>
 
     @if (TempData["Success"] != null)
@@ -17,6 +17,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
+
     <!-- Header -->
     <div class="welcome-card card border-0 shadow-xl rounded-4 overflow-hidden mb-4">
         <div class="bg-gradient-primary text-white p-4">
@@ -34,15 +35,13 @@
         </div>
     </div>
 
-    <!-- Stats Cards (Pastel) -->
+    <!-- Stats Cards -->
     <div class="row g-4 mb-5">
         <div class="col-md-4">
             <div class="stats-card-pastel pastel-indigo h-100">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-icon mb-2">
-                            <i class="fas fa-users fa-2x"></i>
-                        </div>
+                        <div class="stats-icon mb-2"><i class="fas fa-users fa-2x"></i></div>
                         <div class="stats-number display-4 fw-bold">@Model.TotalUsers</div>
                         <div class="stats-label text-pastel-muted small fw-semibold">@Localizer["TotalUsers"]</div>
                     </div>
@@ -54,9 +53,7 @@
             <div class="stats-card-pastel pastel-green h-100">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-icon mb-2">
-                            <i class="fas fa-project-diagram fa-2x"></i>
-                        </div>
+                        <div class="stats-icon mb-2"><i class="fas fa-project-diagram fa-2x"></i></div>
                         <div class="stats-number display-4 fw-bold">@Model.TotalProjects</div>
                         <div class="stats-label text-pastel-muted small fw-semibold">@Localizer["TotalProjects"]</div>
                     </div>
@@ -68,9 +65,7 @@
             <div class="stats-card-pastel pastel-cyan h-100">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <div class="stats-icon mb-2">
-                            <i class="fas fa-tasks fa-2x"></i>
-                        </div>
+                        <div class="stats-icon mb-2"><i class="fas fa-tasks fa-2x"></i></div>
                         <div class="stats-number display-4 fw-bold">@Model.TotalTasks</div>
                         <div class="stats-label text-pastel-muted small fw-semibold">@Localizer["TotalWorkTasks"]</div>
                     </div>
@@ -80,42 +75,110 @@
         </div>
     </div>
 
-    <!-- Users List Table (Pastel) -->
+    <!-- Users List with Search & Bulk Actions -->
     <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
         <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-            <div class="d-flex align-items-center gap-2">
-                <div class="icon-circle bg-pastel-primary-soft" style="width: 36px; height: 36px;">
-                    <i class="fas fa-users-cog text-pastel-primary fs-6"></i>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="icon-circle bg-pastel-primary-soft" style="width: 36px; height: 36px;">
+                        <i class="fas fa-users-cog text-pastel-primary fs-6"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0 text-pastel-dark">@Localizer["RegisteredUsers"]</h5>
                 </div>
-                <h5 class="fw-bold mb-0 text-pastel-dark">@Localizer["RegisteredUsers"]</h5>
+                <div class="d-flex gap-2 align-items-center">
+                    <!-- Selection Mode Toggle Button -->
+                    <button type="button" id="toggleSelectionModeBtn" class="btn btn-sm btn-outline-secondary rounded-pill">
+                        <i class="fas fa-check-double me-1"></i> <span id="selectionModeText">@Localizer["EnableSelection"]</span>
+                    </button>
+                    <!-- Search input -->
+                    <div class="search-box" style="min-width: 250px;">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="searchUserInput" class="form-control border-start-0" placeholder="@Localizer["SearchEmailPlaceholder"]" aria-label="Search">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Actions Toolbar (initially hidden) -->
+            <div class="bulk-actions-bar mt-3 d-flex flex-wrap gap-2 align-items-center" id="bulkActionsBar" style="display: none;">
+                <span class="me-2 small fw-semibold text-pastel-muted"><i class="fas fa-check-circle me-1"></i><span id="selectedCount">0</span> @Localizer["Selected"]</span>
+                <div class="vr"></div>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill bulk-action" data-action="set-admin">
+                    <i class="fas fa-user-shield me-1"></i> @Localizer["SetAsAdmin"]
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-warning rounded-pill bulk-action" data-action="remove-admin">
+                    <i class="fas fa-user-minus me-1"></i> @Localizer["RemoveAdmin"]
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill bulk-action" data-action="lock">
+                    <i class="fas fa-lock me-1"></i> @Localizer["Lock"]
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-success rounded-pill bulk-action" data-action="unlock">
+                    <i class="fas fa-unlock me-1"></i> @Localizer["Unlock"]
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill bulk-action" data-action="delete">
+                    <i class="fas fa-trash-alt me-1"></i> @Localizer["Delete"]
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-info rounded-pill bulk-action" data-action="confirm-email">
+                    <i class="fas fa-envelope-open-text me-1"></i> @Localizer["ConfirmEmail"]
+                </button>
+                <button type="button" class="btn btn-sm btn-link text-muted ms-auto" id="clearSelectionBtn">@Localizer["Clear"]</button>
             </div>
         </div>
+
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-pastel align-middle m-0">
+                <table class="table table-pastel align-middle m-0" id="usersTable">
                     <thead>
-                        <tr>
-                            <th class="ps-4">@Localizer["UserID"]</th>
+                        <tr id="tableHeaderRow">
+                            <!-- Selection checkbox column (hidden by default) -->
+                            <th id="selectHeaderTh" style="width: 40px; display: none;" class="ps-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
+                                </div>
+                            </th>
+                            <th>@Localizer["UserID"]</th>
                             <th>@Localizer["EmailUsername"]</th>
+                            <th>@Localizer["LastAccess"]</th>
                             <th>@Localizer["EmailConfirmed"]</th>
                             <th class="text-end pe-4">@Localizer["Actions"]</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach (var user in Model.Users)
+                    <tbody id="usersTableBody">
+                        @foreach (var detail in Model.UserDetails)
                         {
-                            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
-                            var isLocked = await _userManager.IsLockedOutAsync(user);
-                            <tr>
-                                <td class="ps-4 text-pastel-muted small font-monospace">@user.Id</td>
+                            var user = detail.User;
+                            var isAdmin = detail.IsAdmin;
+                            var isLocked = detail.IsLocked;
+                            var isSuperAdmin = (user.Email == "admin@gmail.com");
+                            <tr data-user-id="@user.Id" data-email="@user.Email" data-is-admin="@isAdmin.ToString().ToLower()" data-is-locked="@isLocked.ToString().ToLower()">
+                                <td class="select-td ps-4" style="display: none;">
+                                    @if (!isSuperAdmin)
+                                    {
+                                        <div class="form-check">
+                                            <input class="form-check-input user-select-checkbox" type="checkbox" value="@user.Id">
+                                        </div>
+                                    }
+                                </td>
+                                <td class="text-pastel-muted small font-monospace">@user.Id</td>
                                 <td class="fw-semibold text-pastel-dark">
                                     @if (isAdmin)
                                     {
-                                        <span class="badge bg-pastel-danger me-2">@Localizer["Admin"]</span>
+                                        <span class="badge bg-pastel-danger me-2 admin-badge">@Localizer["Admin"]</span>
                                     }
-                                    @user.Email
+                                    <span class="user-email">@user.Email</span>
                                 </td>
                                 <td>
+                                    @if (detail.LastAccess.HasValue)
+                                    {
+                                        <span class="text-muted small time-ago" data-timestamp="@detail.LastAccess.Value.ToString("o")">@detail.LastAccess.Value.ToString("g")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small italic">@Localizer["Never"]</span>
+                                    }
+                                </td>
+                                <td class="email-confirmed-cell">
                                     @if (user.EmailConfirmed)
                                     {
                                         <span class="badge bg-pastel-success rounded-pill px-3 py-1">
@@ -124,32 +187,33 @@
                                     }
                                     else
                                     {
-                                        <form asp-action="ConfirmEmail" asp-route-userId="@user.Id" method="post" class="d-inline">
-                                            <button type="submit" class="badge bg-pastel-warning border-0 rounded-pill px-3 py-1 text-dark cursor-pointer" style="cursor: pointer;">
-                                                <i class="fas fa-clock me-1"></i>@Localizer["PendingFix"]
-                                            </button>
-                                        </form>
+                                        <button type="button" class="badge bg-pastel-warning border-0 rounded-pill px-3 py-1 text-dark confirm-email-individual" data-user-id="@user.Id" style="cursor: pointer;">
+                                            <i class="fas fa-clock me-1"></i>@Localizer["PendingFix"]
+                                        </button>
                                     }
                                 </td>
                                 <td class="text-end pe-4">
-                                    @if (user.Email != "admin@gmail.com")
+                                    @if (!isSuperAdmin)
                                     {
                                         <div class="btn-group shadow-sm rounded-pill overflow-hidden">
                                             <button type="button" class="btn btn-sm bg-white text-primary border-end toggle-admin-btn" data-user-id="@user.Id" data-is-admin="@(isAdmin ? "true" : "false")" title="@Localizer["ToggleAdminUser"]">
                                                 <i class="fas fa-user-tag"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm bg-white @(isLocked ? "text-success" : "text-danger") toggle-lock-btn" data-user-id="@user.Id" data-is-locked="@(isLocked ? "true" : "false")" title="@(isLocked ? Localizer["Unlock"].Value : Localizer["Lock"].Value)">
-                                                <i class="fas @(isLocked ? "fa-unlock" : "fa-lock")"></i>
+                                            <button type="button" class="btn btn-sm bg-white toggle-lock-btn @(isLocked ? "text-danger" : "text-success")" data-user-id="@user.Id" data-is-locked="@(isLocked ? "true" : "false")" title="@(isLocked ? Localizer["Unlock"].Value : Localizer["Lock"].Value)">
+                                                <i class="fas @(isLocked ? "fa-lock" : "fa-unlock")"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm bg-white text-danger delete-user-btn" data-user-id="@user.Id" title="@Localizer["Delete"]">
+                                                <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </div>
                                     }
                                 </td>
                             </tr>
                         }
-                        @if (!Model.Users.Any())
+                        @if (!Model.UserDetails.Any())
                         {
-                            <tr>
-                                <td colspan="4" class="text-center text-pastel-muted py-5">@Localizer["NoUsersFound"]</td>
+                            <tr id="noUsersRow">
+                                <td colspan="5" class="text-center text-pastel-muted py-5">@Localizer["NoUsersFound"]</td>
                             </tr>
                         }
                     </tbody>
@@ -157,107 +221,17 @@
             </div>
         </div>
     </div>
-    @section Scripts {
+</div>
+
+@section Scripts {
     <script>
-        // Handle Toggle Admin Role
-        document.querySelectorAll('.toggle-admin-btn').forEach(btn => {
-            btn.addEventListener('click', async function(e) {
-                const userId = this.dataset.userId;
-                const isAdmin = this.dataset.isAdmin === 'true';
-                const originalHtml = this.innerHTML;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                this.disabled = true;
+        // Helper: get anti-forgery token
+        function getAntiForgeryToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        }
 
-                try {
-                    const response = await fetch('/Admin/ToggleAdminRole', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                        },
-                        body: `userId=${encodeURIComponent(userId)}`
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        showToast(result.message, 'success');
-                        // Cập nhật giao diện: thay đổi badge Admin và trạng thái nút
-                        const row = this.closest('tr');
-                        const emailCell = row.cells[1];
-                        const badgeSpan = emailCell.querySelector('.badge.bg-pastel-danger');
-                        if (result.isAdmin) {
-                            if (!badgeSpan) {
-                                const newBadge = document.createElement('span');
-                                newBadge.className = 'badge bg-pastel-danger me-2';
-                                newBadge.innerText = '@Localizer["Admin"]';
-                                emailCell.insertBefore(newBadge, emailCell.firstChild);
-                            }
-                            this.dataset.isAdmin = 'true';
-                        } else {
-                            if (badgeSpan) badgeSpan.remove();
-                            this.dataset.isAdmin = 'false';
-                        }
-                    } else {
-                        showToast(result.message || 'Error', 'error');
-                    }
-                } catch (err) {
-                    showToast('Network error', 'error');
-                } finally {
-                    this.innerHTML = originalHtml;
-                    this.disabled = false;
-                }
-            });
-        });
-
-        // Handle Toggle Lockout
-        document.querySelectorAll('.toggle-lock-btn').forEach(btn => {
-            btn.addEventListener('click', async function(e) {
-                const userId = this.dataset.userId;
-                const isLocked = this.dataset.isLocked === 'true';
-                const originalHtml = this.innerHTML;
-                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                this.disabled = true;
-
-                try {
-                    const response = await fetch('/Admin/ToggleLockout', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                        },
-                        body: `userId=${encodeURIComponent(userId)}`
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        showToast(result.message, 'success');
-                        // Cập nhật icon và trạng thái
-                        const icon = this.querySelector('i');
-                        if (result.isLocked) {
-                            icon.className = 'fas fa-unlock';
-                            this.classList.add('text-success');
-                            this.classList.remove('text-danger');
-                            this.title = '@Localizer["Unlock"]';
-                            this.dataset.isLocked = 'true';
-                        } else {
-                            icon.className = 'fas fa-lock';
-                            this.classList.add('text-danger');
-                            this.classList.remove('text-success');
-                            this.title = '@Localizer["Lock"]';
-                            this.dataset.isLocked = 'false';
-                        }
-                    } else {
-                        showToast(result.message || 'Error', 'error');
-                    }
-                } catch (err) {
-                    showToast('Network error', 'error');
-                } finally {
-                    this.innerHTML = originalHtml;
-                    this.disabled = false;
-                }
-            });
-        });
-
-        function showToast(message, type) {
-            // Tạo toast tạm thời
+        // Show temporary toast
+        window.showToast = function(message, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `alert alert-pastel-${type} alert-dismissible fade show position-fixed bottom-0 end-0 m-3 shadow-lg`;
             toast.style.zIndex = '9999';
@@ -272,23 +246,363 @@
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+        };
+
+        // ==================== SELECTION MODE TOGGLE ====================
+        let selectionMode = false;
+        const toggleBtn = document.getElementById('toggleSelectionModeBtn');
+        const selectionModeTextSpan = document.getElementById('selectionModeText');
+        const selectHeaderTh = document.getElementById('selectHeaderTh');
+        const allSelectTds = document.querySelectorAll('#usersTableBody .select-td');
+        const bulkActionsBar = document.getElementById('bulkActionsBar');
+
+        function updateSelectionModeUI() {
+            // Show/hide checkbox column
+            if (selectHeaderTh) selectHeaderTh.style.display = selectionMode ? '' : 'none';
+            allSelectTds.forEach(td => td.style.display = selectionMode ? '' : 'none');
+            // Hide bulk actions bar when selection mode off
+            if (!selectionMode) {
+                bulkActionsBar.style.display = 'none';
+                // Uncheck all checkboxes
+                document.querySelectorAll('.user-select-checkbox').forEach(cb => cb.checked = false);
+                updateSelectAllCheckbox(); // will also clear selected count
+            } else {
+                // When selection mode enabled, we keep bulk bar hidden until at least one checkbox checked
+                updateSelectedCount(); // will show bar if count>0
+            }
+            // Update button text
+            selectionModeTextSpan.innerText = selectionMode ? '@Localizer["DisableSelection"]' : '@Localizer["EnableSelection"]';
         }
+
+        toggleBtn.addEventListener('click', () => {
+            selectionMode = !selectionMode;
+            updateSelectionModeUI();
+            // Re-run search filter to maintain row visibility (no change needed)
+            filterUsers();
+        });
+
+        // ==================== SEARCH FUNCTIONALITY ====================
+        const searchInput = document.getElementById('searchUserInput');
+        const tableRows = document.querySelectorAll('#usersTableBody tr[data-user-id]');
+
+        function filterUsers() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            let hasVisible = false;
+            tableRows.forEach(row => {
+                const email = row.querySelector('.user-email')?.innerText.toLowerCase() || '';
+                const userId = row.querySelector('td:first-child + td')?.innerText.toLowerCase() || '';
+                const matches = email.includes(searchTerm) || userId.includes(searchTerm);
+                row.style.display = matches ? '' : 'none';
+                if (matches) hasVisible = true;
+            });
+            const noUsersRow = document.getElementById('noUsersRow');
+            if (noUsersRow) {
+                noUsersRow.style.display = hasVisible ? 'none' : '';
+            }
+            updateSelectAllCheckbox();
+        }
+        searchInput.addEventListener('input', filterUsers);
+
+        // ==================== SHARED UTILITIES ====================
+        async function apiCall(url, body, isJson = true) {
+            const token = getAntiForgeryToken();
+            const headers = { 'RequestVerificationToken': token };
+            if (isJson) headers['Content-Type'] = 'application/json';
+            else headers['Content-Type'] = 'application/x-www-form-urlencoded';
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: isJson ? JSON.stringify(body) : body
+            });
+            
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || '@Localizer["Error"]');
+            }
+            return result;
+        }
+
+        function fadeOutAndRemove(element) {
+            element.style.transition = 'all 0.5s ease';
+            element.style.opacity = '0';
+            element.style.transform = 'translateX(20px)';
+            setTimeout(() => element.remove(), 500);
+        }
+
+        // ==================== SELECTION / CHECKBOX LOGIC ====================
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const selectedCountSpan = document.getElementById('selectedCount');
+        const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+
+        function getSelectedUserIds() {
+            const checkboxes = document.querySelectorAll('#usersTableBody .user-select-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        function updateSelectedCount() {
+            const count = getSelectedUserIds().length;
+            selectedCountSpan.innerText = count;
+            if (selectionMode) {
+                bulkActionsBar.style.display = count > 0 ? 'flex' : 'none';
+            } else {
+                bulkActionsBar.style.display = 'none';
+            }
+        }
+
+        function updateSelectAllCheckbox() {
+            if (!selectAllCheckbox) return;
+            const visibleRows = Array.from(document.querySelectorAll('#usersTableBody tr[data-user-id]')).filter(row => row.style.display !== 'none');
+            const visibleCheckboxes = visibleRows.map(row => row.querySelector('.user-select-checkbox')).filter(cb => cb !== null);
+            const checkedCount = visibleCheckboxes.filter(cb => cb.checked).length;
+            
+            selectAllCheckbox.checked = visibleCheckboxes.length > 0 && checkedCount === visibleCheckboxes.length;
+            selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < visibleCheckboxes.length;
+            
+            updateSelectedCount();
+        }
+
+        function attachCheckboxEvents() {
+            // Checkboxes are handled by event delegation on the table body now
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                const isChecked = selectAllCheckbox.checked;
+                const visibleRows = Array.from(document.querySelectorAll('#usersTableBody tr[data-user-id]')).filter(row => row.style.display !== 'none');
+                visibleRows.forEach(row => {
+                    const cb = row.querySelector('.user-select-checkbox');
+                    if (cb) cb.checked = isChecked;
+                });
+                updateSelectedCount();
+            });
+        }
+
+        clearSelectionBtn.addEventListener('click', () => {
+            document.querySelectorAll('.user-select-checkbox').forEach(cb => cb.checked = false);
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+            updateSelectedCount();
+        });
+
+        // ==================== BULK ACTIONS ====================
+        async function bulkAction(action, userIds) {
+            if (!userIds.length) {
+                showToast('@Localizer["NoUsersSelected"]', 'warning');
+                return false;
+            }
+
+            let confirmMessage = '';
+            let endpoint = '';
+            let successMessage = '';
+
+            switch (action) {
+                case 'set-admin': confirmMessage = '@Localizer["ConfirmSetAdmin"]'; endpoint = '/Admin/BulkToggleAdmin'; successMessage = '@Localizer["UsersUpdatedToAdmin"]'; break;
+                case 'remove-admin': confirmMessage = '@Localizer["ConfirmRemoveAdmin"]'; endpoint = '/Admin/BulkToggleAdmin'; successMessage = '@Localizer["AdminRoleRemoved"]'; break;
+                case 'lock': confirmMessage = '@Localizer["ConfirmLockUsers"]'; endpoint = '/Admin/BulkToggleLockout'; successMessage = '@Localizer["UsersLocked"]'; break;
+                case 'unlock': confirmMessage = '@Localizer["ConfirmUnlockUsers"]'; endpoint = '/Admin/BulkToggleLockout'; successMessage = '@Localizer["UsersUnlocked"]'; break;
+                case 'confirm-email': confirmMessage = '@Localizer["ConfirmEmails"]'; endpoint = '/Admin/BulkConfirmEmail'; successMessage = '@Localizer["EmailsConfirmed"]'; break;
+                case 'delete': confirmMessage = '@Localizer["ConfirmBulkDelete"]'; endpoint = '/Admin/BulkDelete'; successMessage = '@Localizer["BulkDeleted"]'; break;
+                default: return false;
+            }
+
+            const confirmed = await Swal.fire({
+                title: '@Localizer["ConfirmAction"]',
+                text: confirmMessage,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: '@Localizer["YesProceed"]'
+            });
+            if (!confirmed.isConfirmed) return false;
+
+            const bulkBtns = document.querySelectorAll('.bulk-action');
+            const originalHtmls = Array.from(bulkBtns).map(b => b.innerHTML);
+            bulkBtns.forEach(btn => { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; });
+
+            try {
+                const result = await apiCall(endpoint, userIds, true);
+                showToast(result.message, 'success');
+                
+                if (action === 'delete') {
+                    userIds.forEach(id => {
+                        const row = document.querySelector(`tr[data-user-id="${id}"]`);
+                        if (row) fadeOutAndRemove(row);
+                    });
+                } else {
+                    userIds.forEach(id => updateUserRowAfterAction(id, action, result));
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                bulkBtns.forEach((btn, i) => { btn.disabled = false; btn.innerHTML = originalHtmls[i]; });
+                clearSelectionBtn.click();
+            }
+        }
+
+        function updateUserRowAfterAction(userId, action, result) {
+            const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+            if (!row) return;
+
+            const emailCell = row.querySelector('td:nth-child(3)');
+            const adminBadge = row.querySelector('.admin-badge');
+            const toggleAdminBtn = row.querySelector('.toggle-admin-btn');
+            const toggleLockBtn = row.querySelector('.toggle-lock-btn');
+            const confirmEmailCell = row.querySelector('.email-confirmed-cell');
+
+            if (action === 'set-admin' || action === 'remove-admin' || action === 'toggle-admin') {
+                const isAdminNow = result.isAdmin !== undefined ? result.isAdmin : (action === 'set-admin');
+                if (isAdminNow) {
+                    if (!adminBadge) {
+                        const badge = document.createElement('span');
+                        badge.className = 'badge bg-pastel-danger me-2 admin-badge';
+                        badge.innerText = '@Localizer["Admin"]';
+                        emailCell.insertBefore(badge, emailCell.firstChild);
+                    }
+                } else {
+                    if (adminBadge) adminBadge.remove();
+                }
+                if (toggleAdminBtn) toggleAdminBtn.dataset.isAdmin = isAdminNow.toString();
+                row.dataset.isAdmin = isAdminNow.toString();
+            }
+            else if (action === 'lock' || action === 'unlock' || action === 'toggle-lock') {
+                const isLockedNow = result.isLocked !== undefined ? result.isLocked : (action === 'lock');
+                if (toggleLockBtn) {
+                    const icon = toggleLockBtn.querySelector('i');
+                    icon.className = isLockedNow ? 'fas fa-lock' : 'fas fa-unlock';
+                    toggleLockBtn.className = `btn btn-sm bg-white toggle-lock-btn ${isLockedNow ? 'text-danger' : 'text-success'}`;
+                    toggleLockBtn.title = isLockedNow ? '@Localizer["Unlock"]' : '@Localizer["Lock"]';
+                    toggleLockBtn.dataset.isLocked = isLockedNow.toString();
+                    row.dataset.isLocked = isLockedNow.toString();
+                }
+            }
+            else if (action === 'confirm-email') {
+                confirmEmailCell.innerHTML = `<span class="badge bg-pastel-success rounded-pill px-3 py-1"><i class="fas fa-check-circle me-1"></i>@Localizer["Confirmed"]</span>`;
+            }
+        }
+
+        // ==================== EVENT DELEGATION ====================
+        const tableBody = document.getElementById('usersTableBody');
+        tableBody.addEventListener('click', async function(e) {
+            const btn = e.target.closest('button');
+            const checkbox = e.target.closest('.user-select-checkbox');
+            
+            if (checkbox) {
+                updateSelectAllCheckbox();
+                return;
+            }
+            
+            if (!btn) return;
+
+            const row = btn.closest('tr');
+            const userId = btn.dataset.userId || row.dataset.userId;
+            const email = row.dataset.email;
+            
+            // Individual Actions
+            if (btn.classList.contains('toggle-admin-btn')) {
+                await performIndividualAction(btn, '/Admin/ToggleAdminRole', `userId=${userId}`, 'toggle-admin');
+            }
+            else if (btn.classList.contains('toggle-lock-btn')) {
+                await performIndividualAction(btn, '/Admin/ToggleLockout', `userId=${userId}`, 'toggle-lock');
+            }
+            else if (btn.classList.contains('confirm-email-individual')) {
+                await performIndividualAction(btn, '/Admin/ConfirmEmail', `userId=${userId}`, 'confirm-email');
+            }
+            else if (btn.classList.contains('delete-user-btn')) {
+                const confirmed = await Swal.fire({
+                    title: '@Localizer["AreYouSure"]',
+                    text: `@Localizer["DeleteUserWarning"] (${email})`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: '@Localizer["YesDeleteIt"]'
+                });
+                if (confirmed.isConfirmed) {
+                    await performIndividualAction(btn, '/Admin/DeleteUser', `userId=${userId}`, 'delete');
+                }
+            }
+        });
+
+        async function performIndividualAction(btn, url, body, actionType) {
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                const result = await apiCall(url, body, false);
+                showToast(result.message, 'success');
+                if (actionType === 'delete') {
+                    fadeOutAndRemove(btn.closest('tr'));
+                } else {
+                    updateUserRowAfterAction(btn.dataset.userId, actionType, result);
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            } finally {
+                if (actionType !== 'delete') {
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        // Attach bulk action listeners
+        document.querySelectorAll('.bulk-action').forEach(btn => {
+            btn.addEventListener('click', () => bulkAction(btn.dataset.action, getSelectedUserIds()));
+        });
+
+        // ==================== TIME AGO LOGIC ====================
+        function updateTimeAgo() {
+            const lang = document.documentElement.lang || 'en';
+            document.querySelectorAll('.time-ago').forEach(el => {
+                const date = new Date(el.dataset.timestamp);
+                if (isNaN(date)) return;
+                el.innerText = timeAgo(date, lang);
+            });
+        }
+
+        function timeAgo(date, lang) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return lang === 'vi' ? 'vừa xong' : 'just now';
+            const intervals = {
+                year: 31536000, month: 2592000, day: 86400, hour: 3600, minute: 60
+            };
+            const labels = {
+                vi: { year: 'năm', month: 'tháng', day: 'ngày', hour: 'giờ', minute: 'phút', suffix: 'trước' },
+                en: { year: 'y', month: 'mo', day: 'd', hour: 'h', minute: 'm', suffix: 'ago' }
+            };
+            
+            for (let [key, value] of Object.entries(intervals)) {
+                const count = Math.floor(seconds / value);
+                if (count >= 1) {
+                    return lang === 'vi' 
+                        ? `${count} ${labels.vi[key]} ${labels.vi.suffix}` 
+                        : `${count}${labels.en[key]} ${labels.en.suffix}`;
+                }
+            }
+            return lang === 'vi' ? 'vừa xong' : 'just now';
+        }
+
+        // Initialize
+        updateTimeAgo();
+        setInterval(updateTimeAgo, 60000);
+        updateSelectionModeUI();
+        filterUsers();
     </script>
 }
-</div>
 
 <style>
-    /* Admin Dashboard Pastel Styles - đồng bộ với toàn bộ hệ thống */
+    /* Existing styles (keep all pastel, dark mode, etc.) plus below improvements */
     .admin-container {
         max-width: 1400px;
         margin: 0 auto;
         padding: 0 1rem;
     }
-
     .bg-gradient-primary {
         background: linear-gradient(135deg, #6366f1, #4f46e5);
     }
-
     .icon-circle {
         width: 48px;
         height: 48px;
@@ -297,20 +611,6 @@
         justify-content: center;
         border-radius: 30px;
     }
-    .bg-pastel-primary-soft {
-        background: rgba(99, 102, 241, 0.12);
-    }
-    .text-pastel-primary {
-        color: #4f46e5;
-    }
-    .text-pastel-dark {
-        color: #1e293b;
-    }
-    .text-pastel-muted {
-        color: #64748b;
-    }
-
-    /* Stats Cards Pastel */
     .stats-card-pastel {
         border-radius: 20px;
         padding: 1.25rem;
@@ -321,26 +621,9 @@
         transform: translateY(-4px);
         box-shadow: 0 12px 20px rgba(0,0,0,0.08);
     }
-    .pastel-indigo {
-        background: #e0e7ff;
-        border-left: 4px solid #6366f1;
-    }
-    .pastel-green {
-        background: #dcfce7;
-        border-left: 4px solid #22c55e;
-    }
-    .pastel-cyan {
-        background: #cffafe;
-        border-left: 4px solid #06b6d4;
-    }
-    .stats-icon i {
-        color: #334155;
-    }
-    .stats-number {
-        color: #0f172a;
-    }
-
-    /* Table Pastel */
+    .pastel-indigo { background: #e0e7ff; border-left: 4px solid #6366f1; }
+    .pastel-green { background: #dcfce7; border-left: 4px solid #22c55e; }
+    .pastel-cyan { background: #cffafe; border-left: 4px solid #06b6d4; }
     .table-pastel {
         background-color: #ffffff;
         color: #1e293b;
@@ -365,40 +648,33 @@
     .table-pastel tbody tr:hover {
         background-color: rgba(99, 102, 241, 0.04);
     }
-
-    /* Badge Pastel */
-    .bg-pastel-danger {
-        background: #fee2e2;
-        color: #b91c1c;
-    }
-    .bg-pastel-success {
-        background: #dcfce7;
-        color: #16a34a;
-    }
-    .bg-pastel-warning {
-        background: #fef9c3;
-        color: #854d0e;
-    }
-
-    /* Button group custom */
+    .bg-pastel-danger { background: #fee2e2; color: #b91c1c; }
+    .bg-pastel-success { background: #dcfce7; color: #16a34a; }
+    .bg-pastel-warning { background: #fef9c3; color: #854d0e; }
     .btn-group .btn {
         border-radius: 0;
         transition: all 0.2s;
     }
-    .btn-group .btn:first-child {
-        border-top-left-radius: 40px;
-        border-bottom-left-radius: 40px;
-    }
-    .btn-group .btn:last-child {
-        border-top-right-radius: 40px;
-        border-bottom-right-radius: 40px;
-    }
-    .btn-group .btn:hover {
-        background-color: #f1f5f9 !important;
-        transform: scale(1.02);
-    }
+    .btn-group .btn:first-child { border-top-left-radius: 40px; border-bottom-left-radius: 40px; }
+    .btn-group .btn:last-child { border-top-right-radius: 40px; border-bottom-right-radius: 40px; }
+    .btn-group .btn:hover { background-color: #f1f5f9 !important; transform: scale(1.02); }
 
-    /* Dark Mode Variables */
+    /* Bulk actions & toggle button */
+    .bulk-actions-bar {
+        background: rgba(99, 102, 241, 0.05);
+        padding: 0.5rem 0.75rem;
+        border-radius: 2rem;
+        transition: all 0.2s;
+    }
+    .bulk-actions-bar .vr {
+        width: 1px;
+        background: #cbd5e1;
+        height: 24px;
+        margin: 0 0.25rem;
+    }
+    .search-box .input-group-text { background-color: white; }
+
+    /* Dark mode */
     body.theme-dark {
         --pastel-primary-dark: #6366f1;
         --pastel-border: #334155;
@@ -407,90 +683,29 @@
         --pastel-muted: #94a3b8;
         --pastel-soft: #0f172a;
     }
-    body.theme-dark .pastel-indigo {
-        background: #1e293b;
-        border-left-color: #6366f1;
-    }
-    body.theme-dark .pastel-green {
-        background: #1e293b;
-        border-left-color: #4ade80;
-    }
-    body.theme-dark .pastel-cyan {
-        background: #1e293b;
-        border-left-color: #06b6d4;
-    }
-    body.theme-dark .stats-icon i,
-    body.theme-dark .stats-number {
-        color: #f1f5f9;
-    }
-    body.theme-dark .table-pastel {
-        background-color: #1e293b;
-    }
-    body.theme-dark .table-pastel thead th {
-        background-color: #0f172a;
-        border-bottom-color: #334155;
-        color: #94a3b8;
-    }
-    body.theme-dark .table-pastel tbody td {
-        border-bottom-color: #334155;
-    }
-    body.theme-dark .table-pastel tbody tr:hover {
-        background-color: rgba(99, 102, 241, 0.1);
-    }
-    body.theme-dark .bg-pastel-danger {
-        background: #7f1d1d;
-        color: #fecaca;
-    }
-    body.theme-dark .bg-pastel-success {
-        background: #14532d;
-        color: #bbf7d0;
-    }
-    body.theme-dark .bg-pastel-warning {
-        background: #854d0e;
-        color: #fef9c3;
-    }
-    body.theme-dark .btn-group .btn {
-        background-color: #1e293b !important;
-        color: #cbd5e1;
-        border-color: #334155;
-    }
-    body.theme-dark .btn-group .btn:hover {
-        background-color: #334155 !important;
-    }
-    .alert-pastel-success {
-        background: #dcfce7;
-        border-left: 4px solid #22c55e;
-        color: #166534;
-    }
-    body.theme-dark .alert-pastel-success {
-        background: #14532d;
-        color: #bbf7d0;
-        border-left-color: #4ade80;
-    }
+    body.theme-dark .pastel-indigo { background: #1e293b; border-left-color: #6366f1; }
+    body.theme-dark .pastel-green { background: #1e293b; border-left-color: #4ade80; }
+    body.theme-dark .pastel-cyan { background: #1e293b; border-left-color: #06b6d4; }
+    body.theme-dark .stats-icon i, body.theme-dark .stats-number { color: #f1f5f9; }
+    body.theme-dark .table-pastel { background-color: #1e293b; }
+    body.theme-dark .table-pastel thead th { background-color: #0f172a; border-bottom-color: #334155; color: #94a3b8; }
+    body.theme-dark .table-pastel tbody td { border-bottom-color: #334155; }
+    body.theme-dark .table-pastel tbody tr:hover { background-color: rgba(99, 102, 241, 0.1); }
+    body.theme-dark .bg-pastel-danger { background: #7f1d1d; color: #fecaca; }
+    body.theme-dark .bg-pastel-success { background: #14532d; color: #bbf7d0; }
+    body.theme-dark .bg-pastel-warning { background: #854d0e; color: #fef9c3; }
+    body.theme-dark .btn-group .btn { background-color: #1e293b !important; color: #cbd5e1; border-color: #334155; }
+    body.theme-dark .btn-group .btn:hover { background-color: #334155 !important; }
+    body.theme-dark .bulk-actions-bar { background: rgba(99, 102, 241, 0.15); }
+    body.theme-dark .bulk-actions-bar .vr { background: #475569; }
+    body.theme-dark .search-box .input-group-text,
+    body.theme-dark .search-box input { background-color: #1e293b; border-color: #334155; color: #e2e8f0; }
 
-    /* Responsive */
     @@media (max-width: 768px) {
-        .admin-container {
-            padding: 0 0.5rem;
-        }
-        .icon-circle {
-            width: 40px;
-            height: 40px;
-        }
-        .stats-number {
-            font-size: 1.8rem;
-        }
-        .table-pastel thead th,
-        .table-pastel tbody td {
-            padding: 0.75rem 0.5rem;
-        }
+        .admin-container { padding: 0 0.5rem; }
+        .stats-number { font-size: 1.8rem; }
+        .table-pastel thead th, .table-pastel tbody td { padding: 0.75rem 0.5rem; }
     }
 </style>
-
-<script>
-    if (typeof AOS !== 'undefined') {
-        AOS.refresh();
-    }
-</script>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
