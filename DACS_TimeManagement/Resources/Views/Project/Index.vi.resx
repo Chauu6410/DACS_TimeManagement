@@ -61,6 +61,9 @@
   <data name="ProjectsDashboard" xml:space="preserve">
     <value>Bảng điều khiển dự án</value>
   </data>
+  <data name="SearchProjects" xml:space="preserve">
+    <value>Tìm kiếm dự án</value>
+  </data>
   <data name="NewProject" xml:space="preserve">
     <value>Dự án mới</value>
   </data>
@@ -88,7 +91,52 @@
   <data name="ViewDetails" xml:space="preserve">
     <value>Xem chi tiết</value>
   </data>
+  <data name="NoProjectsFound" xml:space="preserve">
+    <value>Không tìm thấy dự án nào</value>
+  </data>
+  <data name="TryDifferentSearch" xml:space="preserve">
+    <value>Hãy thử một từ khóa tìm kiếm khác.</value>
+  </data>
   <data name="DeleteProjectConfirm" xml:space="preserve">
     <value>Bạn có chắc chắn muốn xóa dự án "{projectName}" không?\n\nHành động này không thể hoàn tác và tất cả các nhiệm vụ liên quan sẽ bị xóa.</value>
+  </data>
+  <data name="CreateNewProject" xml:space="preserve">
+    <value>Tạo Dự án Mới</value>
+  </data>
+  <data name="ProjectWorkspaceDescription" xml:space="preserve">
+    <value>Thiết lập không gian làm việc cho dự án mới</value>
+  </data>
+  <data name="ProjectName" xml:space="preserve">
+    <value>Tên Dự án</value>
+  </data>
+  <data name="ProjectNamePlaceholder" xml:space="preserve">
+    <value>vd: Thiết kế lại Website Q3</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Mô tả</value>
+  </data>
+  <data name="DescriptionPlaceholder" xml:space="preserve">
+    <value>Mô tả ngắn gọn mục tiêu của dự án này...</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Hủy bỏ</value>
+  </data>
+  <data name="CreateProject" xml:space="preserve">
+    <value>Tạo Dự án</value>
+  </data>
+  <data name="AreYouSure" xml:space="preserve">
+    <value>Bạn có chắc chắn không?</value>
+  </data>
+  <data name="YesDeleteIt" xml:space="preserve">
+    <value>Vâng, hãy xóa nó!</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Đang lưu...</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>Đã xảy ra lỗi khi tạo dự án.</value>
+  </data>
+  <data name="NetworkError" xml:space="preserve">
+    <value>Đã xảy ra lỗi mạng. Vui lòng thử lại.</value>
   </data>
 </root>

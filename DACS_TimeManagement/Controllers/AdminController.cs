@@ -123,11 +123,48 @@ namespace DACS_TimeManagement.Controllers
             if (user == null || user.Email == "admin@gmail.com")
                 return Json(new { success = false, message = _localizer["UserNotFoundOrProtected"].Value });
 
-            var result = await _userManager.DeleteAsync(user);
-            if (result.Succeeded)
-                return Json(new { success = true, message = string.Format(_localizer["UserDeleted"].Value, user.Email) });
+            try
+            {
+                // Cleanup related data first to avoid FK constraints
+                await CleanupUserData(userId);
+
+                var result = await _userManager.DeleteAsync(user);
+                if (result.Succeeded)
+                    return Json(new { success = true, message = string.Format(_localizer["UserDeleted"].Value, user.Email) });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = _localizer["FailedToDeleteUser"].Value + ": " + ex.Message });
+            }
 
             return Json(new { success = false, message = _localizer["FailedToDeleteUser"].Value });
+        }
+
+        private async Task CleanupUserData(string userId)
+        {
+            // Xóa các dữ liệu trực tiếp thuộc về User
+            var projects = _context.Projects.Where(p => p.UserId == userId);
+            _context.Projects.RemoveRange(projects);
+
+            var tasks = _context.WorkTasks.Where(t => t.UserId == userId);
+            _context.WorkTasks.RemoveRange(tasks);
+
+            var events = _context.CalendarEvents.Where(e => e.UserId == userId);
+            _context.CalendarEvents.RemoveRange(events);
+
+            var goals = _context.PersonalGoals.Where(g => g.UserId == userId);
+            _context.PersonalGoals.RemoveRange(goals);
+
+            var notifications = _context.Notifications.Where(n => n.UserId == userId);
+            _context.Notifications.RemoveRange(notifications);
+
+            var profiles = _context.UserProfiles.Where(up => up.UserId == userId);
+            _context.UserProfiles.RemoveRange(profiles);
+
+            var schedules = _context.UserWorkSchedules.Where(s => s.UserId == userId);
+            _context.UserWorkSchedules.RemoveRange(schedules);
+
+            await _context.SaveChangesAsync();
         }
 
         [HttpPost]
@@ -141,8 +178,13 @@ namespace DACS_TimeManagement.Controllers
                 var user = await _userManager.FindByIdAsync(id);
                 if (user != null && user.Email != "admin@gmail.com")
                 {
-                    var result = await _userManager.DeleteAsync(user);
-                    if (result.Succeeded) count++;
+                    try
+                    {
+                        await CleanupUserData(id);
+                        var result = await _userManager.DeleteAsync(user);
+                        if (result.Succeeded) count++;
+                    }
+                    catch { /* Skip failed deletions in bulk */ }
                 }
             }
             return Json(new { success = true, message = string.Format(_localizer["BulkDeleted"].Value, count) });

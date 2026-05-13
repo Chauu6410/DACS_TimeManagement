@@ -49,6 +49,9 @@
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
+  <resheader name="resheader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
   <resheader name="version">
     <value>2.0</value>
   </resheader>
@@ -132,5 +135,59 @@
   </data>
   <data name="Hrs" xml:space="preserve">
     <value>giờ</value>
+  </data>
+  <data name="EditTaskDetail" xml:space="preserve">
+    <value>Sửa công việc</value>
+  </data>
+  <data name="UpdateTaskDetails" xml:space="preserve">
+    <value>Cập nhật chi tiết công việc và tiến độ</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Tiêu đề</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>Ngày kết thúc</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="ProgressPct" xml:space="preserve">
+    <value>Tiến độ (%)</value>
+  </data>
+  <data name="Assignee" xml:space="preserve">
+    <value>Người thực hiện</value>
+  </data>
+  <data name="PrivateTaskDesc" xml:space="preserve">
+    <value>Công việc riêng tư (Mã hóa)</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>Lưu thay đổi</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Đang lưu...</value>
+  </data>
+  <data name="Urgent" xml:space="preserve">
+    <value>Khẩn cấp</value>
+  </data>
+  <data name="High" xml:space="preserve">
+    <value>Cao</value>
+  </data>
+  <data name="Medium" xml:space="preserve">
+    <value>Trung bình</value>
+  </data>
+  <data name="Low" xml:space="preserve">
+    <value>Thấp</value>
+  </data>
+  <data name="Todo" xml:space="preserve">
+    <value>Cần làm</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>Đang làm</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Hoàn tất</value>
   </data>
 </root>

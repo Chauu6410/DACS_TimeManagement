@@ -90,16 +90,16 @@ namespace DACS_TimeManagement.Models
             // Cấu hình mối quan hệ giữa Project và User (Owner)
             builder.Entity<Project>()
                 .HasOne(p => p.Owner)
-                .WithMany() // Hoặc .WithMany(u => u.OwnedProjects) nếu bạn có đặt tên
+                .WithMany()
                 .HasForeignKey(p => p.UserId)
-                .OnDelete(DeleteBehavior.Restrict); // THAY ĐỔI Ở ĐÂY: Chuyển từ Cascade sang Restrict
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Cấu hình cho ProjectMember (nếu cần)
+            // Cấu hình cho ProjectMember
             builder.Entity<ProjectMember>()
                 .HasOne(pm => pm.User)
                 .WithMany()
                 .HasForeignKey(pm => pm.UserId)
-                .OnDelete(DeleteBehavior.Cascade); // Cái này có thể giữ Cascade
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ScheduledEvent - WorkTask (n - 1)
             builder.Entity<ScheduledEvent>()

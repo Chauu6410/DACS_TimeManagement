@@ -89,4 +89,23 @@
   <data name="Owner" xml:space="preserve"><value>Chủ sở hữu</value></data>
   <data name="SeeMore" xml:space="preserve"><value>Xem thêm</value></data>
   <data name="SeeLess" xml:space="preserve"><value>Thu gọn</value></data>
+  <data name="UpdateProjectInformation" xml:space="preserve"><value>Cập nhật thông tin dự án</value></data>
+  <data name="DeleteMessage" xml:space="preserve"><value>Xóa tin nhắn</value></data>
+  <data name="EditProject" xml:space="preserve"><value>Sửa Dự án</value></data>
+  <data name="Description" xml:space="preserve"><value>Mô tả</value></data>
+  <data name="To Do" xml:space="preserve"><value>Cần làm</value></data>
+  <data name="In Progress" xml:space="preserve"><value>Đang thực hiện</value></data>
+  <data name="Testing" xml:space="preserve"><value>Đang kiểm tra</value></data>
+  <data name="Done" xml:space="preserve"><value>Hoàn thành</value></data>
+  <data name="Analyzing" xml:space="preserve"><value>Đang phân tích...</value></data>
+  <data name="GeminiAnalyzingStructure" xml:space="preserve"><value>Gemini đang phân tích cấu trúc dự án...</value></data>
+  <data name="BreakingDownTasks" xml:space="preserve"><value>Đang phân tích các tác vụ và đề xuất cải tiến</value></data>
+  <data name="Error" xml:space="preserve"><value>Lỗi</value></data>
+  <data name="AudioNotSupported" xml:space="preserve"><value>Trình duyệt của bạn không hỗ trợ phát âm thanh.</value></data>
+  <data name="VoiceMessage" xml:space="preserve"><value>Tin nhắn thoại</value></data>
+  <data name="TranslatingStrategy" xml:space="preserve"><value>Đang dịch bản kế hoạch...</value></data>
+  <data name="AddToKanban" xml:space="preserve"><value>Thêm vào bảng Kanban</value></data>
+  <data name="AddedToKanban" xml:space="preserve"><value>Đã thêm vào Kanban!</value></data>
+  <data name="SuggestedTasksToCreate" xml:space="preserve"><value>Nhiệm vụ gợi ý cho Dự án</value></data>
+  <data name="Add" xml:space="preserve"><value>Thêm</value></data>
 </root>

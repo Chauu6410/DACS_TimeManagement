@@ -57,6 +57,9 @@ namespace DACS_TimeManagement.Models
 
         public bool IsPrivate { get; set; } = false; // Đánh dấu thẻ là riêng tư
 
+        // Identifier for tasks suggested by AI to prevent duplicates across languages
+        public string? AITaskKey { get; set; }
+
         public ICollection<TimeLog> TimeLogs { get; set; } = new List<TimeLog>();
         public ICollection<ScheduledEvent> ScheduledEvents { get; set; } = new List<ScheduledEvent>();
         public ICollection<GoalTask> GoalTasks { get; set; } = new List<GoalTask>();

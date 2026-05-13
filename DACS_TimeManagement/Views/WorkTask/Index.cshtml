@@ -686,7 +686,7 @@
                 const originalText = submitBtn.innerHTML;
                 
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + '@Localizer["Saving"]';
                 
                 fetch(`/WorkTask/Edit/${taskId}`, {
                     method: 'POST',
@@ -698,7 +698,7 @@
                     if (data.success) {
                         location.reload();
                     } else {
-                        Swal.fire('Error', data.message || 'Validation failed', 'error');
+                        Swal.fire('@Localizer["Error"]', data.message || 'Validation failed', 'error');
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = originalText;
                     }

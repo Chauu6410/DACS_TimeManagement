@@ -86,4 +86,23 @@
   <data name="Owner" xml:space="preserve"><value>Owner</value></data>
   <data name="SeeMore" xml:space="preserve"><value>See More</value></data>
   <data name="SeeLess" xml:space="preserve"><value>See Less</value></data>
+  <data name="UpdateProjectInformation" xml:space="preserve"><value>Update project information</value></data>
+  <data name="DeleteMessage" xml:space="preserve"><value>Delete message</value></data>
+  <data name="EditProject" xml:space="preserve"><value>Edit Project</value></data>
+  <data name="Description" xml:space="preserve"><value>Description</value></data>
+  <data name="To Do" xml:space="preserve"><value>To Do</value></data>
+  <data name="In Progress" xml:space="preserve"><value>In Progress</value></data>
+  <data name="Testing" xml:space="preserve"><value>Testing</value></data>
+  <data name="Done" xml:space="preserve"><value>Done</value></data>
+  <data name="Analyzing" xml:space="preserve"><value>Analyzing...</value></data>
+  <data name="GeminiAnalyzingStructure" xml:space="preserve"><value>Gemini is analyzing project structure...</value></data>
+  <data name="BreakingDownTasks" xml:space="preserve"><value>Breaking down tasks and suggesting improvements</value></data>
+  <data name="Error" xml:space="preserve"><value>Error</value></data>
+  <data name="AudioNotSupported" xml:space="preserve"><value>Your browser does not support the audio element.</value></data>
+  <data name="VoiceMessage" xml:space="preserve"><value>Voice Message</value></data>
+  <data name="TranslatingStrategy" xml:space="preserve"><value>Translating plan...</value></data>
+  <data name="AddToKanban" xml:space="preserve"><value>Add to Kanban</value></data>
+  <data name="AddedToKanban" xml:space="preserve"><value>Added to Kanban!</value></data>
+  <data name="SuggestedTasksToCreate" xml:space="preserve"><value>Suggested Tasks for Project</value></data>
+  <data name="Add" xml:space="preserve"><value>Add</value></data>
 </root>

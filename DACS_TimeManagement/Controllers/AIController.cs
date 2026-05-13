@@ -171,5 +171,230 @@ Details: {request.Project?.Detail ?? "N/A"}
                 await Response.WriteAsync($"data: {error}\n\n", cancellationToken);
             }
         }
+
+        [HttpGet("stream-project-strategy")]
+        public async Task StreamProjectStrategy([FromQuery] int projectId, CancellationToken cancellationToken)
+        {
+            Response.ContentType = "text/event-stream";
+            Response.Headers["Cache-Control"] = "no-cache";
+            Response.Headers["Connection"] = "keep-alive";
+
+            try
+            {
+                var project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
+                if (project == null)
+                {
+                    await Response.WriteAsync("data: {\"error\": \"Project not found\"}\n\n", cancellationToken);
+                    return;
+                }
+
+                var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var profile = await _db.Set<UserProfile>().AsNoTracking().FirstOrDefaultAsync(up => up.UserId == userId, cancellationToken);
+                var lang = profile?.Language ?? System.Threading.Thread.CurrentThread.CurrentUICulture.Name ?? "vi";
+                var isVi = lang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
+
+                string context = isVi
+                    ? "Bạn là một Chuyên gia Cố vấn Chiến lược và Huấn luyện viên Hiệu suất cao cấp (Senior Performance Coach)."
+                    : "You are a Senior Strategy Advisor and Performance Coach.";
+
+                string goalText = isVi
+                    ? @"Nhiệm vụ: Phân tích dự án và lập kế hoạch thực hiện tối ưu.
+Yêu cầu:
+1. Đánh giá độ phức tạp của dự án.
+2. Phân tích SWOT (Điểm mạnh/Yếu/Cơ hội/Thách thức).
+3. Đề xuất lộ trình thực hiện với các giai đoạn cụ thể.
+4. Gợi ý 3-5 tác vụ quan trọng cần làm ngay.
+5. Đưa ra 3 lời khuyên thực tế để quản lý dự án hiệu quả.
+
+BẮT BUỘC: Cuối bản kế hoạch, bạn PHẢI thêm một khối mã JSON theo định dạng sau:
+```json-tasks
+[
+  { ""key"": ""task_1"", ""title"": ""Tên task 1"", ""description"": ""Mô tả ngắn gọn 1"" },
+  { ""key"": ""task_2"", ""title"": ""Tên task 2"", ""description"": ""Mô tả ngắn gọn 2"" }
+]
+```
+Ghi chú: Trường ""key"" phải là duy nhất (task_1, task_2,...) và không đổi.
+
+Định dạng: Sử dụng Markdown chuyên nghiệp, trình bày thoáng đãng. Trả lời bằng tiếng Việt."
+                    : @"Task: Analyze the project and create an optimal implementation plan.
+Requirements:
+1. Assess project complexity.
+2. Brief SWOT analysis.
+3. Propose a roadmap.
+4. Suggest 3-5 critical tasks.
+5. Give 3 practical tips.
+
+MANDATORY: At the end of the plan, add a JSON code block:
+```json-tasks
+[
+  { ""key"": ""task_1"", ""title"": ""Task name 1"", ""description"": ""Description 1"" },
+  { ""key"": ""task_2"", ""title"": ""Task name 2"", ""description"": ""Description 2"" }
+]
+```
+Note: The ""key"" field must be unique (task_1, task_2,...) and persistent.
+
+Format: Use professional Markdown, clean layout. Answer in English.";
+
+                string userInput = isVi 
+                    ? $"Dự án: {project.Name}\nChi tiết: {project.Description ?? "Không có mô tả"}"
+                    : $"Project: {project.Name}\nDetails: {project.Description ?? "No description"}";
+
+                string prompt = _geminiService.BuildAdvancedPrompt(context, goalText, userInput);
+
+                var fullResult = new System.Text.StringBuilder();
+                await foreach (var chunk in _geminiService.StreamGenerateContent(prompt, 0.5, cancellationToken))
+                {
+                    fullResult.Append(chunk);
+                    var escapedChunk = System.Text.Json.JsonSerializer.Serialize(chunk);
+                    await Response.WriteAsync($"data: {escapedChunk}\n\n", cancellationToken);
+                    await Response.Body.FlushAsync(cancellationToken);
+                }
+
+                // Save to DB after successful stream
+                if (fullResult.Length > 0)
+                {
+                    if (isVi)
+                    {
+                        project.AIStrategyVi = fullResult.ToString();
+                        project.AIStrategyEn = null; // Clear stale English version to force re-translation
+                    }
+                    else
+                    {
+                        project.AIStrategyEn = fullResult.ToString();
+                        project.AIStrategyVi = null; // Clear stale Vietnamese version to force re-translation
+                    }
+                    
+                    await _db.SaveChangesAsync(cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                var error = System.Text.Json.JsonSerializer.Serialize(new { error = ex.Message });
+                await Response.WriteAsync($"data: {error}\n\n", cancellationToken);
+            }
+        }
+
+        [HttpPost("translate-strategy")]
+        public async Task<IActionResult> TranslateStrategy([FromBody] TranslateRequestDTO request)
+        {
+            try
+            {
+                var project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId);
+                if (project == null) return NotFound();
+
+                string sourceText = request.TargetLang == "vi" ? project.AIStrategyEn : project.AIStrategyVi;
+                if (string.IsNullOrEmpty(sourceText)) return BadRequest("No source strategy to translate.");
+
+                string context = "Bạn là một chuyên gia dịch thuật chuyên nghiệp, chuyên ngành Quản trị Dự án.";
+                string goal = $"Dịch bản kế hoạch chiến lược sau đây sang {(request.TargetLang == "vi" ? "tiếng Việt" : "tiếng Anh")}. Giữ nguyên định dạng Markdown và các emoji. ĐẶC BIỆT: Trong khối mã json-tasks, PHẢI giữ nguyên các giá trị của trường \"key\", chỉ dịch trường \"title\" và \"description\".";
+                
+                string prompt = _geminiService.BuildAdvancedPrompt(context, goal, sourceText);
+                string translatedText = await _geminiService.GenerateContent(prompt, 0.2, CancellationToken.None);
+
+                if (request.TargetLang == "vi") project.AIStrategyVi = translatedText;
+                else project.AIStrategyEn = translatedText;
+
+                await _db.SaveChangesAsync();
+                return Ok(new { result = translatedText });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("import-tasks")]
+        public async Task<IActionResult> ImportSuggestedTasks([FromBody] ImportTasksRequestDTO request)
+        {
+            try
+            {
+                var project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId);
+                if (project == null) return NotFound();
+
+                var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                
+                // Find or create a default BoardList (column) for tasks
+                var boardList = await _db.Set<BoardList>()
+                    .Where(bl => bl.ProjectId == project.Id)
+                    .OrderBy(bl => bl.Position)
+                    .FirstOrDefaultAsync();
+
+                if (boardList == null)
+                {
+                    boardList = new BoardList 
+                    { 
+                        Name = "To Do", 
+                        ProjectId = project.Id, 
+                        Position = 0 
+                    };
+                    _db.Set<BoardList>().Add(boardList);
+                    await _db.SaveChangesAsync();
+                }
+
+                var tasksToAdd = new List<WorkTask>();
+                var existingTaskKeys = await _db.Set<WorkTask>()
+                    .Where(t => t.ProjectId == project.Id && t.AITaskKey != null)
+                    .Select(t => t.AITaskKey)
+                    .ToListAsync();
+                
+                var existingTaskTitles = await _db.Set<WorkTask>()
+                    .Where(t => t.ProjectId == project.Id)
+                    .Select(t => t.Title.ToLower().Trim())
+                    .ToListAsync();
+
+                foreach (var taskDto in request.Tasks)
+                {
+                    // Check by Key first (for cross-language sync)
+                    if (!string.IsNullOrEmpty(taskDto.Key) && existingTaskKeys.Contains(taskDto.Key)) continue;
+
+                    // Fallback to Title check
+                    var normalizedTitle = taskDto.Title.ToLower().Trim();
+                    if (existingTaskTitles.Contains(normalizedTitle)) continue; 
+
+                    tasksToAdd.Add(new WorkTask
+                    {
+                        ProjectId = project.Id,
+                        BoardListId = boardList.Id, 
+                        UserId = userId,
+                        Title = taskDto.Title,
+                        Description = taskDto.Description,
+                        AITaskKey = taskDto.Key, // Store the unique key
+                        Status = Models.TaskStatus.Todo,
+                        Priority = Models.Priority.Medium,
+                        StartDate = DateTime.Now,
+                        EndDate = DateTime.Now.AddDays(7),
+                        Position = 0
+                    });
+                }
+
+                await _db.Set<WorkTask>().AddRangeAsync(tasksToAdd);
+                await _db.SaveChangesAsync();
+
+                return Ok(new { success = true, count = tasksToAdd.Count });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+    }
+
+    public class TranslateRequestDTO
+    {
+        public int ProjectId { get; set; }
+        public string TargetLang { get; set; }
+    }
+
+    public class ImportTasksRequestDTO
+    {
+        public int ProjectId { get; set; }
+        public List<SuggestedTaskDTO> Tasks { get; set; }
+    }
+
+    public class SuggestedTaskDTO
+    {
+        public string Key { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
     }
 }

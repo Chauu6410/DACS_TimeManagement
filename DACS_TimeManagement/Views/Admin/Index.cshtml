@@ -140,7 +140,6 @@
                             <th>@Localizer["UserID"]</th>
                             <th>@Localizer["EmailUsername"]</th>
                             <th>@Localizer["LastAccess"]</th>
-                            <th>@Localizer["EmailConfirmed"]</th>
                             <th class="text-end pe-4">@Localizer["Actions"]</th>
                         </tr>
                     </thead>
@@ -167,6 +166,14 @@
                                         <span class="badge bg-pastel-danger me-2 admin-badge">@Localizer["Admin"]</span>
                                     }
                                     <span class="user-email">@user.Email</span>
+                                    @if (user.EmailConfirmed)
+                                    {
+                                        <i class="fas fa-check-circle text-success ms-1" title="@Localizer["Confirmed"]"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-exclamation-circle text-warning ms-1" title="@Localizer["PendingFix"]"></i>
+                                    }
                                 </td>
                                 <td>
                                     @if (detail.LastAccess.HasValue)
@@ -178,28 +185,20 @@
                                         <span class="text-muted small italic">@Localizer["Never"]</span>
                                     }
                                 </td>
-                                <td class="email-confirmed-cell">
-                                    @if (user.EmailConfirmed)
-                                    {
-                                        <span class="badge bg-pastel-success rounded-pill px-3 py-1">
-                                            <i class="fas fa-check-circle me-1"></i>@Localizer["Confirmed"]
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="badge bg-pastel-warning border-0 rounded-pill px-3 py-1 text-dark confirm-email-individual" data-user-id="@user.Id" style="cursor: pointer;">
-                                            <i class="fas fa-clock me-1"></i>@Localizer["PendingFix"]
-                                        </button>
-                                    }
-                                </td>
                                 <td class="text-end pe-4">
                                     @if (!isSuperAdmin)
                                     {
-                                        <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                        <div class="btn-group shadow-sm rounded-pill overflow-hidden" style="white-space: nowrap; display: inline-flex;">
+                                            @if (!user.EmailConfirmed)
+                                            {
+                                                <button type="button" class="btn btn-sm bg-white text-warning border-end confirm-email-individual" data-user-id="@user.Id" title="@Localizer["ConfirmEmail"]">
+                                                    <i class="fas fa-envelope-open-text"></i>
+                                                </button>
+                                            }
                                             <button type="button" class="btn btn-sm bg-white text-primary border-end toggle-admin-btn" data-user-id="@user.Id" data-is-admin="@(isAdmin ? "true" : "false")" title="@Localizer["ToggleAdminUser"]">
                                                 <i class="fas fa-user-tag"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm bg-white toggle-lock-btn @(isLocked ? "text-danger" : "text-success")" data-user-id="@user.Id" data-is-locked="@(isLocked ? "true" : "false")" title="@(isLocked ? Localizer["Unlock"].Value : Localizer["Lock"].Value)">
+                                            <button type="button" class="btn btn-sm bg-white toggle-lock-btn border-end @(isLocked ? "text-danger" : "text-success")" data-user-id="@user.Id" data-is-locked="@(isLocked ? "true" : "false")" title="@(isLocked ? Localizer["Unlock"].Value : Localizer["Lock"].Value)">
                                                 <i class="fas @(isLocked ? "fa-lock" : "fa-unlock")"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm bg-white text-danger delete-user-btn" data-user-id="@user.Id" title="@Localizer["Delete"]">
@@ -444,11 +443,12 @@
             const row = document.querySelector(`tr[data-user-id="${userId}"]`);
             if (!row) return;
 
-            const emailCell = row.querySelector('td:nth-child(3)');
-            const adminBadge = row.querySelector('.admin-badge');
+            const emailCell = row.querySelector('td:nth-child(3)'); // 1:Selection, 2:ID, 3:Email
+            const adminBadge = emailCell.querySelector('.admin-badge');
             const toggleAdminBtn = row.querySelector('.toggle-admin-btn');
             const toggleLockBtn = row.querySelector('.toggle-lock-btn');
-            const confirmEmailCell = row.querySelector('.email-confirmed-cell');
+            // Confirmation status icon in Email column
+            const confirmIcon = emailCell.querySelector('.fa-exclamation-circle, .fa-check-circle');
 
             if (action === 'set-admin' || action === 'remove-admin' || action === 'toggle-admin') {
                 const isAdminNow = result.isAdmin !== undefined ? result.isAdmin : (action === 'set-admin');
@@ -477,7 +477,12 @@
                 }
             }
             else if (action === 'confirm-email') {
-                confirmEmailCell.innerHTML = `<span class="badge bg-pastel-success rounded-pill px-3 py-1"><i class="fas fa-check-circle me-1"></i>@Localizer["Confirmed"]</span>`;
+                if (confirmIcon) {
+                    confirmIcon.className = 'fas fa-check-circle text-success ms-1';
+                    confirmIcon.title = '@Localizer["Confirmed"]';
+                }
+                const confirmBtn = row.querySelector('.confirm-email-individual');
+                if (confirmBtn) confirmBtn.remove();
             }
         }
 

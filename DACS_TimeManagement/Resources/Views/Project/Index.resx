@@ -100,4 +100,43 @@
   <data name="NoDescriptionProvided" xml:space="preserve">
     <value>No description provided.</value>
   </data>
+  <data name="CreateNewProject" xml:space="preserve">
+    <value>Create New Project</value>
+  </data>
+  <data name="ProjectWorkspaceDescription" xml:space="preserve">
+    <value>Set up a new project workspace</value>
+  </data>
+  <data name="ProjectName" xml:space="preserve">
+    <value>Project Name</value>
+  </data>
+  <data name="ProjectNamePlaceholder" xml:space="preserve">
+    <value>e.g., Q3 Website Redesign</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="DescriptionPlaceholder" xml:space="preserve">
+    <value>Briefly describe the goals of this project...</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="CreateProject" xml:space="preserve">
+    <value>Create Project</value>
+  </data>
+  <data name="AreYouSure" xml:space="preserve">
+    <value>Are you sure?</value>
+  </data>
+  <data name="YesDeleteIt" xml:space="preserve">
+    <value>Yes, delete it!</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>An error occurred while creating the project.</value>
+  </data>
+  <data name="NetworkError" xml:space="preserve">
+    <value>A network error occurred. Please try again.</value>
+  </data>
 </root>

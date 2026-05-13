@@ -24,6 +24,10 @@ namespace DACS_TimeManagement.Models
 
         // Danh sách thành viên trong dự án
         public ICollection<ProjectMember> Members { get; set; } = new List<ProjectMember>();
+
+        // AI generated strategies for this project (Multi-language support)
+        public string? AIStrategyVi { get; set; }
+        public string? AIStrategyEn { get; set; }
     }
 }
 

@@ -166,4 +166,7 @@
   <data name="SaveChanges" xml:space="preserve">
     <value>Lưu thay đổi</value>
   </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Đang lưu...</value>
+  </data>
 </root>
