@@ -320,6 +320,7 @@
     </div>
     <div class="work-schedule-body">
         <form id="wsForm">
+            @Html.AntiForgeryToken()
             <div class="mb-3">
                 <label class="form-label fw-bold small">@Localizer["WorkingHours"]</label>
                 <div class="d-flex gap-2">
@@ -659,7 +660,7 @@
                         <div class="project-group mb-4">
                             <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
                                 <h6 class="mb-0 fw-bold" style="color: #4f46e5;"><i class="fas fa-folder-open me-2"></i>${escapeHtml(proj)}</h6>
-                                ${hasUrgent ? '<span class="badge bg-warning text-dark ms-2 x-small shadow-sm"><i class="fas fa-exclamation-triangle me-1"></i>Sắp đến hạn</span>' : ''}
+                                ${hasUrgent ? `<span class="badge bg-warning text-dark ms-2 x-small shadow-sm"><i class="fas fa-exclamation-triangle me-1"></i>@Localizer["ApproachingDeadline"]</span>` : ''}
                             </div>
                             <div class="task-items-list d-flex flex-column gap-2">
                                 ${projectTasks.map(t => `
@@ -671,7 +672,7 @@
                                             <div class="ms-3 flex-grow-1">
                                                 <div class="fw-bold text-dark small">${escapeHtml(t.title)}</div>
                                             </div>
-                                            ${t.isOverdue ? '<span class="badge bg-danger rounded-pill x-small px-2 py-1">QUÁ HẠN</span>' : ''}
+                                            ${t.isOverdue ? `<span class="badge bg-danger rounded-pill x-small px-2 py-1">@Localizer["OverdueLabel"]</span>` : ''}
                                         </div>
                                     </div>
                                 `).join('')}
@@ -695,11 +696,11 @@
         };
         
         window.analyzeWithAI = async function(){
-            if(!selectedTasks.length) return Swal.fire('Chưa chọn việc','Vui lòng chọn ít nhất một công việc để phân tích','warning');
+            if(!selectedTasks.length) return Swal.fire('@Localizer["SelectionRequired"]','@Localizer["NoTasksSelected"]','warning');
             const startDate = document.getElementById('aiPlanStartDate').value;
-            if(!startDate) return Swal.fire('Chưa chọn ngày','Vui lòng chọn ngày bắt đầu lên lịch','warning');
+            if(!startDate) return Swal.fire('@Localizer["SelectionRequired"]','@Localizer["NoStartDateSelected"]','warning');
             
-            Swal.fire({title:'AI đang phân tích...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
+            Swal.fire({title:'@Localizer["Loading"]',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
             try{
                 const res = await fetch('/Calendar/AnalyzeTasksWithAI', {
                     method:'POST',
@@ -712,10 +713,10 @@
                     bootstrap.Modal.getInstance(document.getElementById('autoPlanModal')).hide();
                     renderAISuggestions(result.data);
                     new bootstrap.Modal(document.getElementById('aiApprovalModal')).show();
-                } else Swal.fire('Error', result.message, 'error');
+                } else Swal.fire('@Localizer["Error"]', result.message, 'error');
             } catch(e){ 
                 Swal.close(); 
-                Swal.fire('Error','Server error','error'); 
+                Swal.fire('@Localizer["Error"]','@Localizer["ServerError"]','error'); 
             }
         };
         
@@ -824,22 +825,27 @@
                 selectedWorkingDays: Array.from(document.querySelectorAll('#wsForm input[name="SelectedWorkingDays"]:checked')).map(cb => cb.value)
             };
             
-            Swal.fire({title:'Đang lưu...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+            
+            Swal.fire({title:'@Localizer["Saving"]', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+            const token = document.querySelector('#wsForm input[name="__RequestVerificationToken"]').value;
             try {
                 const res = await fetch('/WorkSchedule/UpdateMySchedule', { 
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    }, 
                     body: JSON.stringify(data) 
                 });
                 const result = await res.json();
                 Swal.close();
                 if(result.success) { 
-                    Swal.fire('Thành công', '', 'success'); 
+                    Swal.fire('@Localizer["Success"]', '', 'success'); 
                     document.getElementById('workScheduleSidebar').style.display = 'none'; 
-                } else Swal.fire('Lỗi', result.message, 'error');
+                } else Swal.fire('@Localizer["Error"]', result.message, 'error');
             } catch(e) { 
                 Swal.close(); 
-                Swal.fire('Error', 'Server error', 'error'); 
+                Swal.fire('@Localizer["Error"]', '@Localizer["ServerError"]', 'error'); 
             }
         };
         
@@ -852,6 +858,12 @@
                 calendar = new FullCalendar.Calendar(calendarEl, {
                     locale: '@(System.Globalization.CultureInfo.CurrentCulture.Name.StartsWith("vi") ? "vi" : "en")',
                     initialView: 'timeGridWeek',
+                    buttonText: {
+                        today: '@Localizer["Today"]',
+                        month: '@Localizer["MonthView"]',
+                        week: '@Localizer["WeekView"]',
+                        day: '@Localizer["DayView"]'
+                    },
                     headerToolbar: { 
                         left: 'prev,next today todoToggle workSchedule', 
                         center: 'title', 
@@ -872,13 +884,13 @@
                         // Hiển thị menu: Đổi màu hoặc Xóa
                         Swal.fire({
                             title: info.event.title,
-                            text: 'Bạn muốn làm gì?',
+                            text: '@Localizer["WhatDoYouWantToDo"]',
                             icon: 'question',
                             showDenyButton: true,
                             showCancelButton: true,
-                            confirmButtonText: '<i class="fas fa-palette"></i> Đổi màu',
-                            denyButtonText: '<i class="fas fa-trash-alt"></i> Xóa',
-                            cancelButtonText: 'Đóng'
+                            confirmButtonText: '<i class="fas fa-palette"></i> @Localizer["ChangeColor"]',
+                            denyButtonText: '<i class="fas fa-trash-alt"></i> @Localizer["Delete"]',
+                            cancelButtonText: '@Localizer["Close"]'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 showColorPicker(info.event.id, info.event.backgroundColor);

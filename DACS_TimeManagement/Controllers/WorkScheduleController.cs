@@ -80,6 +80,7 @@ namespace DACS_TimeManagement.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateMySchedule([FromBody] WorkScheduleViewModel model)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -92,11 +93,12 @@ namespace DACS_TimeManagement.Controllers
                 s.DefaultEndHour = model.DefaultEndHour;
                 s.LunchStart = model.LunchStart;
                 s.LunchEnd = model.LunchEnd;
-                s.WorkingDays = string.Join(",", model.SelectedWorkingDays);
+                s.WorkingDays = string.Join(",", model.SelectedWorkingDays ?? new List<string>());
                 await _scheduleService.UpdateAsync(s);
                 return Json(new { success = true });
             }
-            return Json(new { success = false, message = "Dữ liệu không hợp lệ" });
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+            return Json(new { success = false, message = "Dữ liệu không hợp lệ: " + string.Join("; ", errors) });
         }
     }
 }

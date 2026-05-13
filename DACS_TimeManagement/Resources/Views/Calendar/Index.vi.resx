@@ -220,4 +220,52 @@
   <data name="ColorUpdatedSuccess" xml:space="preserve">
     <value>Cập nhật màu thành công!</value>
   </data>
+  <data name="MonthView" xml:space="preserve">
+    <value>Tháng</value>
+  </data>
+  <data name="WeekView" xml:space="preserve">
+    <value>Tuần</value>
+  </data>
+  <data name="DayView" xml:space="preserve">
+    <value>Ngày</value>
+  </data>
+  <data name="Today" xml:space="preserve">
+    <value>Hôm nay</value>
+  </data>
+  <data name="WhatDoYouWantToDo" xml:space="preserve">
+    <value>Bạn muốn làm gì?</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Đóng</value>
+  </data>
+  <data name="Success" xml:space="preserve">
+    <value>Thành công</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Xóa</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Đang lưu...</value>
+  </data>
+  <data name="ServerError" xml:space="preserve">
+    <value>Lỗi hệ thống</value>
+  </data>
+  <data name="ApproachingDeadline" xml:space="preserve">
+    <value>Sắp đến hạn</value>
+  </data>
+  <data name="OverdueLabel" xml:space="preserve">
+    <value>QUÁ HẠN</value>
+  </data>
+  <data name="NoTasksSelected" xml:space="preserve">
+    <value>Vui lòng chọn ít nhất một công việc để phân tích</value>
+  </data>
+  <data name="NoStartDateSelected" xml:space="preserve">
+    <value>Vui lòng chọn ngày bắt đầu lên lịch</value>
+  </data>
+  <data name="SelectionRequired" xml:space="preserve">
+    <value>Yêu cầu lựa chọn</value>
+  </data>
 </root>

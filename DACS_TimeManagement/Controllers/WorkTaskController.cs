@@ -904,6 +904,9 @@ namespace DACS_TimeManagement.Controllers
                             await _hubContext.Clients.User(tcr.OwnerId).SendAsync("ReceiveNotification", notif.Title, notif.Message, dbTask.Title);
                         }
 
+                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                            return Json(new { success = true, pending = true, message = "Change request submitted to project owner for approval." });
+
                         TempData["SuccessMessage"] = "Change request submitted to project owner for approval.";
                         return RedirectToAction(nameof(Index), new { projectId = taskForm.ProjectId });
                     }

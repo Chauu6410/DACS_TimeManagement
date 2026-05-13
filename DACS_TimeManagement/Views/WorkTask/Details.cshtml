@@ -253,7 +253,7 @@
                             <input type="text" name="Title" id="editTitle" class="form-control rounded-3" required />
                         </div>
                         <div class="col-12">
-                            <label for="editDescription" class="form-label fw-semibold mb-2">Description</label>
+                            <label for="editDescription" class="form-label fw-semibold mb-2">@Localizer["Description"]</label>
                             <textarea name="Description" id="editDescription" class="form-control rounded-3" rows="3"></textarea>
                         </div>
                         <div class="col-md-6">
@@ -441,7 +441,6 @@
 </style>
 
 <script>
-    // Delete button: show inline notification and do not navigate away
     (function() {
         const btn = document.getElementById('deleteTaskBtn');
         if (!btn) return;
@@ -449,62 +448,56 @@
         btn.addEventListener('click', async function (e) {
             e.preventDefault();
 
-            const ok = confirm(`@Localizer["DeleteConfirm"]`.replace(/\\n/g, '\n'));
-            if (!ok) return;
+            const result = await Swal.fire({
+                title: '@Localizer["DeleteQuestion"]',
+                text: '@Localizer["DeleteConfirm"]'.replace(/\\n/g, '\n'),
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: '@Localizer["YesDelete"]',
+                cancelButtonText: '@Localizer["Cancel"]'
+            });
 
-            const taskId = @Model.Id;
-            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-            const token = tokenInput ? tokenInput.value : null;
+            if (!result.isConfirmed) return;
 
-            try {
-                const res = await fetch(`/WorkTask/Delete/${taskId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(token ? { 'RequestVerificationToken': token } : {})
-                    },
-                    body: JSON.stringify({ id: taskId })
-                });
-
-                if (res.ok) {
-                    // Show inline bootstrap-style alert at top of container
-                    const container = document.querySelector('.task-details-container');
-                    if (container) {
-                        const alertEl = document.createElement('div');
-                        alertEl.className = 'alert alert-success rounded-3 mb-3';
-                        alertEl.innerHTML = `<i class="fas fa-check-circle me-2"></i>@Localizer["DeleteSuccess"]`;
-                        container.insertAdjacentElement('afterbegin', alertEl);
-                        btn.disabled = true;
-                        // Optionally collapse details area to indicate deletion
-                        const detailsRow = container.querySelector('.row');
-                        if (detailsRow) detailsRow.style.opacity = '0.6';
-                        setTimeout(() => { alertEl.remove(); }, 4000);
-                    } else {
-                        alert(`@Localizer["DeleteSuccess"]`);
-                        btn.disabled = true;
-                    }
-                } else {
-                    const txt = await res.text();
-                    alert(`@Localizer["DeleteFailed"]` + (txt || res.statusText));
-                }
-            } catch (err) {
-                console.error(err);
-                alert(`@Localizer["NetworkError"]`);
-            }
+            // Dùng form ẩn để submit (An toàn và tự động handle CSRF)
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/WorkTask/Delete/${@Model.Id}`;
+            
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = token;
+            
+            form.appendChild(tokenInput);
+            document.body.appendChild(form);
+            form.submit();
         });
     })();
 
     // Edit Task Modal Logic
     const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
     document.querySelector('.edit-task-btn')?.addEventListener('click', function() {
-        const taskId = this.dataset.taskId;
+        const btn = this;
+        const taskId = btn.dataset.taskId;
+        const originalHtml = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + '@Localizer["Loading"]';
+
         fetch(`/WorkTask/Details/${taskId}`, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to load task data');
+            return res.json();
+        })
         .then(data => {
             document.getElementById('editTaskId').value = data.id;
-            document.getElementById('editProjectId').value = data.projectId;
+            document.getElementById('editProjectId').value = data.projectId || '';
             document.getElementById('editTitle').value = data.title;
             document.getElementById('editDescription').value = data.description || '';
             document.getElementById('editStartDate').value = data.startDate;
@@ -514,22 +507,40 @@
             document.getElementById('editProgress').value = data.progress;
             document.getElementById('editIsPrivate').checked = data.isPrivate;
             
+            // Store current assignee to select after loading list
+            const currentAssigneeId = data.assigneeId;
+
             // Load assignees
-            return fetch(`/WorkTask/GetProjectMembers?projectId=${data.projectId}`);
+            fetch(`/WorkTask/GetProjectMembers?projectId=${data.projectId || 0}`)
+                .then(res => res.json())
+                .then(members => {
+                    const select = document.getElementById('editAssigneeId');
+                    select.innerHTML = '';
+                    members.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.id;
+                        opt.textContent = m.displayName;
+                        if (m.id === currentAssigneeId) opt.selected = true;
+                        select.appendChild(opt);
+                    });
+                    
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    editModal.show();
+                })
+                .catch(err => {
+                    console.error(err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                    editModal.show(); // Show anyway, assignee list might just be empty
+                });
         })
-        .then(res => res.json())
-        .then(members => {
-            const select = document.getElementById('editAssigneeId');
-            select.innerHTML = '';
-            members.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = m.displayName;
-                select.appendChild(opt);
-            });
-            editModal.show();
-        })
-        .catch(err => console.error(err));
+        .catch(err => {
+            console.error(err);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            Swal.fire('@Localizer["Error"]', '@Localizer["FailedToLoadData"]', 'error');
+        });
     });
 
     document.getElementById('editTaskForm').addEventListener('submit', function(e) {
@@ -547,18 +558,30 @@
             body: new FormData(form),
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Server returned error ' + response.status);
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
-                location.reload();
+                Swal.fire({
+                    title: '@Localizer["Success"]',
+                    text: data.message || '@Localizer["UpdateSuccess"]',
+                    icon: 'success',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload();
+                });
             } else {
-                alert(data.message || 'Validation failed');
+                Swal.fire('@Localizer["Error"]', data.message || '@Localizer["ValidationFailed"]', 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
             }
         })
         .catch(err => {
             console.error(err);
+            Swal.fire('@Localizer["Error"]', '@Localizer["ServerError"]', 'error');
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
         });

@@ -38,4 +38,9 @@
   <data name="TaskRequiredDescription" xml:space="preserve"><value>Vui lòng chọn một nhiệm vụ cụ thể trước khi bắt đầu phiên tập trung.</value></data>
   <data name="Saved" xml:space="preserve"><value>Đã lưu</value></data>
   <data name="SessionAlreadySaved" xml:space="preserve"><value>Phiên đã được lưu, không thể bắt đầu lại. Vui lòng thoát.</value></data>
+  <data name="DistractionBlocker" xml:space="preserve"><value>Chặn xao nhãng</value></data>
+  <data name="StrictModeEnabled" xml:space="preserve"><value>Đã bật chế độ nghiêm ngặt</value></data>
+  <data name="DistractionWarning" xml:space="preserve"><value>Cảnh báo xao nhãng!</value></data>
+  <data name="DistractionMessage" xml:space="preserve"><value>Bạn vừa rời khỏi tab làm việc. Hãy tập trung để hoàn thành mục tiêu!</value></data>
+  <data name="EnableFullScreen" xml:space="preserve"><value>Bật toàn màn hình</value></data>
 </root>
