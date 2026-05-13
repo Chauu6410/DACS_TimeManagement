@@ -30,12 +30,25 @@ namespace DACS_TimeManagement.Controllers
             var totalProjects = await _context.Projects.CountAsync();
             var totalTasks = await _context.WorkTasks.CountAsync();
 
+            var userDetails = new List<UserDetailViewModel>();
+            foreach (var user in users)
+            {
+                userDetails.Add(new UserDetailViewModel
+                {
+                    User = user,
+                    IsAdmin = await _userManager.IsInRoleAsync(user, "Admin"),
+                    IsLocked = await _userManager.IsLockedOutAsync(user),
+                    LastAccess = null // Hoặc lấy từ bảng log nếu có
+                });
+            }
+
             var model = new AdminViewModel
             {
                 TotalUsers = users.Count,
                 TotalProjects = totalProjects,
                 TotalTasks = totalTasks,
-                Users = users
+                Users = users,
+                UserDetails = userDetails
             };
 
             return View(model);
@@ -46,12 +59,15 @@ namespace DACS_TimeManagement.Controllers
         public async Task<IActionResult> ConfirmEmail(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user != null)
-            {
-                user.EmailConfirmed = true;
-                await _userManager.UpdateAsync(user);
-            }
-            return RedirectToAction(nameof(Index));
+            if (user == null)
+                return Json(new { success = false, message = _localizer["UserNotFound"].Value });
+
+            user.EmailConfirmed = true;
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+                return Json(new { success = true, message = string.Format(_localizer["EmailConfirmedFor"].Value, user.Email) });
+
+            return Json(new { success = false, message = _localizer["FailedToConfirmEmail"].Value });
         }
 
         // 2. Gán quyền Admin / Gỡ quyền Admin
@@ -186,6 +202,25 @@ namespace DACS_TimeManagement.Controllers
                 }
             }
             return Json(new { success = true, message = string.Format(_localizer["BulkLockToggled"].Value, locked, unlocked) });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BulkConfirmEmail([FromBody] List<string> userIds)
+        {
+            if (userIds == null || !userIds.Any()) return Json(new { success = false, message = _localizer["NoUsersSelected"].Value });
+
+            int count = 0;
+            foreach (var id in userIds)
+            {
+                var user = await _userManager.FindByIdAsync(id);
+                if (user != null && !user.EmailConfirmed)
+                {
+                    user.EmailConfirmed = true;
+                    var result = await _userManager.UpdateAsync(user);
+                    if (result.Succeeded) count++;
+                }
+            }
+            return Json(new { success = true, message = string.Format(_localizer["EmailsConfirmed"].Value, count) });
         }
     }
 }

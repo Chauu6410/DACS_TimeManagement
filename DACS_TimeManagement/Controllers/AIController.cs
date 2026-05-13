@@ -112,8 +112,8 @@ Details: {request.Project?.Detail ?? "N/A"}
         public async Task StreamPlan([FromQuery] int goalId, CancellationToken cancellationToken)
         {
             Response.ContentType = "text/event-stream";
-            Response.Headers.Add("Cache-Control", "no-cache");
-            Response.Headers.Add("Connection", "keep-alive");
+            Response.Headers["Cache-Control"] = "no-cache";
+            Response.Headers["Connection"] = "keep-alive";
 
             try
             {
