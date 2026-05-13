@@ -107,7 +107,7 @@
     <value>Lịch sử</value>
   </data>
   <data name="HrsTotal" xml:space="preserve">
-    <value>tổng cộng giờ</value>
+    <value>giờ tổng cộng</value>
   </data>
   <data name="JustNow" xml:space="preserve">
     <value>Vừa xong</value>
@@ -165,5 +165,89 @@
   </data>
   <data name="CannotUndo" xml:space="preserve">
     <value>Hành động này không thể hoàn tác.</value>
+  </data>
+  <data name="Session" xml:space="preserve">
+    <value>Phiên</value>
+  </data>
+  <data name="EditGoalTitle" xml:space="preserve">
+    <value>Chỉnh sửa mục tiêu</value>
+  </data>
+  <data name="UpdateObjectiveDetails" xml:space="preserve">
+    <value>Cập nhật thông tin chi tiết về mục tiêu của bạn</value>
+  </data>
+  <data name="GoalTitleLabel" xml:space="preserve">
+    <value>Tiêu đề mục tiêu</value>
+  </data>
+  <data name="GoalTitlePlaceholder" xml:space="preserve">
+    <value>Ví dụ: Học tiếng Anh</value>
+  </data>
+  <data name="LinkedProject" xml:space="preserve">
+    <value>Dự án liên kết</value>
+  </data>
+  <data name="SelectProject" xml:space="preserve">
+    <value>-- Chọn một dự án --</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Mô tả</value>
+  </data>
+  <data name="TargetHoursLabel" xml:space="preserve">
+    <value>Số giờ mục tiêu</value>
+  </data>
+  <data name="HoursUnit" xml:space="preserve">
+    <value>giờ</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>Lưu thay đổi</value>
+  </data>
+  <data name="Thinking" xml:space="preserve">
+    <value>Đang suy nghĩ...</value>
+  </data>
+  <data name="NoProgressData" xml:space="preserve">
+    <value>Chưa có dữ liệu tiến độ</value>
+  </data>
+  <data name="ChartError" xml:space="preserve">
+    <value>Lỗi khi tải biểu đồ</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Đang lưu...</value>
+  </data>
+  <data name="ValidationFailed" xml:space="preserve">
+    <value>Xác nhận thất bại</value>
+  </data>
+  <data name="DeleteHistoryError" xml:space="preserve">
+    <value>Không thể xóa mục lịch sử.</value>
+  </data>
+  <data name="AIThinking" xml:space="preserve">
+    <value>AI đang suy nghĩ...</value>
+  </data>
+  <data name="AIError" xml:space="preserve">
+    <value>Lỗi AI</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Đang thực hiện</value>
+  </data>
+  <data name="OnTrack" xml:space="preserve">
+    <value>Đúng tiến độ</value>
+  </data>
+  <data name="Behind" xml:space="preserve">
+    <value>Chậm tiến độ</value>
+  </data>
+  <data name="OverdueStatus" xml:space="preserve">
+    <value>Quá hạn</value>
+  </data>
+  <data name="CompletedStatus" xml:space="preserve">
+    <value>Đã hoàn thành</value>
+  </data>
+  <data name="TimeBased" xml:space="preserve">
+    <value>Theo thời gian</value>
+  </data>
+  <data name="TaskBased" xml:space="preserve">
+    <value>Theo công việc</value>
   </data>
 </root>

@@ -166,4 +166,88 @@
   <data name="CannotUndo" xml:space="preserve">
     <value>This action cannot be undone.</value>
   </data>
+  <data name="Session" xml:space="preserve">
+    <value>Session</value>
+  </data>
+  <data name="EditGoalTitle" xml:space="preserve">
+    <value>Edit Goal</value>
+  </data>
+  <data name="UpdateObjectiveDetails" xml:space="preserve">
+    <value>Update your objective details</value>
+  </data>
+  <data name="GoalTitleLabel" xml:space="preserve">
+    <value>Goal Title</value>
+  </data>
+  <data name="GoalTitlePlaceholder" xml:space="preserve">
+    <value>e.g., Learn English</value>
+  </data>
+  <data name="LinkedProject" xml:space="preserve">
+    <value>Linked Project</value>
+  </data>
+  <data name="SelectProject" xml:space="preserve">
+    <value>-- Select a project --</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="TargetHoursLabel" xml:space="preserve">
+    <value>Target Hours</value>
+  </data>
+  <data name="HoursUnit" xml:space="preserve">
+    <value>hours</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="Thinking" xml:space="preserve">
+    <value>Thinking...</value>
+  </data>
+  <data name="NoProgressData" xml:space="preserve">
+    <value>No progress data yet</value>
+  </data>
+  <data name="ChartError" xml:space="preserve">
+    <value>Error loading chart</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="ValidationFailed" xml:space="preserve">
+    <value>Validation failed</value>
+  </data>
+  <data name="DeleteHistoryError" xml:space="preserve">
+    <value>Failed to delete history entry.</value>
+  </data>
+  <data name="AIThinking" xml:space="preserve">
+    <value>AI Thinking...</value>
+  </data>
+  <data name="AIError" xml:space="preserve">
+    <value>AI Error</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="OnTrack" xml:space="preserve">
+    <value>On Track</value>
+  </data>
+  <data name="Behind" xml:space="preserve">
+    <value>Behind</value>
+  </data>
+  <data name="OverdueStatus" xml:space="preserve">
+    <value>Overdue</value>
+  </data>
+  <data name="CompletedStatus" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="TimeBased" xml:space="preserve">
+    <value>Time Based</value>
+  </data>
+  <data name="TaskBased" xml:space="preserve">
+    <value>Task Based</value>
+  </data>
 </root>

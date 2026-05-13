@@ -190,4 +190,28 @@
   <data name="AIDataAnalyzing" xml:space="preserve">
     <value>AI is analyzing latest data...</value>
   </data>
+  <data name="DefineObjectives" xml:space="preserve">
+    <value>Define your objectives and track progress</value>
+  </data>
+  <data name="GoalType" xml:space="preserve">
+    <value>Goal Type</value>
+  </data>
+  <data name="LearnEnglishPlaceholder" xml:space="preserve">
+    <value>e.g., Learn English</value>
+  </data>
+  <data name="CreateGoal" xml:space="preserve">
+    <value>Create Goal</value>
+  </data>
+  <data name="Saving" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="ValidationFailed" xml:space="preserve">
+    <value>Validation failed</value>
+  </data>
+  <data name="CouldNotDeleteGoal" xml:space="preserve">
+    <value>Could not delete goal</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
 </root>
