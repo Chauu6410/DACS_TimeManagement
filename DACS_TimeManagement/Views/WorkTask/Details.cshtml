@@ -440,6 +440,7 @@
     }
 </style>
 
+@section Scripts {
 <script>
     (function() {
         const btn = document.getElementById('deleteTaskBtn');
@@ -479,111 +480,118 @@
     })();
 
     // Edit Task Modal Logic
-    const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
-    document.querySelector('.edit-task-btn')?.addEventListener('click', function() {
-        const btn = this;
-        const taskId = btn.dataset.taskId;
-        const originalHtml = btn.innerHTML;
+    document.addEventListener('DOMContentLoaded', function() {
+        const editModalElement = document.getElementById('editTaskModal');
+        if (!editModalElement) return;
         
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + '@Localizer["Loading"]';
+        const editModal = new bootstrap.Modal(editModalElement);
+        
+        document.querySelectorAll('.edit-task-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const taskId = this.dataset.taskId;
+                const originalHtml = this.innerHTML;
+                
+                this.disabled = true;
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + '@Localizer["Loading"]';
 
-        fetch(`/WorkTask/Details/${taskId}`, {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(res => {
-            if (!res.ok) throw new Error('Failed to load task data');
-            return res.json();
-        })
-        .then(data => {
-            document.getElementById('editTaskId').value = data.id;
-            document.getElementById('editProjectId').value = data.projectId || '';
-            document.getElementById('editTitle').value = data.title;
-            document.getElementById('editDescription').value = data.description || '';
-            document.getElementById('editStartDate').value = data.startDate;
-            document.getElementById('editEndDate').value = data.endDate;
-            document.getElementById('editPriority').value = data.priority;
-            document.getElementById('editStatus').value = data.status;
-            document.getElementById('editProgress').value = data.progress;
-            document.getElementById('editIsPrivate').checked = data.isPrivate;
-            
-            // Store current assignee to select after loading list
-            const currentAssigneeId = data.assigneeId;
-
-            // Load assignees
-            fetch(`/WorkTask/GetProjectMembers?projectId=${data.projectId || 0}`)
-                .then(res => res.json())
-                .then(members => {
-                    const select = document.getElementById('editAssigneeId');
-                    select.innerHTML = '';
-                    members.forEach(m => {
-                        const opt = document.createElement('option');
-                        opt.value = m.id;
-                        opt.textContent = m.displayName;
-                        if (m.id === currentAssigneeId) opt.selected = true;
-                        select.appendChild(opt);
-                    });
+                fetch(`/WorkTask/Details/${taskId}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to load task data');
+                    return res.json();
+                })
+                .then(data => {
+                    document.getElementById('editTaskId').value = data.id;
+                    document.getElementById('editProjectId').value = data.projectId || '';
+                    document.getElementById('editTitle').value = data.title;
+                    document.getElementById('editDescription').value = data.description || '';
+                    document.getElementById('editStartDate').value = data.startDate;
+                    document.getElementById('editEndDate').value = data.endDate;
+                    document.getElementById('editPriority').value = data.priority;
+                    document.getElementById('editStatus').value = data.status;
+                    document.getElementById('editProgress').value = data.progress;
+                    document.getElementById('editIsPrivate').checked = data.isPrivate;
                     
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
-                    editModal.show();
+                    // Store current assignee to select after loading list
+                    const currentAssigneeId = data.assigneeId;
+
+                    // Load assignees
+                    fetch(`/WorkTask/GetProjectMembers?projectId=${data.projectId || 0}`)
+                        .then(res => res.json())
+                        .then(members => {
+                            const select = document.getElementById('editAssigneeId');
+                            select.innerHTML = '';
+                            members.forEach(m => {
+                                const opt = document.createElement('option');
+                                opt.value = m.id;
+                                opt.textContent = m.displayName;
+                                if (m.id === currentAssigneeId) opt.selected = true;
+                                select.appendChild(opt);
+                            });
+                            
+                            this.disabled = false;
+                            this.innerHTML = originalHtml;
+                            editModal.show();
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            this.disabled = false;
+                            this.innerHTML = originalHtml;
+                            editModal.show(); // Show anyway, assignee list might just be empty
+                        });
                 })
                 .catch(err => {
                     console.error(err);
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
-                    editModal.show(); // Show anyway, assignee list might just be empty
+                    this.disabled = false;
+                    this.innerHTML = originalHtml;
+                    Swal.fire('@Localizer["Error"]', '@Localizer["FailedToLoadData"]', 'error');
                 });
-        })
-        .catch(err => {
-            console.error(err);
-            btn.disabled = false;
-            btn.innerHTML = originalHtml;
-            Swal.fire('@Localizer["Error"]', '@Localizer["FailedToLoadData"]', 'error');
+            });
         });
-    });
 
-    document.getElementById('editTaskForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const form = this;
-        const taskId = document.getElementById('editTaskId').value;
-        const submitBtn = document.getElementById('editTaskSubmitBtn');
-        const originalText = submitBtn.innerHTML;
-        
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + '@Localizer["Saving"]';
-        
-        fetch(`/WorkTask/Edit/${taskId}`, {
-            method: 'POST',
-            body: new FormData(form),
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Server returned error ' + response.status);
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                Swal.fire({
-                    title: '@Localizer["Success"]',
-                    text: data.message || '@Localizer["UpdateSuccess"]',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => {
-                    location.reload();
-                });
-            } else {
-                Swal.fire('@Localizer["Error"]', data.message || '@Localizer["ValidationFailed"]', 'error');
+        document.getElementById('editTaskForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const taskId = document.getElementById('editTaskId').value;
+            const submitBtn = document.getElementById('editTaskSubmitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + '@Localizer["Saving"]';
+            
+            fetch(`/WorkTask/Edit/${taskId}`, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Server returned error ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: '@Localizer["Success"]',
+                        text: data.message || '@Localizer["UpdateSuccess"]',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('@Localizer["Error"]', data.message || '@Localizer["ValidationFailed"]', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                Swal.fire('@Localizer["Error"]', '@Localizer["ServerError"]', 'error');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            Swal.fire('@Localizer["Error"]', '@Localizer["ServerError"]', 'error');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
+            });
         });
     });
 
@@ -598,3 +606,5 @@
         input.addEventListener('blur', function() { this.closest('.mb-3')?.classList.remove('focused'); });
     });
 </script>
+}
+

@@ -181,7 +181,10 @@ Details: {request.Project?.Detail ?? "N/A"}
 
             try
             {
-                var project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
+                var project = await _db.Set<Project>()
+                    .Include(p => p.Tasks)
+                    .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
+
                 if (project == null)
                 {
                     await Response.WriteAsync("data: {\"error\": \"Project not found\"}\n\n", cancellationToken);
@@ -206,16 +209,18 @@ Yêu cầu:
 4. Gợi ý 3-5 tác vụ quan trọng cần làm ngay.
 5. Đưa ra 3 lời khuyên thực tế để quản lý dự án hiệu quả.
 
-BẮT BUỘC: Cuối bản kế hoạch, bạn PHẢI thêm một khối mã JSON theo định dạng sau:
+BẮT BUỘC: Cuối bản kế hoạch, bạn PHẢI thêm một khối mã JSON để hệ thống có thể tạo các tác vụ mẫu:
 ```json-tasks
 [
   { ""key"": ""task_1"", ""title"": ""Tên task 1"", ""description"": ""Mô tả ngắn gọn 1"" },
   { ""key"": ""task_2"", ""title"": ""Tên task 2"", ""description"": ""Mô tả ngắn gọn 2"" }
 ]
 ```
-Ghi chú: Trường ""key"" phải là duy nhất (task_1, task_2,...) và không đổi.
+Ghi chú: 
+- Nếu đây là dự án mới, hãy tạo các task mới với key (task_1, task_2,...).
+- KHÔNG thêm các lời giải thích hay lưu ý ngoài lề về việc thiếu dữ liệu json-tasks. Chỉ tập trung vào bản kế hoạch và khối mã JSON.
 
-Định dạng: Sử dụng Markdown chuyên nghiệp, trình bày thoáng đãng. Trả lời bằng tiếng Việt."
+Định dạng: Sử dụng Markdown chuyên nghiệp. Trả lời bằng tiếng Việt."
                     : @"Task: Analyze the project and create an optimal implementation plan.
 Requirements:
 1. Assess project complexity.
@@ -224,20 +229,33 @@ Requirements:
 4. Suggest 3-5 critical tasks.
 5. Give 3 practical tips.
 
-MANDATORY: At the end of the plan, add a JSON code block:
+MANDATORY: At the end of the plan, add a JSON code block for task templates:
 ```json-tasks
 [
   { ""key"": ""task_1"", ""title"": ""Task name 1"", ""description"": ""Description 1"" },
   { ""key"": ""task_2"", ""title"": ""Task name 2"", ""description"": ""Description 2"" }
 ]
 ```
-Note: The ""key"" field must be unique (task_1, task_2,...) and persistent.
+Note:
+- If this is a new project, generate new tasks with keys (task_1, task_2,...).
+- DO NOT add meta-comments or notes about missing json-tasks blocks. Focus only on the strategy and the JSON block.
 
-Format: Use professional Markdown, clean layout. Answer in English.";
+Format: Use professional Markdown. Answer in English.";
+
+                string existingTasksInfo = isVi ? "Các tác vụ hiện có: " : "Existing tasks: ";
+                if (project.Tasks != null && project.Tasks.Any())
+                {
+                    var taskSummaries = project.Tasks.Select(t => $"- {t.Title} (Key: {t.AITaskKey ?? "None"})");
+                    existingTasksInfo += string.Join("\n", taskSummaries);
+                }
+                else
+                {
+                    existingTasksInfo += isVi ? "Chưa có tác vụ nào." : "No tasks yet.";
+                }
 
                 string userInput = isVi 
-                    ? $"Dự án: {project.Name}\nChi tiết: {project.Description ?? "Không có mô tả"}"
-                    : $"Project: {project.Name}\nDetails: {project.Description ?? "No description"}";
+                    ? $"Dự án: {project.Name}\nChi tiết: {project.Description ?? "Không có mô tả"}\n{existingTasksInfo}"
+                    : $"Project: {project.Name}\nDetails: {project.Description ?? "No description"}\n{existingTasksInfo}";
 
                 string prompt = _geminiService.BuildAdvancedPrompt(context, goalText, userInput);
 
@@ -274,6 +292,7 @@ Format: Use professional Markdown, clean layout. Answer in English.";
             }
         }
 
+
         [HttpPost("translate-strategy")]
         public async Task<IActionResult> TranslateStrategy([FromBody] TranslateRequestDTO request)
         {
@@ -282,11 +301,14 @@ Format: Use professional Markdown, clean layout. Answer in English.";
                 var project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId);
                 if (project == null) return NotFound();
 
-                string sourceText = request.TargetLang == "vi" ? project.AIStrategyEn : project.AIStrategyVi;
+                var isVi = request.TargetLang == "vi";
+                string sourceText = isVi ? project.AIStrategyEn : project.AIStrategyVi;
                 if (string.IsNullOrEmpty(sourceText)) return BadRequest("No source strategy to translate.");
 
                 string context = "Bạn là một chuyên gia dịch thuật chuyên nghiệp, chuyên ngành Quản trị Dự án.";
-                string goal = $"Dịch bản kế hoạch chiến lược sau đây sang {(request.TargetLang == "vi" ? "tiếng Việt" : "tiếng Anh")}. Giữ nguyên định dạng Markdown và các emoji. ĐẶC BIỆT: Trong khối mã json-tasks, PHẢI giữ nguyên các giá trị của trường \"key\", chỉ dịch trường \"title\" và \"description\".";
+                string goal = isVi 
+                    ? "Dịch bản kế hoạch chiến lược sau đây sang tiếng Việt. Giữ nguyên định dạng Markdown và các emoji. ĐẶC BIỆT: Trong khối mã json-tasks (nếu có), PHẢI giữ nguyên giá trị trường \"key\", chỉ dịch \"title\" và \"description\". KHÔNG thêm bất kỳ lời giải thích hay lưu ý nào về việc thiếu dữ liệu hoặc không thể thực hiện quy tắc."
+                    : "Translate the following strategy plan into English. Maintain Markdown formatting and emojis. SPECIAL: In the json-tasks block (if any), MUST keep \"key\" values unchanged, only translate \"title\" and \"description\". DO NOT add any explanations or notes about missing data or inability to follow rules.";
                 
                 string prompt = _geminiService.BuildAdvancedPrompt(context, goal, sourceText);
                 string translatedText = await _geminiService.GenerateContent(prompt, 0.2, CancellationToken.None);

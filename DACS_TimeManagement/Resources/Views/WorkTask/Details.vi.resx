@@ -202,4 +202,22 @@
   <data name="ValidationFailed" xml:space="preserve">
     <value>Dữ liệu nhập vào không hợp lệ.</value>
   </data>
+  <data name="Success" xml:space="preserve">
+    <value>Thành công</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Đang tải...</value>
+  </data>
+  <data name="ServerError" xml:space="preserve">
+    <value>Lỗi máy chủ. Vui lòng thử lại sau.</value>
+  </data>
+  <data name="YesDelete" xml:space="preserve">
+    <value>Có, xóa nó!</value>
+  </data>
+  <data name="ChangeRequestSubmitted" xml:space="preserve">
+    <value>Yêu cầu thay đổi đã được gửi tới chủ sở hữu dự án để phê duyệt.</value>
+  </data>
 </root>

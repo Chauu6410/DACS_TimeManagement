@@ -27,10 +27,10 @@ namespace DACS_TimeManagement.Controllers
 
             var viewModel = new WorkScheduleViewModel
             {
-                DefaultStartHour = schedule.DefaultStartHour,
-                DefaultEndHour = schedule.DefaultEndHour,
-                LunchStart = schedule.LunchStart,
-                LunchEnd = schedule.LunchEnd,
+                DefaultStartHour = schedule.DefaultStartHour.ToString("HH:mm"),
+                DefaultEndHour = schedule.DefaultEndHour.ToString("HH:mm"),
+                LunchStart = schedule.LunchStart.ToString("HH:mm"),
+                LunchEnd = schedule.LunchEnd.ToString("HH:mm"),
                 SelectedWorkingDays = schedule.WorkingDays.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
             };
 
@@ -49,10 +49,11 @@ namespace DACS_TimeManagement.Controllers
             {
                 var schedule = await _scheduleService.GetOrCreateDefaultAsync(userId);
 
-                schedule.DefaultStartHour = model.DefaultStartHour;
-                schedule.DefaultEndHour = model.DefaultEndHour;
-                schedule.LunchStart = model.LunchStart;
-                schedule.LunchEnd = model.LunchEnd;
+                if (TimeOnly.TryParse(model.DefaultStartHour, out var startHour)) schedule.DefaultStartHour = startHour;
+                if (TimeOnly.TryParse(model.DefaultEndHour, out var endHour)) schedule.DefaultEndHour = endHour;
+                if (TimeOnly.TryParse(model.LunchStart, out var lunchStart)) schedule.LunchStart = lunchStart;
+                if (TimeOnly.TryParse(model.LunchEnd, out var lunchEnd)) schedule.LunchEnd = lunchEnd;
+                
                 schedule.WorkingDays = string.Join(",", model.SelectedWorkingDays);
 
                 await _scheduleService.UpdateAsync(schedule);
@@ -73,7 +74,10 @@ namespace DACS_TimeManagement.Controllers
             return Json(new { 
                 success = true, 
                 data = new {
-                    s.DefaultStartHour, s.DefaultEndHour, s.LunchStart, s.LunchEnd, 
+                    DefaultStartHour = s.DefaultStartHour.ToString("HH:mm"),
+                    DefaultEndHour = s.DefaultEndHour.ToString("HH:mm"),
+                    LunchStart = s.LunchStart.ToString("HH:mm"),
+                    LunchEnd = s.LunchEnd.ToString("HH:mm"), 
                     WorkingDays = s.WorkingDays.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
                 }
             });
@@ -89,10 +93,12 @@ namespace DACS_TimeManagement.Controllers
             if (ModelState.IsValid)
             {
                 var s = await _scheduleService.GetOrCreateDefaultAsync(userId);
-                s.DefaultStartHour = model.DefaultStartHour;
-                s.DefaultEndHour = model.DefaultEndHour;
-                s.LunchStart = model.LunchStart;
-                s.LunchEnd = model.LunchEnd;
+                
+                if (TimeOnly.TryParse(model.DefaultStartHour, out var startHour)) s.DefaultStartHour = startHour;
+                if (TimeOnly.TryParse(model.DefaultEndHour, out var endHour)) s.DefaultEndHour = endHour;
+                if (TimeOnly.TryParse(model.LunchStart, out var lunchStart)) s.LunchStart = lunchStart;
+                if (TimeOnly.TryParse(model.LunchEnd, out var lunchEnd)) s.LunchEnd = lunchEnd;
+                
                 s.WorkingDays = string.Join(",", model.SelectedWorkingDays ?? new List<string>());
                 await _scheduleService.UpdateAsync(s);
                 return Json(new { success = true });
