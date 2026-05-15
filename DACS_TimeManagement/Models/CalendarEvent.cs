@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DACS_TimeManagement.Models
@@ -14,5 +14,9 @@ namespace DACS_TimeManagement.Models
         public string ThemeColor { get; set; } // Màu sắc hiển thị trên lịch
 
         public string UserId { get; set; }
+        
+        public bool IsImportant { get; set; } = false;
+        public bool IsEmailNotification { get; set; } = false;
+        public bool NotificationSent { get; set; } = false;
     }
 }

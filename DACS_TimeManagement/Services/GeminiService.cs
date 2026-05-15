@@ -313,5 +313,58 @@ namespace DACS_TimeManagement.Services
 
             return text.Substring(0, truncateLength) + "…";
         }
+
+        public async Task<DACS_TimeManagement.Models.CalendarEvent?> ParseEventFromNaturalLanguage(string input, string userId)
+        {
+            var now = DateTime.Now;
+            var prompt = $@"Bạn là một trợ lý ảo thông minh. Hãy trích xuất thông tin sự kiện từ câu nói sau của người dùng: ""{input}""
+Thời điểm hiện tại là: {now:dd/MM/yyyy HH:mm} (Thứ {now.DayOfWeek}).
+
+Yêu cầu trích xuất ra định dạng JSON như sau:
+{{
+  ""Subject"": ""Tên sự kiện/cuộc họp"",
+  ""Description"": ""Mô tả ngắn (nếu có)"",
+  ""StartTime"": ""yyyy-MM-ddTHH:mm:ss"",
+  ""EndTime"": ""yyyy-MM-ddTHH:mm:ss"",
+  ""IsImportant"": true/false,
+  ""IsFullDay"": true/false
+}}
+
+Lưu ý:
+1. Nếu không có thời gian kết thúc, hãy mặc định sự kiện kéo dài 1 tiếng.
+2. Nếu là các từ như ""mai"", ""mốt"", ""chiều nay"", hãy tính toán chính xác ngày tháng dựa trên thời điểm hiện tại.
+3. Nếu sự kiện có vẻ quan trọng (họp, deadline, gặp khách hàng, sinh nhật...), hãy để IsImportant là true.
+4. Chỉ trả về duy nhất chuỗi JSON, không giải thích gì thêm.";
+
+            try
+            {
+                var response = await GenerateContent(prompt);
+                // Tìm vị trí của JSON trong response (phòng trường hợp AI thêm text ngoài lề)
+                int start = response.IndexOf("{");
+                int end = response.LastIndexOf("}");
+                if (start >= 0 && end > start)
+                {
+                    var json = response.Substring(start, end - start + 1);
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var result = JsonSerializer.Deserialize<DACS_TimeManagement.Models.CalendarEvent>(json, options);
+                    if (result != null)
+                    {
+                        result.UserId = userId;
+                        if (string.IsNullOrEmpty(result.ThemeColor))
+                        {
+                            // Sử dụng màu từ bảng màu chuẩn: Orange cho quan trọng, Blue cho bình thường
+                            result.ThemeColor = result.IsImportant ? "#fb923c" : "#60a5fa"; 
+                        }
+                        return result;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error parsing event from natural language: {Input}", input);
+            }
+
+            return null;
+        }
     }
 }

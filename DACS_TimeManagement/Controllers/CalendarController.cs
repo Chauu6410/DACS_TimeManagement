@@ -64,6 +64,137 @@ namespace DACS_TimeManagement.Controllers
             return Json(list);
         }
 
+        // GET: Calendar/GetCalendarEvents - Lấy các sự kiện chung (không liên kết Task)
+        [HttpGet]
+        public async Task<JsonResult> GetCalendarEvents(DateTime start, DateTime end)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+
+            var events = await _context.CalendarEvents
+                .Where(e => e.UserId == userId && ((e.StartTime >= start && e.StartTime <= end) || (e.EndTime >= start && e.EndTime <= end)))
+                .OrderBy(e => e.StartTime)
+                .ToListAsync();
+
+            var list = events.Select(e => new
+            {
+                id = e.Id,
+                title = (e.IsImportant ? "⭐ " : "") + e.Subject,
+                start = e.StartTime.ToString("o"),
+                end = e.EndTime.ToString("o"),
+                description = e.Description ?? string.Empty,
+                backgroundColor = e.ThemeColor ?? (e.IsImportant ? "#fb923c" : "#60a5fa"),
+                borderColor = "transparent",
+                textColor = "#ffffff",
+                extendedProps = new
+                {
+                    isImportant = e.IsImportant,
+                    isEmailNotification = e.IsEmailNotification,
+                    isGenericEvent = true
+                }
+            }).ToList();
+
+            return Json(list);
+        }
+
+        // POST: Calendar/QuickCreate - Tạo sự kiện nhanh bằng NLP
+        [HttpPost]
+        public async Task<IActionResult> QuickCreate([FromBody] string input)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            if (string.IsNullOrWhiteSpace(input)) return BadRequest(new { success = false, message = "Vui lòng nhập nội dung sự kiện." });
+
+            var parsedEvent = await _geminiService.ParseEventFromNaturalLanguage(input, userId);
+            if (parsedEvent == null)
+            {
+                return BadRequest(new { success = false, message = "AI không thể hiểu nội dung này. Vui lòng nhập rõ ràng hơn (VD: Họp team lúc 2h chiều mai)." });
+            }
+
+            // Gán màu ngẫu nhiên từ bảng màu chuẩn nếu chưa có màu
+            if (string.IsNullOrEmpty(parsedEvent.ThemeColor))
+            {
+                var palette = new[] { "#818cf8", "#c084fc", "#f472b6", "#fb923c", "#fbbf24", "#4ade80", "#2dd4bf", "#60a5fa" };
+                parsedEvent.ThemeColor = parsedEvent.IsImportant ? "#fb923c" : palette[new Random().Next(palette.Length)];
+            }
+
+            // Mặc định bật thông báo email cho sự kiện quan trọng
+            if (parsedEvent.IsImportant)
+            {
+                parsedEvent.IsEmailNotification = true;
+            }
+
+            _context.CalendarEvents.Add(parsedEvent);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true, data = parsedEvent });
+        }
+
+        // POST: Calendar/DeleteGenericEvent
+        [HttpPost]
+        public async Task<IActionResult> DeleteGenericEvent(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var ev = await _context.CalendarEvents.FirstOrDefaultAsync(e => e.Id == id && e.UserId == userId);
+            if (ev == null) return Json(new { success = false, message = "Không tìm thấy sự kiện." });
+
+            _context.CalendarEvents.Remove(ev);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        // POST: Calendar/UpdateGenericEvent
+        [HttpPost]
+        public async Task<IActionResult> UpdateGenericEvent([FromBody] CalendarEvent model)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var ev = await _context.CalendarEvents.FirstOrDefaultAsync(e => e.Id == model.Id && e.UserId == userId);
+            if (ev == null) return Json(new { success = false, message = "Không tìm thấy sự kiện." });
+
+            ev.Subject = model.Subject;
+            ev.Description = model.Description;
+            ev.StartTime = model.StartTime;
+            ev.EndTime = model.EndTime;
+            ev.IsImportant = model.IsImportant;
+            ev.IsEmailNotification = model.IsEmailNotification;
+            ev.ThemeColor = string.IsNullOrEmpty(model.ThemeColor) ? (model.IsImportant ? "#fb923c" : "#60a5fa") : model.ThemeColor;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        // POST: Calendar/UpdateScheduledEvent
+        [HttpPost]
+        public async Task<IActionResult> UpdateScheduledEvent([FromBody] ScheduledUpdateDto model)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var se = await _context.ScheduledEvents.Include(s => s.Task).FirstOrDefaultAsync(s => s.Id == model.Id);
+            if (se == null) return Json(new { success = false, message = "Không tìm thấy lịch trình." });
+
+            if (se.Task == null || !(se.Task.AssigneeId == userId || (se.Task.UserId == userId && string.IsNullOrEmpty(se.Task.AssigneeId))))
+                return Forbid();
+
+            se.StartTime = model.StartTime;
+            se.EndTime = model.EndTime;
+            se.Color = model.Color;
+
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        public class ScheduledUpdateDto
+        {
+            public int Id { get; set; }
+            public DateTime StartTime { get; set; }
+            public DateTime EndTime { get; set; }
+            public string Color { get; set; }
+        }
+
         // GET: Calendar/GetMyTasks - Lấy danh sách Task của user
         [HttpGet]
         public async Task<IActionResult> GetMyTasks()

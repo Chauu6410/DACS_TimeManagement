@@ -268,4 +268,73 @@
   <data name="SelectionRequired" xml:space="preserve">
     <value>Yêu cầu lựa chọn</value>
   </data>
+  <data name="QuickCreatePlaceholder" xml:space="preserve">
+    <value>Nhập nhanh sự kiện (VD: Họp team lúc 2h chiều mai)...</value>
+  </data>
+  <data name="QuickCreateButton" xml:space="preserve">
+    <value>Tạo nhanh</value>
+  </data>
+  <data name="Important" xml:space="preserve">
+    <value>Quan trọng</value>
+  </data>
+  <data name="EmailReminder" xml:space="preserve">
+    <value>Nhắc nhở Email</value>
+  </data>
+  <data name="EditEvent" xml:space="preserve">
+    <value>Chỉnh sửa sự kiện</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Tiêu đề</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Mô tả</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Bắt đầu</value>
+  </data>
+  <data name="End" xml:space="preserve">
+    <value>Kết thúc</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>Lưu thay đổi</value>
+  </data>
+  <data name="EventUpdated" xml:space="preserve">
+    <value>Đã cập nhật sự kiện thành công</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Chi tiết</value>
+  </data>
+  <data name="Time" xml:space="preserve">
+    <value>Thời gian</value>
+  </data>
+  <data name="Project" xml:space="preserve">
+    <value>Dự án</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Sửa</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Có</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Không</value>
+  </data>
+  <data name="On" xml:space="preserve">
+    <value>Bật</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>Tắt</value>
+  </data>
+  <data name="NoDescription" xml:space="preserve">
+    <value>Không có mô tả</value>
+  </data>
+  <data name="Unknown" xml:space="preserve">
+    <value>Không rõ</value>
+  </data>
+  <data name="ReviewAIPlan" xml:space="preserve">
+    <value>Kiểm tra kế hoạch gợi ý từ AI</value>
+  </data>
+  <data name="NoData" xml:space="preserve">
+    <value>Không có dữ liệu</value>
+  </data>
 </root>

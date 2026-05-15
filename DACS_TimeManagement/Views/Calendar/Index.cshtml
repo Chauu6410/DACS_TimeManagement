@@ -4,23 +4,25 @@
 }
 
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
     /* Xoá nền nhạt, lịch tận dụng tối đa diện tích */
     .calendar-wrapper {
         padding: 0;
-        min-height: 100vh;
         background: white;
+        overflow-x: hidden;
+        position: relative;
+        width: 100%;
+        max-width: 100%;
     }
     
     #calendar {
-        max-width: 100%;
+        width: 100% !important;
         margin: 0;
         background: white;
         border-radius: 0;
         padding: 20px;
         box-shadow: none;
         min-height: 800px;
+        overflow: hidden;
     }
     
     /* FullCalendar v6 Customization */
@@ -129,6 +131,12 @@
         display: block;
         margin-bottom: 6px;
         font-size: 0.9rem;
+    }
+    
+    .quick-create-container {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
     }
     
     /* Sidebars - draggable, kích thước 320px */
@@ -248,9 +256,37 @@
     @@media (max-width: 768px) {
         .todo-sidebar { width: 90%; right: 5%; left: 5%; top: 80px; }
     }
+    .color-swatch {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid white !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .color-swatch:hover {
+        transform: scale(1.15);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    .color-swatch.selected {
+        border-color: #1e293b !important;
+        transform: scale(1.2);
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
+    }
 </style>
 
 <div class="calendar-wrapper">
+    <div class="pt-3 px-4">
+        <div class="quick-create-container mb-3 shadow-sm rounded-4 p-2 bg-white d-flex align-items-center gap-2 border">
+            <div class="flex-shrink-0 ps-3">
+                <i class="fas fa-magic text-primary"></i>
+            </div>
+            <input type="text" id="quickCreateInput" class="form-control border-0 shadow-none" placeholder="@Localizer["QuickCreatePlaceholder"]" />
+            <button class="btn btn-primary rounded-pill px-4" onclick="processQuickCreate()">
+                <i class="fas fa-plus me-1"></i> @Localizer["QuickCreateButton"]
+            </button>
+        </div>
+    </div>
     <div id="calendar"></div>
 </div>
 
@@ -390,17 +426,80 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-xl rounded-4">
             <div class="modal-header" style="background: linear-gradient(135deg, #10b981, #3b82f6);">
-                <h5 class="modal-title fw-bold text-white"><i class="fas fa-calendar-check me-2"></i>@Localizer["ReviewAISuggestions"]</h5>
+                <h5 class="modal-title text-white fw-bold"><i class="fas fa-check-double me-2"></i> @Localizer["ReviewAIPlan"]</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4 bg-light">
-                <p class="text-muted mb-4">@Localizer["AIAnalysisDescription"]</p>
-                <div id="aiSuggestionsContainer" class="d-flex flex-column gap-3" style="max-height: 500px; overflow-y: auto;">
+                <div id="aiPlanResults" class="row g-3">
+                    <div class="text-center py-4 text-muted">@Localizer["NoData"]</div>
                 </div>
             </div>
             <div class="modal-footer border-0 pb-4 pe-4 bg-light">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">@Localizer["Cancel"]</button>
                 <button type="button" class="btn btn-success rounded-pill px-4 shadow-sm" onclick="saveAIApprovedTasks()">@Localizer["ApproveSave"]</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Event -->
+<div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-xl rounded-4">
+            <div class="modal-header" style="background: linear-gradient(135deg, #6366f1, #a855f7);">
+                <h5 class="modal-title fw-bold text-white"><i class="fas fa-edit me-2"></i> @Localizer["EditEvent"]</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editEventForm">
+                    <input type="hidden" id="editEventId" />
+                    <input type="hidden" id="editIsGeneric" />
+                    
+                    <div id="genericFields">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">@Localizer["Title"]</label>
+                            <input type="text" id="editSubject" class="form-control rounded-3" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">@Localizer["Description"]</label>
+                            <textarea id="editDescription" class="form-control rounded-3" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold">@Localizer["Start"]</label>
+                            <input type="datetime-local" id="editStart" class="form-control rounded-3" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">@Localizer["End"]</label>
+                            <input type="datetime-local" id="editEnd" class="form-control rounded-3" />
+                        </div>
+                    </div>
+
+                    <div id="genericCheckboxes" class="mb-3">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="editIsImportant">
+                            <label class="form-check-label" for="editIsImportant">@Localizer["Important"] ⭐</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="editIsEmail">
+                            <label class="form-check-label" for="editIsEmail">@Localizer["EmailReminder"] 📧</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="colorPickerGroup">
+                        <label class="form-label fw-bold">@Localizer["Color"]</label>
+                        <div class="d-flex gap-2 flex-wrap" id="editColorSwatches">
+                            <!-- JS will inject swatches -->
+                        </div>
+                        <input type="hidden" id="editColorValue" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">@Localizer["Close"]</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="updateEvent()">@Localizer["SaveChanges"]</button>
             </div>
         </div>
     </div>
@@ -873,7 +972,10 @@
                         todoToggle: { html: '<i class="fas fa-list-ul"></i>', click: () => toggleSidebar('todoSidebar') },
                         workSchedule: { html: '<i class="fas fa-user-clock"></i>', click: () => toggleSidebar('workScheduleSidebar') }
                     },
-                    events: '/Calendar/GetScheduledEvents', 
+                    eventSources: [
+                        { url: '/Calendar/GetScheduledEvents', id: 'scheduled' },
+                        { url: '/Calendar/GetCalendarEvents', id: 'generic' }
+                    ],
                     selectable: true,
                     select: (info) => { 
                         let s = info.startStr.slice(0,16), e = info.endStr.slice(0,16); 
@@ -881,26 +983,16 @@
                     },
                     eventClick: (info) => {
                         info.jsEvent.preventDefault();
-                        // Hiển thị menu: Đổi màu hoặc Xóa
-                        Swal.fire({
-                            title: info.event.title,
-                            text: '@Localizer["WhatDoYouWantToDo"]',
-                            icon: 'question',
-                            showDenyButton: true,
-                            showCancelButton: true,
-                            confirmButtonText: '<i class="fas fa-palette"></i> @Localizer["ChangeColor"]',
-                            denyButtonText: '<i class="fas fa-trash-alt"></i> @Localizer["Delete"]',
-                            cancelButtonText: '@Localizer["Close"]'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                showColorPicker(info.event.id, info.event.backgroundColor);
-                            } else if (result.isDenied) {
-                                deleteScheduledEvent(info.event.id);
-                            }
-                        });
+                        showEventDetails(info.event);
                     },
                     eventDidMount: (info) => {
-                        info.el.addEventListener('mouseenter', (e) => showCustomTooltip(e, info.event.title));
+                        info.el.addEventListener('mouseenter', (e) => {
+                            const desc = info.event.extendedProps.description;
+                            const isImportant = info.event.extendedProps.isImportant;
+                            let title = info.event.title;
+                            if (isImportant) title = "🔥 " + title;
+                            showCustomTooltip(e, title, desc);
+                        });
                         info.el.addEventListener('mouseleave', hideCustomTooltip);
                     }
                 });
@@ -927,6 +1019,183 @@
                     loadUnplannedTasks(); 
                     new bootstrap.Modal(document.getElementById('autoPlanModal')).show(); 
                 };
+
+                // NLP Quick Create
+                window.processQuickCreate = async function() {
+                    const input = document.getElementById('quickCreateInput').value;
+                    if (!input.trim()) return;
+
+                    Swal.fire({title: 'Đang xử lý...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                    try {
+                        const res = await fetch('/Calendar/QuickCreate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(input)
+                        });
+                        const result = await res.json();
+                        Swal.close();
+                        if (result.success) {
+                            document.getElementById('quickCreateInput').value = '';
+                            calendar.refetchEvents();
+                            Swal.fire('Thành công', `Đã tạo sự kiện: ${result.data.subject}`, 'success');
+                        } else {
+                            Swal.fire('Lỗi', result.message, 'error');
+                        }
+                    } catch (e) {
+                        Swal.close();
+                        Swal.fire('Lỗi', 'Không thể kết nối với máy chủ AI.', 'error');
+                    }
+                };
+
+                window.deleteGenericEvent = async function(id) {
+                     if(!await Swal.fire({
+                        title:'Xóa sự kiện?',
+                        text:'Bạn không thể hoàn tác hành động này!',
+                        icon:'warning',
+                        showCancelButton:true,
+                        confirmButtonColor:'#ef4444',
+                        confirmButtonText:'Xóa ngay', 
+                        cancelButtonText:'Hủy'
+                    }).then(r=>r.isConfirmed)) return;
+                    // Logic xóa generic event (cần thêm endpoint ở controller)
+                    // Ở đây tôi sẽ giả định có thể dùng chung delete endpoint hoặc thêm mới.
+                    // Tạm thời gọi DELETE với tham số id.
+                    try{
+                        const res=await fetch(`/Calendar/DeleteGenericEvent?id=${id}`,{method:'POST'});
+                        if((await res.json()).success){ 
+                            calendar.refetchEvents(); 
+                            Swal.fire('Đã xóa','','success'); 
+                        }
+                    } catch(e){ Swal.fire('Error','','error'); }
+                }
+
+                window.showEventDetails = function(event) {
+                    const isGeneric = event.extendedProps.isGenericEvent;
+                    const isImportant = event.extendedProps.isImportant;
+                    const emailNotif = event.extendedProps.isEmailNotification;
+                    const desc = event.extendedProps.description || "@Localizer["NoDescription"]";
+                    const taskId = event.extendedProps.taskId;
+
+                    let html = `
+                        <div class="text-start">
+                            <p><strong><i class="far fa-clock me-2"></i>@Localizer["Time"]:</strong> ${event.start.toLocaleString()} - ${event.end ? event.end.toLocaleString() : '...'}</p>
+                            <p><strong><i class="fas fa-align-left me-2"></i>@Localizer["Description"]:</strong> ${desc}</p>
+                            ${isGeneric ? `
+                                <p><strong><i class="fas fa-star me-2"></i>@Localizer["Important"]:</strong> ${isImportant ? '<span class="text-danger">@Localizer["Yes"]</span>' : '@Localizer["No"]'}</p>
+                                <p><strong><i class="fas fa-envelope me-2"></i>@Localizer["EmailReminder"]:</strong> ${emailNotif ? '<span class="text-success">@Localizer["On"]</span>' : '@Localizer["Off"]'}</p>
+                            ` : `
+                                <p><strong><i class="fas fa-project-diagram me-2"></i>@Localizer["Project"]:</strong> ${event.extendedProps.projectName || '@Localizer["Unknown"]'}</p>
+                            `}
+                        </div>
+                    `;
+
+                    Swal.fire({
+                        title: event.title,
+                        html: html,
+                        icon: isImportant ? 'warning' : 'info',
+                        showDenyButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="fas fa-edit me-1"></i> @Localizer["Edit"]',
+                        denyButtonText: '<i class="fas fa-trash-alt me-1"></i> @Localizer["Delete"]',
+                        cancelButtonText: '@Localizer["Close"]',
+                        confirmButtonColor: '#6366f1',
+                        denyButtonColor: '#ef4444'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            openEditModal(event);
+                        } else if (result.isDenied) {
+                            if (isGeneric) deleteGenericEvent(event.id);
+                            else deleteScheduledEvent(event.id);
+                        }
+                    });
+                };
+
+                window.openEditModal = function(event) {
+                    const isGeneric = event.extendedProps.isGenericEvent;
+                    document.getElementById('editEventId').value = event.id;
+                    document.getElementById('editIsGeneric').value = isGeneric ? "true" : "false";
+                    
+                    document.getElementById('editStart').value = formatDateTime(event.start);
+                    document.getElementById('editEnd').value = event.end ? formatDateTime(event.end) : '';
+
+                    if (isGeneric) {
+                        document.getElementById('genericFields').style.display = 'block';
+                        document.getElementById('genericCheckboxes').style.display = 'block';
+                        document.getElementById('editSubject').value = event.title.replace("⭐ ", "");
+                        document.getElementById('editDescription').value = event.extendedProps.description || '';
+                        document.getElementById('editIsImportant').checked = event.extendedProps.isImportant;
+                        document.getElementById('editIsEmail').checked = event.extendedProps.isEmailNotification;
+                    } else {
+                        document.getElementById('genericFields').style.display = 'none';
+                        document.getElementById('genericCheckboxes').style.display = 'none';
+                    }
+
+                    // Render colors
+                    const colorContainer = document.getElementById('editColorSwatches');
+                    colorContainer.innerHTML = pastelColors.map(c => `
+                        <button type="button" class="color-swatch edit-swatch ${c === event.backgroundColor ? 'selected' : ''}" 
+                                data-color="${c}" style="background:${c}; width:30px; height:30px; border-radius:6px; border:2px solid white;"></button>
+                    `).join('');
+                    document.getElementById('editColorValue').value = event.backgroundColor;
+
+                    // Event listener for edit swatches
+                    document.querySelectorAll('.edit-swatch').forEach(sw => {
+                        sw.onclick = () => {
+                            document.querySelectorAll('.edit-swatch').forEach(s => s.classList.remove('selected'));
+                            sw.classList.add('selected');
+                            document.getElementById('editColorValue').value = sw.dataset.color;
+                        };
+                    });
+
+                    new bootstrap.Modal(document.getElementById('editEventModal')).show();
+                };
+
+                window.updateEvent = async function() {
+                    const id = document.getElementById('editEventId').value;
+                    const isGeneric = document.getElementById('editIsGeneric').value === "true";
+                    
+                    const data = {
+                        id: parseInt(id),
+                        startTime: document.getElementById('editStart').value,
+                        endTime: document.getElementById('editEnd').value,
+                        themeColor: document.getElementById('editColorValue').value
+                    };
+
+                    let url = '';
+                    if (isGeneric) {
+                        url = '/Calendar/UpdateGenericEvent';
+                        data.subject = document.getElementById('editSubject').value;
+                        data.description = document.getElementById('editDescription').value;
+                        data.isImportant = document.getElementById('editIsImportant').checked;
+                        data.isEmailNotification = document.getElementById('editIsEmail').checked;
+                    } else {
+                        // Assuming we can reuse UpdateScheduledEventColor for color, but for time we might need a new endpoint
+                        // For simplicity, I'll just handle Generic for now or implement full update
+                        url = '/Calendar/UpdateScheduledEvent'; // I should add this endpoint
+                        data.color = data.themeColor;
+                    }
+
+                    Swal.fire({title: 'Đang lưu...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+                        const result = await res.json();
+                        Swal.close();
+                        if (result.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
+                            calendar.refetchEvents();
+                            Swal.fire('@Localizer["Success"]', '@Localizer["EventUpdated"]', 'success');
+                        } else Swal.fire('@Localizer["Error"]', result.message, 'error');
+                    } catch (e) { Swal.close(); Swal.fire('@Localizer["Error"]', '@Localizer["ServerError"]', 'error'); }
+                };
+
+                function formatDateTime(date) {
+                    const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                    return d.toISOString().slice(0, 16);
+                }
             } catch (err) { console.error(err); }
         });
     </script>
