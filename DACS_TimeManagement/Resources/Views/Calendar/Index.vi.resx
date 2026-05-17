@@ -337,4 +337,22 @@
   <data name="NoData" xml:space="preserve">
     <value>Không có dữ liệu</value>
   </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Đang xử lý...</value>
+  </data>
+  <data name="EventCreated" xml:space="preserve">
+    <value>Đã tạo sự kiện:</value>
+  </data>
+  <data name="AIConnectionError" xml:space="preserve">
+    <value>Không thể kết nối với máy chủ AI.</value>
+  </data>
+  <data name="DeleteEventQuestion" xml:space="preserve">
+    <value>Xóa sự kiện?</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Đã xóa</value>
+  </data>
+  <data name="CannotUpdateColor" xml:space="preserve">
+    <value>Không thể cập nhật màu</value>
+  </data>
 </root>

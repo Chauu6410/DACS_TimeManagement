@@ -282,7 +282,7 @@
                 <i class="fas fa-magic text-primary"></i>
             </div>
             <input type="text" id="quickCreateInput" class="form-control border-0 shadow-none" placeholder="@Localizer["QuickCreatePlaceholder"]" />
-            <button class="btn btn-primary rounded-pill px-4" onclick="processQuickCreate()">
+            <button class="btn btn-primary rounded-pill px-4 text-nowrap flex-shrink-0" onclick="processQuickCreate()">
                 <i class="fas fa-plus me-1"></i> @Localizer["QuickCreateButton"]
             </button>
         </div>
@@ -599,8 +599,8 @@
                     document.getElementById('taskSelect').value = ''; 
                     document.getElementById('startTimeInput').value = ''; 
                     document.getElementById('endTimeInput').value = '';
-                } else Swal.fire('Error', result.message, 'error');
-            } catch(e) { Swal.fire('Error', 'Server error', 'error'); }
+                } else Swal.fire('@Localizer["Error"]', result.message, 'error');
+            } catch(e) { Swal.fire('@Localizer["Error"]', '@Localizer["ServerError"]', 'error'); }
         };
         
         async function loadScheduledTasksByDate() {
@@ -651,9 +651,9 @@
                 if((await res.json()).success){ 
                     calendar.refetchEvents(); 
                     loadScheduledTasksByDate(); 
-                    Swal.fire('Deleted','','success'); 
+                    Swal.fire('@Localizer["Deleted"]','','success'); 
                 }
-            } catch(e){ Swal.fire('Error','','error'); }
+            } catch(e){ Swal.fire('@Localizer["Error"]','','error'); }
         };
         
         // Hiển thị chọn màu cho event (gọi từ eventClick)
@@ -698,8 +698,8 @@
                         calendar.refetchEvents(); 
                         loadScheduledTasksByDate(); 
                         Swal.fire('@Localizer["ColorUpdatedSuccess"]', '', 'success');
-                    } else Swal.fire('Lỗi', data.message, 'error');
-                } catch(e) { Swal.fire('Lỗi', 'Không thể cập nhật màu', 'error'); }
+                    } else Swal.fire('@Localizer["Error"]', data.message, 'error');
+                } catch(e) { Swal.fire('@Localizer["Error"]', '@Localizer["CannotUpdateColor"]', 'error'); }
             }
         };
         
@@ -849,7 +849,7 @@
                 });
             });
             
-            Swal.fire({title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            Swal.fire({title: '@Localizer["Saving"]', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             try {
                 const res = await fetch('/Calendar/SaveScheduledEvents', { 
                     method: 'POST', 
@@ -863,10 +863,10 @@
                     calendar.refetchEvents(); 
                     loadScheduledTasksByDate();
                     Swal.fire('@Localizer["Success"]', '', 'success');
-                } else Swal.fire('Error', data.message, 'error');
+                } else Swal.fire('@Localizer["Error"]', data.message, 'error');
             } catch(e) { 
                 Swal.close(); 
-                Swal.fire('Error', 'Server error', 'error'); 
+                Swal.fire('@Localizer["Error"]', '@Localizer["ServerError"]', 'error'); 
             }
         };
         
@@ -1025,7 +1025,7 @@
                     const input = document.getElementById('quickCreateInput').value;
                     if (!input.trim()) return;
 
-                    Swal.fire({title: 'Đang xử lý...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+                    Swal.fire({title: '@Localizer["Processing"]', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
                     try {
                         const res = await fetch('/Calendar/QuickCreate', {
                             method: 'POST',
@@ -1037,25 +1037,25 @@
                         if (result.success) {
                             document.getElementById('quickCreateInput').value = '';
                             calendar.refetchEvents();
-                            Swal.fire('Thành công', `Đã tạo sự kiện: ${result.data.subject}`, 'success');
+                            Swal.fire('@Localizer["Success"]', `@Localizer["EventCreated"] ${result.data.subject}`, 'success');
                         } else {
-                            Swal.fire('Lỗi', result.message, 'error');
+                            Swal.fire('@Localizer["Error"]', result.message, 'error');
                         }
                     } catch (e) {
                         Swal.close();
-                        Swal.fire('Lỗi', 'Không thể kết nối với máy chủ AI.', 'error');
+                        Swal.fire('@Localizer["Error"]', '@Localizer["AIConnectionError"]', 'error');
                     }
                 };
 
                 window.deleteGenericEvent = async function(id) {
                      if(!await Swal.fire({
-                        title:'Xóa sự kiện?',
-                        text:'Bạn không thể hoàn tác hành động này!',
+                        title:'@Localizer["DeleteEventQuestion"]',
+                        text:'@Localizer["CannotUndo"]',
                         icon:'warning',
                         showCancelButton:true,
                         confirmButtonColor:'#ef4444',
-                        confirmButtonText:'Xóa ngay', 
-                        cancelButtonText:'Hủy'
+                        confirmButtonText:'@Localizer["YesDelete"]', 
+                        cancelButtonText:'@Localizer["Cancel"]'
                     }).then(r=>r.isConfirmed)) return;
                     // Logic xóa generic event (cần thêm endpoint ở controller)
                     // Ở đây tôi sẽ giả định có thể dùng chung delete endpoint hoặc thêm mới.
@@ -1064,9 +1064,9 @@
                         const res=await fetch(`/Calendar/DeleteGenericEvent?id=${id}`,{method:'POST'});
                         if((await res.json()).success){ 
                             calendar.refetchEvents(); 
-                            Swal.fire('Đã xóa','','success'); 
+                            Swal.fire('@Localizer["Deleted"]','','success'); 
                         }
-                    } catch(e){ Swal.fire('Error','','error'); }
+                    } catch(e){ Swal.fire('@Localizer["Error"]','','error'); }
                 }
 
                 window.showEventDetails = function(event) {

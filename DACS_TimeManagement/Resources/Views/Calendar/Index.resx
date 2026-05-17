@@ -310,4 +310,22 @@
   <data name="NoData" xml:space="preserve">
     <value>No data available</value>
   </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Processing...</value>
+  </data>
+  <data name="EventCreated" xml:space="preserve">
+    <value>Event created:</value>
+  </data>
+  <data name="AIConnectionError" xml:space="preserve">
+    <value>Cannot connect to AI server.</value>
+  </data>
+  <data name="DeleteEventQuestion" xml:space="preserve">
+    <value>Delete event?</value>
+  </data>
+  <data name="Deleted" xml:space="preserve">
+    <value>Deleted</value>
+  </data>
+  <data name="CannotUpdateColor" xml:space="preserve">
+    <value>Cannot update color</value>
+  </data>
 </root>
