@@ -1,15 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <data name="Register" xml:space="preserve"><value>ÄÄƒng kÃ½</value></data>
-  <data name="Create Account" xml:space="preserve"><value>Táº¡o tÃ i khoáº£n</value></data>
-  <data name="Join Us" xml:space="preserve"><value>Tham gia vá»›i chÃºng tÃ´i Ä‘á»ƒ báº¯t Ä‘áº§u quáº£n lÃ½ thá»i gian cá»§a báº¡n</value></data>
-  <data name="Email Address" xml:space="preserve"><value>Äá»‹a chá»‰ Email</value></data>
-  <data name="Password" xml:space="preserve"><value>Máº­t kháº©u</value></data>
-  <data name="Confirm Password" xml:space="preserve"><value>XÃ¡c nháº­n máº­t kháº©u</value></data>
-  <data name="Password Length Tip" xml:space="preserve"><value>Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±.</value></data>
-  <data name="Already Have Account" xml:space="preserve"><value>ÄÃ£ cÃ³ tÃ i khoáº£n?</value></data>
-  <data name="Sign In" xml:space="preserve"><value>ÄÄƒng nháº­p</value></data>
-  <data name="Or Register With" xml:space="preserve"><value>Hoáº·c Ä‘Äƒng kÃ½ báº±ng</value></data>
-  <data name="External Register Title" xml:space="preserve"><value>ÄÄƒng kÃ½ báº±ng tÃ i khoáº£n {0}</value></data>
+  <data name="Register" xml:space="preserve"><value>Đăng ký</value></data>
+  <data name="Create Account" xml:space="preserve"><value>Tạo tài khoản</value></data>
+  <data name="Join Us" xml:space="preserve"><value>Tham gia với chúng tôi để bắt đầu quản lý thời gian của bạn</value></data>
+  <data name="Email Address" xml:space="preserve"><value>Địa chỉ Email</value></data>
+  <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
+  <data name="Confirm Password" xml:space="preserve"><value>Xác nhận mật khẩu</value></data>
+  <data name="Password Length Tip" xml:space="preserve"><value>Mật khẩu phải có ít nhất 6 ký tự.</value></data>
+  <data name="Already Have Account" xml:space="preserve"><value>Đã có tài khoản?</value></data>
+  <data name="Sign In" xml:space="preserve"><value>Đăng nhập</value></data>
+  <data name="Or Register With" xml:space="preserve"><value>Hoặc đăng ký bằng</value></data>
+  <data name="External Register Title" xml:space="preserve"><value>Đăng ký bằng tài khoản {0}</value></data>
 </root>
-
