@@ -96,6 +96,74 @@
         border-color: transparent;
     }
 
+    /* Input modernizations */
+    .input-group-modern {
+        display: flex;
+        align-items: center;
+        background: var(--body-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 4px 12px;
+        transition: all 0.2s ease;
+    }
+    .input-group-modern:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+    .input-group-text-modern {
+        background: transparent;
+        border: none;
+        padding-right: 8px;
+        color: var(--gray);
+    }
+    .form-control-modern {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 10px 4px !important;
+        color: var(--dark) !important;
+        font-size: 0.9rem;
+    }
+    .form-select-modern {
+        background-color: var(--body-bg) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 12px 16px !important;
+        color: var(--dark) !important;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+    .form-select-modern:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+    }
+
+    /* Task Create Modal Premium Theme */
+    .task-modal-label {
+        font-size: 0.85rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        color: var(--gray) !important;
+        font-weight: 600 !important;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .task-modal-input {
+        background-color: var(--card-bg) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 8px !important;
+        padding: 10px 14px !important;
+        color: var(--dark) !important;
+        font-size: 0.9rem !important;
+        transition: all 0.2s ease !important;
+        box-shadow: none !important;
+    }
+    .task-modal-input:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+    }
 
     /* ========== TIMELINE (Today Schedule) ========== */
     .timeline-modern {
@@ -138,6 +206,24 @@
         margin-bottom: 0.5rem;
     }
 
+    /* ========== TASK ITEMS ========== */
+    .task-modern {
+        background: var(--card-bg);
+        transition: var(--transition);
+        border: 1px solid var(--border);
+    }
+    .task-modern:hover {
+        border-color: var(--primary-light);
+        background: rgba(99, 102, 241, 0.02) !important;
+    }
+    .task-checkbox {
+        width: 1.1rem;
+        height: 1.1rem;
+        border-radius: 0.3rem;
+        cursor: pointer;
+        accent-color: var(--primary);
+        flex-shrink: 0;
+    }
 
     /* ========== BUTTONS ========== */
     .btn-modern {
@@ -196,18 +282,45 @@
 
 <div class="dashboard-container">
 
+    <!-- Minimal Welcome Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h3 class="fw-bold mb-1" style="color: var(--dark);">
+                👋 @Localizer["Welcome Back"], <span class="text-primary">@Model.UserName</span>
+            </h3>
+            <p class="text-muted m-0 small">@DateTime.Now.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo(langCode == "vi" ? "vi-VN" : "en-US"))</p>
+        </div>
+        
+        <!-- Gamification Stats -->
+        <div class="d-flex gap-3">
+            <div class="glass-card px-3 py-2 d-flex align-items-center gap-2">
+                <i class="fas fa-star text-warning"></i>
+                <div>
+                    <div class="small text-muted" style="line-height: 1;">@Localizer["Level"] @Model.Level</div>
+                    <div class="fw-bold" style="line-height: 1.2;">@Model.Points <span class="fw-normal small">Pts</span></div>
+                </div>
+            </div>
+            <div class="glass-card px-3 py-2 d-flex align-items-center gap-2">
+                <i class="fas fa-fire text-danger"></i>
+                <div>
+                    <div class="small text-muted" style="line-height: 1;">@Localizer["Streak"]</div>
+                    <div class="fw-bold" style="line-height: 1.2;">@Model.CurrentStreak <span class="fw-normal small">Days</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Main Row: Today's Schedule -->
+    <!-- Main Row: Today's Schedule & Focus -->
     <div class="row g-4 mb-5">
         <!-- Today Schedule (Timeline) -->
-        <div class="col-12">
+        <div class="col-lg-8">
             <div class="glass-card h-100 d-flex flex-column">
                 <div class="p-4 pb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <div class="d-flex align-items-center gap-2">
                         <div class="stat-icon" style="width: 40px; height: 40px;"><i class="fas fa-calendar-day"></i></div>
-                        <h5 class="fw-bold m-0" style="color: var(--dark);">@Localizer["TodaySchedule"]</h5>
+                        <h5 class="fw-bold m-0" style="color: var(--dark);">@Localizer["Today's Schedule"]</h5>
                     </div>
-                    <a asp-controller="Calendar" asp-action="Create" class="btn btn-outline-modern btn-sm rounded-pill px-3">
+                    <a asp-controller="Calendar" asp-action="Index" class="btn btn-outline-modern btn-sm rounded-pill px-3">
                         <i class="fas fa-plus me-1"></i>@Localizer["AddEvent"]
                     </a>
                 </div>
@@ -235,13 +348,62 @@
                     {
                         <div class="empty-state-modern">
                             <i class="fas fa-calendar-alt fa-3x text-muted opacity-50 mb-3"></i>
-                            <h6 class="fw-semibold">@Localizer["NoEventsToday"]</h6>
-                            <p class="small text-muted">@Localizer["StartByAddingEvent"]</p>
+                            <h6 class="fw-semibold">@Localizer["No Events Today"]</h6>
+                            <p class="small text-muted">@Localizer["Start by adding an event"]</p>
                             <a asp-controller="Calendar" asp-action="Index" class="btn btn-primary-modern btn-sm rounded-pill mt-2">
-                                @Localizer["CreateNewEvent"]
+                                @Localizer["Create New Event"]
                             </a>
                         </div>
                     }
+                </div>
+            </div>
+        </div>
+
+        <!-- Focus Area & Quick Actions -->
+        <div class="col-lg-4">
+            <div class="glass-card h-100 d-flex flex-column p-4">
+                <h5 class="fw-bold mb-4" style="color: var(--dark);">
+                    <i class="fas fa-crosshairs text-primary me-2"></i>@Localizer["Focus"]
+                </h5>
+                
+                <div class="flex-grow-1 mb-4">
+                    @if (Model.InProgressFocusTasks != null && Model.InProgressFocusTasks.Count > 0)
+                    {
+                        @foreach (var task in Model.InProgressFocusTasks)
+                        {
+                            <div class="task-modern mb-2 p-3 border rounded" style="background: var(--body-bg);">
+                                <div class="d-flex gap-3 align-items-center">
+                                    <input type="checkbox" class="task-checkbox" data-id="@task.Id">
+                                    <div>
+                                        <div class="fw-semibold small" style="color: var(--dark);">@task.Title</div>
+                                        <div class="small text-muted mt-1" style="font-size: 0.75rem;">
+                                            <i class="far fa-clock me-1"></i>@task.DueDate.ToString("d", new System.Globalization.CultureInfo(langCode == "vi" ? "vi-VN" : "en-US"))
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-3 text-muted small">
+                            <i class="fas fa-check-circle fa-2x mb-2 text-success opacity-50"></i>
+                            <br/>@Localizer["No Tasks Yet"]
+                        </div>
+                    }
+                </div>
+
+                <hr class="my-3 opacity-25" />
+
+                <!-- Quick Actions -->
+                <h6 class="fw-bold mb-3" style="color: var(--dark);">@Localizer["Quick Actions"]</h6>
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" class="btn btn-primary-modern w-100 text-start" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                        <i class="fas fa-plus-circle me-2"></i>@Localizer["Add Task"]
+                    </button>
+                    <a asp-controller="Calendar" asp-action="Index" class="btn btn-outline-modern w-100 text-start">
+                        <i class="fas fa-calendar-alt me-2"></i>@Localizer["Calendar"]
+                    </a>
                 </div>
             </div>
         </div>
@@ -253,7 +415,7 @@
             <div class="glass-card p-4">
                 <div class="d-flex align-items-center gap-2 mb-4">
                     <div class="stat-icon" style="width: 40px; height: 40px;"><i class="fas fa-chart-line"></i></div>
-                    <h5 class="fw-bold m-0" style="color: var(--dark);">@Localizer["WeeklyProductivity"]</h5>
+                    <h5 class="fw-bold m-0" style="color: var(--dark);">@Localizer["Weekly Productivity"]</h5>
                 </div>
                 <div class="chart-container">
                     <canvas id="productivityChart" height="100"></canvas>
@@ -263,9 +425,147 @@
     </div>
 </div>
 
+<!-- Create Task Modal -->
+<div class="modal fade" id="createTaskModal" tabindex="-1" aria-labelledby="createTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-gradient-primary text-white border-0 py-4 px-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="icon-circle bg-white bg-opacity-25 text-white" style="width: 48px; height: 48px; border-radius: 60px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                        <i class="fas fa-tasks fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">@Localizer["Create New Task"]</h4>
+                        <p class="opacity-75 small mb-0">Thiết lập các thông số chi tiết cho nhiệm vụ mới của bạn</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createTaskForm" novalidate>
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4 p-lg-5" style="background-color: var(--card-bg);">
+                    
+                    <!-- Task Title -->
+                    <div class="mb-4">
+                        <label for="taskTitle" class="task-modal-label">
+                            <i class="fas fa-tag text-primary"></i> @Localizer["Title"] <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="taskTitle" name="Title" class="form-control task-modal-input" placeholder="vd: Thiết kế lại Website Q3" required />
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label for="taskDesc" class="task-modal-label">
+                            <i class="fas fa-align-left text-primary"></i> @Localizer["Description"]
+                        </label>
+                        <textarea id="taskDesc" name="Description" class="form-control task-modal-input" rows="3" placeholder="Mô tả ngắn gọn mục tiêu của nhiệm vụ này..."></textarea>
+                    </div>
+
+                    <!-- Project Selection & Assignee -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="taskProject" class="task-modal-label">
+                                <i class="fas fa-project-diagram text-primary"></i> @Localizer["Project"]
+                            </label>
+                            <select id="taskProject" name="ProjectId" class="form-select task-modal-input w-100">
+                                <option value="">@Localizer["Personal Task"]</option>
+                                @foreach (var p in Model.UserProjects)
+                                {
+                                    <option value="@p.Id">@p.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="taskAssignee" class="task-modal-label">
+                                <i class="fas fa-user text-primary"></i> @Localizer["Assignee"]
+                            </label>
+                            <select id="taskAssignee" name="AssigneeId" class="form-select task-modal-input w-100">
+                                <!-- Will be loaded dynamically via JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Dates (Start & End) -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="taskStart" class="task-modal-label">
+                                <i class="far fa-calendar-alt text-primary"></i> @Localizer["Start"]
+                            </label>
+                            <input type="datetime-local" id="taskStart" name="StartDate" class="form-control task-modal-input" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="taskEnd" class="task-modal-label">
+                                <i class="far fa-calendar-check text-primary"></i> @Localizer["End"]
+                            </label>
+                            <input type="datetime-local" id="taskEnd" name="EndDate" class="form-control task-modal-input" required />
+                        </div>
+                    </div>
+
+                    <!-- Priority & Status -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label for="taskPriority" class="task-modal-label">
+                                <i class="fas fa-exclamation-circle text-primary"></i> @Localizer["Priority"]
+                            </label>
+                            <select id="taskPriority" name="Priority" class="form-select task-modal-input w-100">
+                                <option value="0">@Localizer["Low"]</option>
+                                <option value="1" selected>@Localizer["Medium"]</option>
+                                <option value="2">@Localizer["High"]</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="taskStatus" class="task-modal-label">
+                                <i class="fas fa-info-circle text-primary"></i> @Localizer["Status"]
+                            </label>
+                            <select id="taskStatus" name="Status" class="form-select task-modal-input w-100">
+                                <option value="0" selected>@Localizer["Todo"]</option>
+                                <option value="1">@Localizer["InProgress"]</option>
+                                <option value="2">@Localizer["Testing"]</option>
+                                <option value="3">@Localizer["Completed"]</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Options (Private Task) -->
+                    <div class="form-check form-switch mb-2 p-0 d-flex justify-content-between align-items-center">
+                        <label class="form-check-label small fw-semibold task-modal-label m-0" for="taskIsPrivate" style="cursor: pointer;">
+                            <i class="fas fa-lock text-primary"></i> @Localizer["Private Task"]
+                        </label>
+                        <input class="form-check-input" type="checkbox" id="taskIsPrivate" name="IsPrivate" value="true" style="margin-left: 0; width: 42px; height: 22px; cursor: pointer;">
+                    </div>
+
+                </div>
+                <div class="modal-footer border-top p-4 d-flex justify-content-between" style="border-color: var(--border-color) !important; background-color: var(--bg-light);">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2" data-bs-dismiss="modal">
+                        <i class="fas fa-arrow-left me-2"></i> @Localizer["Cancel"]
+                    </button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 py-2 shadow-sm fw-bold">
+                        <i class="fas fa-check-circle me-2"></i> @Localizer["Create"]
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
+        // Task checkbox handler
+        document.querySelectorAll('.task-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked) {
+                    const taskId = this.dataset.id;
+                    fetch(`/WorkTask/Complete/${taskId}`, { method: 'POST' })
+                        .then(res => {
+                            if (res.ok) location.reload();
+                            else console.error('Failed to complete task');
+                        })
+                        .catch(err => console.error(err));
+                }
+            });
+        });
+
         // Productivity Chart
         const ctx = document.getElementById('productivityChart').getContext('2d');
         new Chart(ctx, {
@@ -274,7 +574,7 @@
                 labels: ['@Localizer["Mon"]', '@Localizer["Tue"]', '@Localizer["Wed"]', '@Localizer["Thu"]', '@Localizer["Fri"]', '@Localizer["Sat"]', '@Localizer["Sun"]'],
                 datasets: [
                     {
-                        label: '@Localizer["HoursWorkedLabel"]',
+                        label: '@Localizer["Hours Worked"]',
                         data: @Html.Raw(Json.Serialize(Model.WeeklyHours)),
                         borderColor: '#6366f1',
                         backgroundColor: 'rgba(99, 102, 241, 0.05)',
@@ -288,7 +588,7 @@
                         pointHoverRadius: 6
                     },
                     {
-                        label: '@Localizer["TasksCompletedLabel"]',
+                        label: '@Localizer["Tasks Completed"]',
                         data: @Html.Raw(Json.Serialize(Model.WeeklyTasks)),
                         borderColor: '#10b981',
                         backgroundColor: 'rgba(16, 185, 129, 0.05)',
@@ -316,6 +616,130 @@
                 },
                 interaction: { mode: 'nearest', axis: 'x', intersect: false }
             }
+        });
+
+        // --- Quick Task Creation AJAX & dynamic assignee loading ---
+        $(function() {
+            // Helper to get local datetime string in YYYY-MM-DDTHH:MM format
+            function getLocalDatetimeString(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+
+            // Initialize default dates when modal is shown
+            $('#createTaskModal').on('show.bs.modal', function () {
+                const now = new Date();
+                const tomorrow = new Date(now);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+
+                $('#taskStart').val(getLocalDatetimeString(now));
+                $('#taskEnd').val(getLocalDatetimeString(tomorrow));
+
+                // Clear previous validation and titles
+                $('#taskTitle').val('');
+                $('#taskDesc').val('');
+                $('#taskIsPrivate').prop('checked', false);
+                $('#taskPriority').val('1'); // Medium
+                $('#taskStatus').val('0'); // Todo
+
+                // Trigger assignee loading for personal tasks initially
+                loadAssignees(null);
+            });
+
+            // Load assignees based on selected project
+            $('#taskProject').on('change', function() {
+                const projectId = $(this).val();
+                loadAssignees(projectId);
+            });
+
+            function loadAssignees(projectId) {
+                const $assigneeSelect = $('#taskAssignee');
+                $assigneeSelect.html('<option value="">@Localizer["Loading"]...</option>');
+
+                const url = projectId ? `/WorkTask/GetProjectMembers?projectId=${projectId}` : '/WorkTask/GetProjectMembers';
+                $.get(url, function(data) {
+                    $assigneeSelect.empty();
+                    if (data && data.length) {
+                        data.forEach(function(member) {
+                            $assigneeSelect.append(`<option value="${member.id}">${member.displayName}</option>`);
+                        });
+                    } else {
+                        $assigneeSelect.append('<option value="">@Localizer["No Assignee"]</option>');
+                    }
+                }).fail(function() {
+                    $assigneeSelect.html('<option value="">@Localizer["Error"]</option>');
+                });
+            }
+
+            // AJAX Form Submission
+            $('#createTaskForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const $form = $(this);
+                const title = $('#taskTitle').val().trim();
+                const start = $('#taskStart').val();
+                const end = $('#taskEnd').val();
+
+                if (!title) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '@Localizer["Selection Required"]',
+                        text: 'Please enter a task title.'
+                    });
+                    return;
+                }
+
+                if (new Date(start) >= new Date(end)) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '@Localizer["Error"]',
+                        text: 'End date must be after start date.'
+                    });
+                    return;
+                }
+
+                const $btn = $form.find('button[type="submit"]');
+                const originalText = $btn.html();
+                $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>@Localizer["Loading"]...');
+
+                $.ajax({
+                    url: '/WorkTask/Create',
+                    type: 'POST',
+                    data: $form.serialize(),
+                    success: function(res) {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '@Localizer["Success"]',
+                                text: 'Task created successfully!',
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(function() {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: '@Localizer["Error"]',
+                                text: res.message || 'Failed to create task.'
+                            });
+                            $btn.prop('disabled', false).html(originalText);
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: '@Localizer["Error"]',
+                            text: 'An error occurred while creating the task. Please try again.'
+                        });
+                        $btn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
         });
     </script>
 }

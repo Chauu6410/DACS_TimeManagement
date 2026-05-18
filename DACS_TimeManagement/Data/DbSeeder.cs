@@ -31,17 +31,20 @@ namespace DACS_TimeManagement.Data
             if (!await roleManager.RoleExistsAsync("Admin")) await roleManager.CreateAsync(new IdentityRole("Admin"));
             if (!await roleManager.RoleExistsAsync("User"))  await roleManager.CreateAsync(new IdentityRole("User"));
 
-            // ─── 2. Users ───────────────────────────────────────────────────────────────
+            // ─── 2. Ensure Admin Exists ─────────────────────────────────────────────────
             var admin = await CreateUserIfNotExists(userManager, "admin@gmail.com",       "Admin@123", "Admin");
+
+            // ─── 3. Guard: skip if already seeded ───────────────────────────────────────
+            // If the admin profile exists, we assume the seed data has already run.
+            if (await context.UserProfiles.AnyAsync(p => p.UserId == admin.Id)) return;
+
+            // ─── 4. Sample Users ────────────────────────────────────────────────────────
             var u1    = await CreateUserIfNotExists(userManager, "huong@gmail.com",   "Huong@123",   "User");
             var u2    = await CreateUserIfNotExists(userManager, "quynh@gmail.com",   "Quynh@123",   "User");
             var u3    = await CreateUserIfNotExists(userManager, "ngoc@gmail.com",   "Ngoc@123",   "User");
             var u4    = await CreateUserIfNotExists(userManager, "minh@gmail.com",     "Minh@123",   "User");
 
             var allUsers = new List<IdentityUser> { admin, u1, u2, u3, u4 };
-
-            // ─── 3. Guard: skip if already seeded ───────────────────────────────────────
-            if (await context.Projects.AsNoTracking().AnyAsync()) return;
 
             // ─── 4. UserProfiles ────────────────────────────────────────────────────────
             var profileDefs = new[]

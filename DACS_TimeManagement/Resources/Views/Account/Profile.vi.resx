@@ -58,7 +58,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="MyProfile" xml:space="preserve">
+  <data name="My Profile" xml:space="preserve">
     <value>Hồ sơ của tôi</value>
   </data>
   <data name="Profile" xml:space="preserve">
@@ -70,13 +70,13 @@
   <data name="Security" xml:space="preserve">
     <value>Bảo mật</value>
   </data>
-  <data name="FullName" xml:space="preserve">
+  <data name="Full Name" xml:space="preserve">
     <value>Họ và tên</value>
   </data>
   <data name="Email" xml:space="preserve">
     <value>Địa chỉ Email</value>
   </data>
-  <data name="PhoneNumber" xml:space="preserve">
+  <data name="Phone Number" xml:space="preserve">
     <value>Số điện thoại</value>
   </data>
   <data name="Department" xml:space="preserve">
@@ -85,79 +85,91 @@
   <data name="Position" xml:space="preserve">
     <value>Chức vụ</value>
   </data>
-  <data name="MemberSince" xml:space="preserve">
+  <data name="Member Since" xml:space="preserve">
     <value>Thành viên từ</value>
   </data>
   <data name="ChangeAvatar" xml:space="preserve">
     <value>Đổi ảnh đại diện</value>
   </data>
-  <data name="SaveChanges" xml:space="preserve">
+  <data name="Save Changes" xml:space="preserve">
     <value>Lưu thay đổi</value>
   </data>
   <data name="Theme" xml:space="preserve">
     <value>Giao diện</value>
   </data>
-  <data name="LightTheme" xml:space="preserve">
+  <data name="Light Theme" xml:space="preserve">
     <value>Sáng</value>
   </data>
-  <data name="DarkTheme" xml:space="preserve">
+  <data name="Dark Theme" xml:space="preserve">
     <value>Tối</value>
   </data>
-  <data name="AutoTheme" xml:space="preserve">
+  <data name="Auto Theme" xml:space="preserve">
     <value>Tự động (Hệ thống)</value>
   </data>
-  <data name="DefaultView" xml:space="preserve">
+  <data name="Default View" xml:space="preserve">
     <value>Trang mặc định</value>
   </data>
   <data name="Dashboard" xml:space="preserve">
     <value>Bảng điều khiển</value>
   </data>
-  <data name="TasksList" xml:space="preserve">
+  <data name="Tasks List" xml:space="preserve">
     <value>Danh sách nhiệm vụ</value>
   </data>
   <data name="Calendar" xml:space="preserve">
     <value>Lịch trình</value>
   </data>
-  <data name="NotificationSettings" xml:space="preserve">
+  <data name="Notification Settings" xml:space="preserve">
     <value>Cài đặt thông báo</value>
   </data>
-  <data name="EmailNotifications" xml:space="preserve">
+  <data name="Email Notifications" xml:space="preserve">
     <value>Thông báo qua Email</value>
   </data>
-  <data name="PushNotifications" xml:space="preserve">
+  <data name="Email Notifications Description" xml:space="preserve">
+    <value>Nhận các thông báo cập nhật qua Email cá nhân</value>
+  </data>
+  <data name="Push Notifications" xml:space="preserve">
     <value>Thông báo đẩy (Trình duyệt)</value>
   </data>
-  <data name="WorkStartTime" xml:space="preserve">
+  <data name="Push Notifications Description" xml:space="preserve">
+    <value>Nhận các thông báo trực tiếp trên trình duyệt</value>
+  </data>
+  <data name="Work Start Time" xml:space="preserve">
     <value>Giờ bắt đầu làm việc</value>
   </data>
-  <data name="WorkEndTime" xml:space="preserve">
+  <data name="Work End Time" xml:space="preserve">
     <value>Giờ kết thúc làm việc</value>
   </data>
   <data name="Language" xml:space="preserve">
     <value>Ngôn ngữ</value>
   </data>
-  <data name="SavePreferences" xml:space="preserve">
+  <data name="Save Preferences" xml:space="preserve">
     <value>Lưu tùy chọn</value>
   </data>
-  <data name="CurrentPassword" xml:space="preserve">
+  <data name="Current Password" xml:space="preserve">
     <value>Mật khẩu hiện tại</value>
   </data>
-  <data name="NewPassword" xml:space="preserve">
+  <data name="New Password" xml:space="preserve">
     <value>Mật khẩu mới</value>
   </data>
-  <data name="ConfirmNewPassword" xml:space="preserve">
+  <data name="Confirm New Password" xml:space="preserve">
     <value>Xác nhận mật khẩu mới</value>
   </data>
-  <data name="ChangePassword" xml:space="preserve">
+  <data name="Change Password" xml:space="preserve">
     <value>Đổi mật khẩu</value>
   </data>
-  <data name="TwoFactorAuth" xml:space="preserve">
+  <data name="Two-Factor Authentication" xml:space="preserve">
     <value>Xác thực 2 yếu tố (2FA)</value>
   </data>
-  <data name="TwoFactorDesc" xml:space="preserve">
+  <data name="Two-Factor Description" xml:space="preserve">
     <value>Thêm một lớp bảo mật bổ sung cho tài khoản của bạn</value>
   </data>
-  <data name="Enable2FA" xml:space="preserve">
+  <data name="Enable 2FA" xml:space="preserve">
     <value>Kích hoạt 2FA</value>
+  </data>
+  <data name="Profile Information" xml:space="preserve">
+    <value>Thông tin cá nhân</value>
+  </data>
+  <data name="Days Streak" xml:space="preserve">
+    <value>ngày liên tục</value>
   </data>
 </root>

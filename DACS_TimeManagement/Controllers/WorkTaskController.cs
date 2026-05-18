@@ -508,6 +508,46 @@ namespace DACS_TimeManagement.Controllers
             return Json(assignees);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Complete(int id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var task = await _context.WorkTasks.FirstOrDefaultAsync(t => t.Id == id && (t.UserId == userId || t.AssigneeId == userId));
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            if (task.Status != Models.TaskStatus.Completed)
+            {
+                task.Status = Models.TaskStatus.Completed;
+                task.Progress = 100;
+
+                if (task.ProjectId.HasValue)
+                {
+                    var doneList = await _context.BoardLists
+                        .Where(bl => bl.ProjectId == task.ProjectId.Value)
+                        .OrderBy(bl => bl.Position)
+                        .LastOrDefaultAsync();
+                    if (doneList != null)
+                    {
+                        task.BoardListId = doneList.Id;
+                    }
+                }
+
+                _context.WorkTasks.Update(task);
+                await _context.SaveChangesAsync();
+
+                string targetUser = task.AssigneeId ?? task.UserId ?? userId;
+                await _gamificationService.AwardPointsAsync(targetUser, 10);
+                await _gamificationService.UpdateStreakAsync(targetUser);
+
+                await _goalService.SyncTaskGoalsAsync(task.Id);
+            }
+
+            return Json(new { success = true });
+        }
+
         // --- 3. CẬP NHẬT VỊ TRÍ (Drag & Drop) ---
         [HttpPost]
         public async Task<IActionResult> UpdateTaskPosition(int taskId, int? newListId, int newPosition)

@@ -20,19 +20,26 @@ namespace DACS_TimeManagement.Models
         public DateTime DueDate { get; set; }
     }
 
+    public class DashboardProjectDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+
     public class DashboardViewModel
     {
-        public int TotalTasks { get; set; }
-        public int CompletedTasks { get; set; }
-        public int InProgressTasks { get; set; }
-        public double HoursWorked { get; set; }
         public List<DashboardEventDto> TodayEvents { get; set; } = new();
-        public List<DashboardTaskDto> RecentTasks { get; set; } = new();
         public double[] WeeklyHours { get; set; } = new double[7];
         public int[] WeeklyTasks { get; set; } = new int[7];
-        public List<DACS_TimeManagement.Models.WorkTask> AllTasks { get; set; } = new();
-        public int TotalGoals { get; set; }
-        public int CompletedGoals { get; set; }
-        public int OverallGoalProgress { get; set; }
+
+        // Focus & Gamification
+        public List<DashboardTaskDto> InProgressFocusTasks { get; set; } = new();
+        public int Level { get; set; }
+        public int Points { get; set; }
+        public int CurrentStreak { get; set; }
+        public string UserName { get; set; } = string.Empty;
+
+        // User Projects for Quick Task Creation
+        public List<DashboardProjectDto> UserProjects { get; set; } = new();
     }
 }

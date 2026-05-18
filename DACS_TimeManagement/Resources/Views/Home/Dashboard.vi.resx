@@ -58,7 +58,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="WelcomeBack" xml:space="preserve">
+  <data name="Welcome Back" xml:space="preserve">
     <value>Chào mừng trở lại,</value>
   </data>
   <data name="Overview" xml:space="preserve">
@@ -76,31 +76,31 @@
   <data name="HoursWorked" xml:space="preserve">
     <value>Số giờ làm việc</value>
   </data>
-  <data name="TodaySchedule" xml:space="preserve">
+  <data name="Today's Schedule" xml:space="preserve">
     <value>Lịch trình hôm nay</value>
   </data>
   <data name="AddEvent" xml:space="preserve">
     <value>Thêm sự kiện</value>
   </data>
-  <data name="NoEventsToday" xml:space="preserve">
+  <data name="No Events Today" xml:space="preserve">
     <value>Không có sự kiện nào hôm nay</value>
   </data>
-  <data name="StartByAddingEvent" xml:space="preserve">
+  <data name="Start by adding an event" xml:space="preserve">
     <value>Bắt đầu bằng cách thêm một sự kiện vào lịch của bạn.</value>
   </data>
-  <data name="CreateNewEvent" xml:space="preserve">
+  <data name="Create New Event" xml:space="preserve">
     <value>Tạo sự kiện mới</value>
   </data>
   <data name="RecentTasks" xml:space="preserve">
     <value>Nhiệm vụ gần đây</value>
   </data>
-  <data name="AddTask" xml:space="preserve">
+  <data name="Add Task" xml:space="preserve">
     <value>Thêm nhiệm vụ</value>
   </data>
   <data name="Due" xml:space="preserve">
     <value>Hạn:</value>
   </data>
-  <data name="NoTasksYet" xml:space="preserve">
+  <data name="No Tasks Yet" xml:space="preserve">
     <value>Chưa có nhiệm vụ nào</value>
   </data>
   <data name="CreateFirstTaskToGetStarted" xml:space="preserve">
@@ -109,17 +109,35 @@
   <data name="CreateFirstTask" xml:space="preserve">
     <value>Tạo nhiệm vụ đầu tiên</value>
   </data>
-  <data name="WeeklyProductivity" xml:space="preserve">
+  <data name="Weekly Productivity" xml:space="preserve">
     <value>Năng suất hàng tuần</value>
   </data>
-  <data name="HoursWorkedLabel" xml:space="preserve">
+  <data name="Hours Worked" xml:space="preserve">
     <value>Số giờ đã làm</value>
   </data>
-  <data name="TasksCompletedLabel" xml:space="preserve">
+  <data name="Tasks Completed" xml:space="preserve">
     <value>Nhiệm vụ đã xong</value>
   </data>
   <data name="Dashboard" xml:space="preserve">
     <value>Bảng điều khiển</value>
+  </data>
+  <data name="Quick Actions" xml:space="preserve">
+    <value>Hành động nhanh</value>
+  </data>
+  <data name="Create New Task" xml:space="preserve">
+    <value>Tạo nhiệm vụ mới</value>
+  </data>
+  <data name="Personal Task" xml:space="preserve">
+    <value>Công việc cá nhân</value>
+  </data>
+  <data name="Private Task" xml:space="preserve">
+    <value>Công việc riêng tư</value>
+  </data>
+  <data name="No Assignee" xml:space="preserve">
+    <value>Không có người thực hiện</value>
+  </data>
+  <data name="Selection Required" xml:space="preserve">
+    <value>Yêu cầu nhập thông tin</value>
   </data>
   <data name="Scheduled" xml:space="preserve">
     <value>Đã lên lịch</value>

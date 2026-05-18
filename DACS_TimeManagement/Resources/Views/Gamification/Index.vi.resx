@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Gamification Leaderboard" xml:space="preserve">
+    <value>Bảng xếp hạng</value>
+  </data>
+  <data name="My Performance" xml:space="preserve">
+    <value>Hiệu suất của tôi</value>
+  </data>
+  <data name="Total XP" xml:space="preserve">
+    <value>Tổng điểm XP</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Cấp độ</value>
+  </data>
+  <data name="Current Streak" xml:space="preserve">
+    <value>Chuỗi hiện tại</value>
+  </data>
+  <data name="Best Streak" xml:space="preserve">
+    <value>Chuỗi tốt nhất</value>
+  </data>
+  <data name="Global Rank" xml:space="preserve">
+    <value>Hạng toàn cầu</value>
+  </data>
+  <data name="out of" xml:space="preserve">
+    <value>trên tổng số</value>
+  </data>
+  <data name="active participants" xml:space="preserve">
+    <value>người tham gia hoạt động</value>
+  </data>
+  <data name="Login to see your stats" xml:space="preserve">
+    <value>Đăng nhập để xem thống kê của bạn</value>
+  </data>
+  <data name="Leaderboard" xml:space="preserve">
+    <value>Bảng xếp hạng</value>
+  </data>
+  <data name="Real-time ranking based on points &amp; engagement" xml:space="preserve">
+    <value>Bảng xếp hạng thời gian thực dựa trên điểm tích lũy &amp; hoạt động</value>
+  </data>
+  <data name="Global Ranking" xml:space="preserve">
+    <value>🌍 Xếp hạng toàn cầu</value>
+  </data>
+  <data name="Rank" xml:space="preserve">
+    <value>Hạng</value>
+  </data>
+  <data name="User" xml:space="preserve">
+    <value>Thành viên</value>
+  </data>
+  <data name="Points" xml:space="preserve">
+    <value>Điểm số</value>
+  </data>
+  <data name="Streak" xml:space="preserve">
+    <value>Chuỗi</value>
+  </data>
+  <data name="You" xml:space="preserve">
+    <value>Bạn</value>
+  </data>
+  <data name="No leaderboard data available" xml:space="preserve">
+    <value>Không có dữ liệu xếp hạng</value>
+  </data>
+  <data name="Start tracking time to appear here" xml:space="preserve">
+    <value>Bắt đầu theo dõi thời gian của bạn để xuất hiện tại đây</value>
+  </data>
+  <data name="Your current rank is" xml:space="preserve">
+    <value>Hạng hiện tại của bạn là</value>
+  </data>
+  <data name="Keep working to climb up!" xml:space="preserve">
+    <value>Hãy tiếp tục cố gắng để thăng hạng nhé!</value>
+  </data>
+</root>

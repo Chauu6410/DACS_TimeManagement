@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model LoginModel
 @{
     ViewData["Title"] = Localizer["Login"];
@@ -6,7 +6,7 @@
 
 <div class="login-container" data-aos="fade-up">
     <div class="row justify-content-center w-100 m-0">
-        <!-- 👇 ĐÃ CHỈNH: col rộng hơn -->
+        <!-- ðŸ‘‡ ÄÃƒ CHá»ˆNH: col rá»™ng hÆ¡n -->
         <div class="col-12 col-sm-10 col-md-8 col-lg-7 col-xl-6">
             <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
                 <!-- Header Gradient -->
@@ -14,8 +14,8 @@
                     <div class="icon-circle bg-white bg-opacity-20 mx-auto mb-3">
                         <i class="fas fa-sign-in-alt fa-2x"></i>
                     </div>
-                    <h3 class="fw-bold mb-0">@Localizer["WelcomeBack"]</h3>
-                    <p class="opacity-75 small mb-0">@Localizer["LoginToAccount"]</p>
+                    <h3 class="fw-bold mb-0">@Localizer["Welcome Back"]</h3>
+                    <p class="opacity-75 small mb-0">@Localizer["Login To Account"]</p>
                 </div>
 
                 <!-- Form Body -->
@@ -25,7 +25,7 @@
 
                         <div class="mb-4">
                             <label asp-for="Input.Email" class="form-label fw-semibold">
-                                <i class="fas fa-envelope text-pastel-primary me-1"></i> @Localizer["EmailAddress"]
+                                <i class="fas fa-envelope text-pastel-primary me-1"></i> @Localizer["Email Address"]
                             </label>
                             <input asp-for="Input.Email" class="form-control form-control-lg rounded-3" 
                                    autocomplete="username" aria-required="true" 
@@ -46,7 +46,7 @@
                         <div class="form-check form-switch mb-4">
                             <input class="form-check-input" asp-for="Input.RememberMe" id="rememberSwitch">
                             <label class="form-check-label" for="rememberSwitch">
-                                <i class="fas fa-check-circle me-1"></i> @Localizer["RememberMe"]
+                                <i class="fas fa-check-circle me-1"></i> @Localizer["Remember Me"]
                             </label>
                         </div>
 
@@ -56,15 +56,15 @@
 
                         <div class="text-center mt-4">
                             <a id="forgot-password" asp-page="./ForgotPassword" class="text-pastel-primary small">
-                                @Localizer["ForgotPassword"]
+                                @Localizer["Forgot Password"]
                             </a>
-                            <span class="text-pastel-muted mx-2">•</span>
+                            <span class="text-pastel-muted mx-2">â€¢</span>
                             <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-pastel-primary small">
-                                @Localizer["CreateAccount"]
+                                @Localizer["Create Account"]
                             </a>
                             <div class="mt-2">
                                 <a id="resend-confirmation" asp-page="./ResendEmailConfirmation" class="text-pastel-muted small">
-                                    @Localizer["ResendConfirmation"]
+                                    @Localizer["Resend Confirmation"]
                                 </a>
                             </div>
                         </div>
@@ -76,13 +76,13 @@
                 {
                     <div class="card-footer bg-transparent border-top p-4">
                         <div class="text-center mb-3">
-                            <span class="text-pastel-muted small">@Localizer["OrContinueWith"]</span>
+                            <span class="text-pastel-muted small">@Localizer["Or Continue With"]</span>
                         </div>
                         <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="d-flex gap-2 justify-content-center flex-wrap">
                             @foreach (var provider in Model.ExternalLogins!)
                             {
                                 <button type="submit" class="btn btn-outline-pastel rounded-pill px-3" name="provider" value="@provider.Name" 
-                                        title="@string.Format(Localizer["ExternalLoginTitle"].Value, provider.DisplayName)">
+                                        title="@string.Format(Localizer["External Login Title"].Value, provider.DisplayName)">
                                     <i class="fab fa-@provider.Name.ToLower() me-1"></i> @provider.DisplayName
                                 </button>
                             }
@@ -99,7 +99,7 @@
 }
 
 <style>
-    /* Login page - kích thước chuẩn */
+    /* Login page - kÃ­ch thÆ°á»›c chuáº©n */
     .login-container {
         min-height: 100vh;
         display: flex;

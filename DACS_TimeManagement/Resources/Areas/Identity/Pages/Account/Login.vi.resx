@@ -1,14 +1,15 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <data name="Login" xml:space="preserve"><value>Đăng nhập</value></data>
-  <data name="WelcomeBack" xml:space="preserve"><value>Chào mừng trở lại</value></data>
-  <data name="LoginToAccount" xml:space="preserve"><value>Đăng nhập vào tài khoản của bạn</value></data>
-  <data name="EmailAddress" xml:space="preserve"><value>Địa chỉ Email</value></data>
-  <data name="Password" xml:space="preserve"><value>Mật khẩu</value></data>
-  <data name="RememberMe" xml:space="preserve"><value>Ghi nhớ đăng nhập</value></data>
-  <data name="ForgotPassword" xml:space="preserve"><value>Quên mật khẩu?</value></data>
-  <data name="CreateAccount" xml:space="preserve"><value>Tạo tài khoản mới</value></data>
-  <data name="ResendConfirmation" xml:space="preserve"><value>Gửi lại email xác nhận</value></data>
-  <data name="OrContinueWith" xml:space="preserve"><value>Hoặc tiếp tục với</value></data>
-  <data name="ExternalLoginTitle" xml:space="preserve"><value>Đăng nhập bằng tài khoản {0}</value></data>
+  <data name="Login" xml:space="preserve"><value>ÄÄƒng nháº­p</value></data>
+  <data name="Welcome Back" xml:space="preserve"><value>ChÃ o má»«ng trá»Ÿ láº¡i</value></data>
+  <data name="Login To Account" xml:space="preserve"><value>ÄÄƒng nháº­p vÃ o tÃ i khoáº£n cá»§a báº¡n</value></data>
+  <data name="Email Address" xml:space="preserve"><value>Äá»‹a chá»‰ Email</value></data>
+  <data name="Password" xml:space="preserve"><value>Máº­t kháº©u</value></data>
+  <data name="Remember Me" xml:space="preserve"><value>Ghi nhá»› Ä‘Äƒng nháº­p</value></data>
+  <data name="Forgot Password" xml:space="preserve"><value>QuÃªn máº­t kháº©u?</value></data>
+  <data name="Create Account" xml:space="preserve"><value>Táº¡o tÃ i khoáº£n má»›i</value></data>
+  <data name="Resend Confirmation" xml:space="preserve"><value>Gá»­i láº¡i email xÃ¡c nháº­n</value></data>
+  <data name="Or Continue With" xml:space="preserve"><value>Hoáº·c tiáº¿p tá»¥c vá»›i</value></data>
+  <data name="External Login Title" xml:space="preserve"><value>ÄÄƒng nháº­p báº±ng tÃ i khoáº£n {0}</value></data>
 </root>
+

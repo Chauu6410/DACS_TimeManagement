@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -58,121 +58,122 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="LandingPageTitle" xml:space="preserve">
-    <value>TimeMaster - Quản lý thời gian thông minh</value>
+  <data name="Landing Page Title" xml:space="preserve">
+    <value>TimeMaster - Quáº£n lÃ½ thá»i gian thÃ´ng minh</value>
   </data>
-  <data name="NextGenManager" xml:space="preserve">
-    <value>✨ Trình quản lý thời gian thế hệ mới</value>
+  <data name="Next Gen Manager" xml:space="preserve">
+    <value>âœ¨ TrÃ¬nh quáº£n lÃ½ thá»i gian tháº¿ há»‡ má»›i</value>
   </data>
-  <data name="MasterYourTime" xml:space="preserve">
-    <value>Làm chủ thời gian,</value>
+  <data name="Master Your Time" xml:space="preserve">
+    <value>LÃ m chá»§ thá»i gian,</value>
   </data>
-  <data name="MasterYourLife" xml:space="preserve">
-    <value>Làm chủ cuộc sống</value>
+  <data name="Master Your Life" xml:space="preserve">
+    <value>LÃ m chá»§ cuá»™c sá»‘ng</value>
   </data>
-  <data name="HeroDescription" xml:space="preserve">
-    <value>Hệ thống quản lý công việc thông minh giúp bạn tối ưu năng suất, theo dõi tiến độ bằng biểu đồ trực quan và đảm bảo an toàn dữ liệu tuyệt đối.</value>
+  <data name="Hero Description" xml:space="preserve">
+    <value>Há»‡ thá»‘ng quáº£n lÃ½ cÃ´ng viá»‡c thÃ´ng minh giÃºp báº¡n tá»‘i Æ°u nÄƒng suáº¥t, theo dÃµi tiáº¿n Ä‘á»™ báº±ng biá»ƒu Ä‘á»“ trá»±c quan vÃ  Ä‘áº£m báº£o an toÃ n dá»¯ liá»‡u tuyá»‡t Ä‘á»‘i.</value>
   </data>
-  <data name="GetStarted" xml:space="preserve">
-    <value>Bắt đầu ngay</value>
+  <data name="Get Started" xml:space="preserve">
+    <value>Báº¯t Ä‘áº§u ngay</value>
   </data>
-  <data name="SignIn" xml:space="preserve">
-    <value>Đăng nhập</value>
+  <data name="Sign In" xml:space="preserve">
+    <value>ÄÄƒng nháº­p</value>
   </data>
-  <data name="NoCreditCard" xml:space="preserve">
-    <value>Không cần thẻ tín dụng</value>
+  <data name="No Credit Card" xml:space="preserve">
+    <value>KhÃ´ng cáº§n tháº» tÃ­n dá»¥ng</value>
   </data>
-  <data name="FreeTrial" xml:space="preserve">
-    <value>Dùng thử miễn phí 14 ngày</value>
+  <data name="Free Trial" xml:space="preserve">
+    <value>DÃ¹ng thá»­ miá»…n phÃ­ 14 ngÃ y</value>
   </data>
-  <data name="ActiveUsers" xml:space="preserve">
-    <value>Người dùng tích cực</value>
+  <data name="Active Users" xml:space="preserve">
+    <value>NgÆ°á»i dÃ¹ng tÃ­ch cá»±c</value>
   </data>
-  <data name="SatisfactionRate" xml:space="preserve">
-    <value>Tỷ lệ hài lòng</value>
+  <data name="Satisfaction Rate" xml:space="preserve">
+    <value>Tá»· lá»‡ hÃ i lÃ²ng</value>
   </data>
-  <data name="TasksCompleted" xml:space="preserve">
-    <value>Nhiệm vụ đã hoàn thành</value>
+  <data name="Tasks Completed" xml:space="preserve">
+    <value>Nhiá»‡m vá»¥ Ä‘Ã£ hoÃ n thÃ nh</value>
   </data>
-  <data name="SupportAvailable" xml:space="preserve">
-    <value>Hỗ trợ 24/7</value>
+  <data name="Support Available" xml:space="preserve">
+    <value>Há»— trá»£ 24/7</value>
   </data>
-  <data name="PowerfulFeatures" xml:space="preserve">
-    <value>Tính năng mạnh mẽ</value>
+  <data name="Powerful Features" xml:space="preserve">
+    <value>TÃ­nh nÄƒng máº¡nh máº½</value>
   </data>
-  <data name="EverythingYouNeed" xml:space="preserve">
-    <value>Mọi thứ bạn cần để quản lý thời gian hiệu quả</value>
+  <data name="Everything You Need" xml:space="preserve">
+    <value>Má»i thá»© báº¡n cáº§n Ä‘á»ƒ quáº£n lÃ½ thá»i gian hiá»‡u quáº£</value>
   </data>
-  <data name="KanbanBoard" xml:space="preserve">
-    <value>Bảng Kanban</value>
+  <data name="Kanban Board" xml:space="preserve">
+    <value>Báº£ng Kanban</value>
   </data>
-  <data name="KanbanDesc" xml:space="preserve">
-    <value>Trực quan hóa quy trình làm việc với các cột tùy chỉnh: Cần làm, Đang làm, Đánh giá, Hoàn thành.</value>
+  <data name="Kanban Desc" xml:space="preserve">
+    <value>Trá»±c quan hÃ³a quy trÃ¬nh lÃ m viá»‡c vá»›i cÃ¡c cá»™t tÃ¹y chá»‰nh: Cáº§n lÃ m, Äang lÃ m, ÄÃ¡nh giÃ¡, HoÃ n thÃ nh.</value>
   </data>
-  <data name="AdvancedAnalytics" xml:space="preserve">
-    <value>Phân tích nâng cao</value>
+  <data name="Advanced Analytics" xml:space="preserve">
+    <value>PhÃ¢n tÃ­ch nÃ¢ng cao</value>
   </data>
-  <data name="AnalyticsDesc" xml:space="preserve">
-    <value>Theo dõi xu hướng năng suất, thời gian dự kiến so với thực tế và hiệu suất của nhóm.</value>
+  <data name="Analytics Desc" xml:space="preserve">
+    <value>Theo dÃµi xu hÆ°á»›ng nÄƒng suáº¥t, thá»i gian dá»± kiáº¿n so vá»›i thá»±c táº¿ vÃ  hiá»‡u suáº¥t cá»§a nhÃ³m.</value>
   </data>
   <data name="Encryption" xml:space="preserve">
-    <value>Mã hóa AES-256</value>
+    <value>MÃ£ hÃ³a AES-256</value>
   </data>
-  <data name="EncryptionDesc" xml:space="preserve">
-    <value>Dữ liệu của bạn được mã hóa khi lưu trữ và truyền tải với bảo mật cấp ngân hàng.</value>
+  <data name="Encryption Desc" xml:space="preserve">
+    <value>Dá»¯ liá»‡u cá»§a báº¡n Ä‘Æ°á»£c mÃ£ hÃ³a khi lÆ°u trá»¯ vÃ  truyá»n táº£i vá»›i báº£o máº­t cáº¥p ngÃ¢n hÃ ng.</value>
   </data>
-  <data name="SmartReminders" xml:space="preserve">
-    <value>Nhắc nhở thông minh</value>
+  <data name="Smart Reminders" xml:space="preserve">
+    <value>Nháº¯c nhá»Ÿ thÃ´ng minh</value>
   </data>
-  <data name="RemindersDesc" xml:space="preserve">
-    <value>Nhận thông báo qua email, đẩy hoặc Telegram về các thời hạn sắp tới.</value>
+  <data name="Reminders Desc" xml:space="preserve">
+    <value>Nháº­n thÃ´ng bÃ¡o qua email, Ä‘áº©y hoáº·c Telegram vá» cÃ¡c thá»i háº¡n sáº¯p tá»›i.</value>
   </data>
-  <data name="TeamCollab" xml:space="preserve">
-    <value>Cộng tác nhóm</value>
+  <data name="Team Collab" xml:space="preserve">
+    <value>Cá»™ng tÃ¡c nhÃ³m</value>
   </data>
-  <data name="TeamDesc" xml:space="preserve">
-    <value>Chia sẻ dự án, giao nhiệm vụ và bình luận trong thời gian thực.</value>
+  <data name="Team Desc" xml:space="preserve">
+    <value>Chia sáº» dá»± Ã¡n, giao nhiá»‡m vá»¥ vÃ  bÃ¬nh luáº­n trong thá»i gian thá»±c.</value>
   </data>
-  <data name="TimeTracking" xml:space="preserve">
-    <value>Theo dõi thời gian</value>
+  <data name="Time Tracking" xml:space="preserve">
+    <value>Theo dÃµi thá»i gian</value>
   </data>
-  <data name="TrackingDesc" xml:space="preserve">
-    <value>Tích hợp đồng hồ pomodoro và nhật ký thời gian thủ công để tính toán chính xác.</value>
+  <data name="Tracking Desc" xml:space="preserve">
+    <value>TÃ­ch há»£p Ä‘á»“ng há»“ pomodoro vÃ  nháº­t kÃ½ thá»i gian thá»§ cÃ´ng Ä‘á»ƒ tÃ­nh toÃ¡n chÃ­nh xÃ¡c.</value>
   </data>
-  <data name="TrustedByPros" xml:space="preserve">
-    <value>Được tin dùng bởi các chuyên gia</value>
+  <data name="Trusted By Pros" xml:space="preserve">
+    <value>ÄÆ°á»£c tin dÃ¹ng bá»Ÿi cÃ¡c chuyÃªn gia</value>
   </data>
-  <data name="JoinThousands" xml:space="preserve">
-    <value>Tham gia cùng hàng ngàn người dùng đã thay đổi năng suất của họ</value>
+  <data name="Join Thousands" xml:space="preserve">
+    <value>Tham gia cÃ¹ng hÃ ng ngÃ n ngÆ°á»i dÃ¹ng Ä‘Ã£ thay Ä‘á»•i nÄƒng suáº¥t cá»§a há»</value>
   </data>
-  <data name="ReadyToTakeControl" xml:space="preserve">
-    <value>Sẵn sàng để làm chủ thời gian của bạn?</value>
+  <data name="Ready To Take Control" xml:space="preserve">
+    <value>Sáºµn sÃ ng Ä‘á»ƒ lÃ m chá»§ thá»i gian cá»§a báº¡n?</value>
   </data>
-  <data name="JoinToday" xml:space="preserve">
-    <value>Tham gia cùng hàng ngàn người dùng năng suất ngay hôm nay.</value>
+  <data name="Join Today" xml:space="preserve">
+    <value>Tham gia cÃ¹ng hÃ ng ngÃ n ngÆ°á»i dÃ¹ng nÄƒng suáº¥t ngay hÃ´m nay.</value>
   </data>
-  <data name="StartFreeTrial" xml:space="preserve">
-    <value>Bắt đầu dùng thử miễn phí</value>
+  <data name="Start Free Trial" xml:space="preserve">
+    <value>Báº¯t Ä‘áº§u dÃ¹ng thá»­ miá»…n phÃ­</value>
   </data>
-  <data name="NoCommitment" xml:space="preserve">
-    <value>Không ràng buộc. Hủy bất cứ lúc nào.</value>
+  <data name="No Commitment" xml:space="preserve">
+    <value>KhÃ´ng rÃ ng buá»™c. Há»§y báº¥t cá»© lÃºc nÃ o.</value>
   </data>
-  <data name="Testimonial1" xml:space="preserve">
-    <value>"TimeMaster đã hoàn toàn thay đổi cách nhóm chúng tôi làm việc. Chúng tôi đã giảm 40% tình trạng chậm trễ dự án chỉ trong hai tháng."</value>
+  <data name="Testimonial 1" xml:space="preserve">
+    <value>"TimeMaster Ä‘Ã£ hoÃ n toÃ n thay Ä‘á»•i cÃ¡ch nhÃ³m chÃºng tÃ´i lÃ m viá»‡c. ChÃºng tÃ´i Ä‘Ã£ giáº£m 40% tÃ¬nh tráº¡ng cháº­m trá»… dá»± Ã¡n chá»‰ trong hai thÃ¡ng."</value>
   </data>
-  <data name="SarahJohnsonRole" xml:space="preserve">
-    <value>Quản lý sản phẩm, TechCorp</value>
+  <data name="Sarah Johnson Role" xml:space="preserve">
+    <value>Quáº£n lÃ½ sáº£n pháº©m, TechCorp</value>
   </data>
-  <data name="Testimonial2" xml:space="preserve">
-    <value>"Mã hóa AES mang lại cho tôi sự an tâm. Cuối cùng cũng có một trình theo dõi thời gian tôn trọng quyền riêng tư."</value>
+  <data name="Testimonial 2" xml:space="preserve">
+    <value>"MÃ£ hÃ³a AES mang láº¡i cho tÃ´i sá»± an tÃ¢m. Cuá»‘i cÃ¹ng cÅ©ng cÃ³ má»™t trÃ¬nh theo dÃµi thá»i gian tÃ´n trá»ng quyá»n riÃªng tÆ°."</value>
   </data>
-  <data name="DavidChenRole" xml:space="preserve">
-    <value>Nhà phát triển tự do</value>
+  <data name="David Chen Role" xml:space="preserve">
+    <value>NhÃ  phÃ¡t triá»ƒn tá»± do</value>
   </data>
-  <data name="Testimonial3" xml:space="preserve">
-    <value>"Khoản đầu tư tốt nhất cho doanh nghiệp nhỏ của tôi. Chỉ riêng các tính năng báo cáo đã giúp tôi tiết kiệm hàng giờ mỗi tuần."</value>
+  <data name="Testimonial 3" xml:space="preserve">
+    <value>"Khoáº£n Ä‘áº§u tÆ° tá»‘t nháº¥t cho doanh nghiá»‡p nhá» cá»§a tÃ´i. Chá»‰ riÃªng cÃ¡c tÃ­nh nÄƒng bÃ¡o cÃ¡o Ä‘Ã£ giÃºp tÃ´i tiáº¿t kiá»‡m hÃ ng giá» má»—i tuáº§n."</value>
   </data>
-  <data name="EmilyRodriguezRole" xml:space="preserve">
-    <value>Người sáng lập Startup</value>
+  <data name="Emily Rodriguez Role" xml:space="preserve">
+    <value>NgÆ°á»i sÃ¡ng láº­p Startup</value>
   </data>
 </root>
+

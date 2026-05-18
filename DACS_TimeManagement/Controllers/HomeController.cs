@@ -48,18 +48,29 @@ namespace DACS_TimeManagement.Controllers
             var tasks = await _taskRepo.GetAllAsync(userId);
             var today = DateTime.Today;
 
-            var goals = await _context.PersonalGoals.Where(g => g.UserId == userId).ToListAsync();
-
+            // Gamification & User Info
+            var userProfile = await _context.UserProfiles.FirstOrDefaultAsync(u => u.UserId == userId);
+            
             var model = new DashboardViewModel
             {
-                TotalTasks = tasks.Count(),
-                CompletedTasks = tasks.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed),
-                InProgressTasks = tasks.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.InProgress),
-                AllTasks = tasks.ToList(),
-                TotalGoals = goals.Count,
-                CompletedGoals = goals.Count(g => g.Status == DACS_TimeManagement.Models.GoalStatus.Completed),
-                OverallGoalProgress = goals.Count == 0 ? 0 : (goals.Count(g => g.Status == DACS_TimeManagement.Models.GoalStatus.Completed) * 100 / goals.Count)
+                UserName = userProfile?.FullName ?? User.Identity?.Name ?? "User",
+                Level = userProfile?.Level ?? 1,
+                Points = userProfile?.Points ?? 0,
+                CurrentStreak = userProfile?.CurrentStreak ?? 0
             };
+
+            // Focus Tasks
+            model.InProgressFocusTasks = tasks
+                .Where(t => t.Status == DACS_TimeManagement.Models.TaskStatus.InProgress)
+                .OrderBy(t => t.EndDate)
+                .Take(3)
+                .Select(t => new DashboardTaskDto {
+                    Id = t.Id,
+                    Title = t.Title,
+                    IsCompleted = false,
+                    Priority = t.Priority.ToString(),
+                    DueDate = t.EndDate
+                }).ToList();
 
             // 2. Schedule Data
             var todayEvents = await _calendarRepo.GetEventsInRangeAsync(userId, today, today.AddDays(1).AddTicks(-1));
@@ -70,14 +81,6 @@ namespace DACS_TimeManagement.Controllers
                 Status = "Scheduled"
             }).ToList();
 
-            model.RecentTasks = tasks.OrderBy(t => t.EndDate).Take(5).Select(t => new DashboardTaskDto {
-                Id = t.Id,
-                Title = t.Title,
-                IsCompleted = t.Status == DACS_TimeManagement.Models.TaskStatus.Completed,
-                Priority = t.Priority.ToString(),
-                DueDate = t.EndDate
-            }).ToList();
-
             // 3. Time & Analytics
             var last7Days = Enumerable.Range(0, 7).Select(i => today.AddDays(-6 + i)).ToList();
             var recentLogs = await _context.TimeLogs
@@ -85,13 +88,22 @@ namespace DACS_TimeManagement.Controllers
                 .Where(t => t.WorkTask.UserId == userId && t.LogDate >= today.AddDays(-6) && t.LogDate <= today.AddDays(1))
                 .ToListAsync();
 
-            model.HoursWorked = recentLogs.Sum(l => l.DurationHours);
             for (int i = 0; i < 7; i++)
             {
                 var date = last7Days[i].Date;
                 model.WeeklyHours[i] = recentLogs.Where(l => l.LogDate.Date == date).Sum(l => l.DurationHours);
                 model.WeeklyTasks[i] = tasks.Count(t => t.EndDate.Date == date);
             }
+
+            // 4. Fetch User's Projects for quick task creation
+            var projects = await _context.Projects
+                .Where(p => p.UserId == userId || _context.ProjectMembers.Any(pm => pm.ProjectId == p.Id && pm.UserId == userId))
+                .Select(p => new DashboardProjectDto {
+                    Id = p.Id,
+                    Name = p.Name
+                })
+                .ToListAsync();
+            model.UserProjects = projects;
 
             return View(model);
         }

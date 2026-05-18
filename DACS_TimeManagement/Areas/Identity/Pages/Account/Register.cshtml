@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model RegisterModel
 @{
     ViewData["Title"] = Localizer["Register"];
@@ -13,8 +13,8 @@
                     <div class="icon-circle bg-white bg-opacity-20 mx-auto mb-3">
                         <i class="fas fa-user-plus fa-2x"></i>
                     </div>
-                    <h3 class="fw-bold mb-0">@Localizer["CreateAccount"]</h3>
-                    <p class="opacity-75 small mb-0">@Localizer["JoinUs"]</p>
+                    <h3 class="fw-bold mb-0">@Localizer["Create Account"]</h3>
+                    <p class="opacity-75 small mb-0">@Localizer["Join Us"]</p>
                 </div>
 
                 <!-- Form Body -->
@@ -24,7 +24,7 @@
 
                         <div class="mb-4">
                             <label asp-for="Input.Email" class="form-label fw-semibold">
-                                <i class="fas fa-envelope text-pastel-primary me-1"></i> @Localizer["EmailAddress"]
+                                <i class="fas fa-envelope text-pastel-primary me-1"></i> @Localizer["Email Address"]
                             </label>
                             <input asp-for="Input.Email" class="form-control form-control-lg rounded-3" 
                                    autocomplete="username" aria-required="true" 
@@ -40,12 +40,12 @@
                                    autocomplete="new-password" aria-required="true" 
                                    placeholder="Create a password" />
                             <span asp-validation-for="Input.Password" class="text-danger small"></span>
-                            <div class="form-text text-pastel-muted">@Localizer["PasswordLengthTip"]</div>
+                            <div class="form-text text-pastel-muted">@Localizer["Password Length Tip"]</div>
                         </div>
 
                         <div class="mb-4">
                             <label asp-for="Input.ConfirmPassword" class="form-label fw-semibold">
-                                <i class="fas fa-check-circle text-pastel-primary me-1"></i> @Localizer["ConfirmPassword"]
+                                <i class="fas fa-check-circle text-pastel-primary me-1"></i> @Localizer["Confirm Password"]
                             </label>
                             <input asp-for="Input.ConfirmPassword" type="password" class="form-control form-control-lg rounded-3" 
                                    autocomplete="new-password" aria-required="true" 
@@ -58,9 +58,9 @@
                         </button>
 
                         <div class="text-center mt-4">
-                            <span class="text-pastel-muted small">@Localizer["AlreadyHaveAccount"]</span>
+                            <span class="text-pastel-muted small">@Localizer["Already Have Account"]</span>
                             <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-pastel-primary small fw-semibold ms-1">
-                                @Localizer["SignIn"]
+                                @Localizer["Sign In"]
                             </a>
                         </div>
                     </form>
@@ -71,13 +71,13 @@
                 {
                     <div class="card-footer bg-transparent border-top p-4">
                         <div class="text-center mb-3">
-                            <span class="text-pastel-muted small">@Localizer["OrRegisterWith"]</span>
+                            <span class="text-pastel-muted small">@Localizer["Or Register With"]</span>
                         </div>
                         <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="d-flex gap-2 justify-content-center flex-wrap">
                             @foreach (var provider in Model.ExternalLogins!)
                             {
                                 <button type="submit" class="btn btn-outline-pastel rounded-pill px-3" name="provider" value="@provider.Name" 
-                                        title="@string.Format(Localizer["ExternalRegisterTitle"].Value, provider.DisplayName)">
+                                        title="@string.Format(Localizer["External Register Title"].Value, provider.DisplayName)">
                                     <i class="fab fa-@provider.Name.ToLower() me-1"></i> @provider.DisplayName
                                 </button>
                             }
@@ -94,7 +94,7 @@
 }
 
 <style>
-    /* Register page - kích thước chuẩn */
+    /* Register page - kÃ­ch thÆ°á»›c chuáº©n */
     .register-container {
         min-height: 100vh;
         display: flex;
