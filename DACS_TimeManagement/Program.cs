@@ -74,6 +74,7 @@ builder.Services.AddScoped<IGoalService, GoalService>();
 builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddScoped<IUserWorkScheduleService, UserWorkScheduleService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IGamificationService, GamificationService>();
 builder.Services.AddHostedService<EmailNotificationWorker>();
 
 var app = builder.Build();

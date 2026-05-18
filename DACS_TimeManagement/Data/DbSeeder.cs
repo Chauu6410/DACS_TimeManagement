@@ -267,7 +267,6 @@ namespace DACS_TimeManagement.Data
                         CreatedAt      = proj.CreatedDate,
                         ProjectId      = proj.Id,
                         UserId         = proj.UserId,
-                        CurrentStreak  = rng.Next(2, 14),
                         LastUpdated    = DateTime.Now.AddDays(-rng.Next(0, 5))
                     };
                     

@@ -172,4 +172,7 @@
   <data name="Due" xml:space="preserve">
     <value>Hạn:</value>
   </data>
+  <data name="Leaderboard" xml:space="preserve">
+    <value>Bảng xếp hạng</value>
+  </data>
 </root>

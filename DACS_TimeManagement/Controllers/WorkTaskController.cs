@@ -24,8 +24,9 @@ namespace DACS_TimeManagement.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ILogger<WorkTaskController> _logger;
         private readonly DACS_TimeManagement.Services.Interfaces.IGoalService _goalService;
+        private readonly DACS_TimeManagement.Services.Interfaces.IGamificationService _gamificationService;
 
-        public WorkTaskController(IWorkTaskRepository taskRepo, IProjectRepository projectRepo, IHubContext<NotificationHub> hubContext, ICryptoService crypto, ApplicationDbContext context, ILogger<WorkTaskController> logger, DACS_TimeManagement.Services.Interfaces.IGoalService goalService)
+        public WorkTaskController(IWorkTaskRepository taskRepo, IProjectRepository projectRepo, IHubContext<NotificationHub> hubContext, ICryptoService crypto, ApplicationDbContext context, ILogger<WorkTaskController> logger, DACS_TimeManagement.Services.Interfaces.IGoalService goalService, DACS_TimeManagement.Services.Interfaces.IGamificationService gamificationService)
         {
             _taskRepo = taskRepo;
             _projectRepo = projectRepo;
@@ -34,6 +35,7 @@ namespace DACS_TimeManagement.Controllers
             _context = context;
             _logger = logger;
             _goalService = goalService;
+            _gamificationService = gamificationService;
         }
 
         private async Task NotifyProjectUsersAboutNewTaskAsync(WorkTask task, string creatorUserId)
@@ -604,9 +606,22 @@ namespace DACS_TimeManagement.Controllers
                     }
                 }
 
+                bool justCompleted = false;
+                if (newListId.HasValue && oldBoardListId != newListId && task.Status == Models.TaskStatus.Completed)
+                {
+                    justCompleted = true;
+                }
+
                 task.Position = newPosition;
                 _taskRepo.Update(task);
                 await _taskRepo.SaveAsync();
+
+                if (justCompleted)
+                {
+                    string targetUser = task.AssigneeId ?? task.UserId;
+                    await _gamificationService.AwardPointsAsync(targetUser, 10);
+                    await _gamificationService.UpdateStreakAsync(targetUser);
+                }
 
                 // Ghi nhận lịch sử nếu cột thay đổi
                 if (oldBoardListId != newListId)
@@ -915,6 +930,13 @@ namespace DACS_TimeManagement.Controllers
                     if (!success)
                     {
                         return NotFound();
+                    }
+
+                    if (dbTask != null && dbTask.Status != Models.TaskStatus.Completed && taskForm.Status == Models.TaskStatus.Completed)
+                    {
+                        string targetUser = taskForm.AssigneeId ?? taskForm.UserId ?? userId;
+                        await _gamificationService.AwardPointsAsync(targetUser, 10);
+                        await _gamificationService.UpdateStreakAsync(targetUser);
                     }
 
                     // Sync goals after update

@@ -473,7 +473,6 @@ namespace DACS_TimeManagement.Controllers
                 goalName = g.Title,
                 currentValue = g.Type == GoalType.TimeBased ? g.CompletedHours : g.CompletedTasks,
                 targetValue = g.Type == GoalType.TimeBased ? g.TargetHours ?? 0 : (double?)(g.TargetTasks ?? 0),
-                streak = (g.LastUpdated.HasValue && g.LastUpdated.Value.Date >= today.AddDays(-1)) ? g.CurrentStreak : 0,
 
                 aiPrediction = _goalService.GetAIPrediction(g),
                 aiStatus = _goalService.GetAIShortStatus(g)
@@ -501,25 +500,6 @@ namespace DACS_TimeManagement.Controllers
             return Json(history);
         }
 
-        [HttpGet]
-        public IActionResult GetGlobalStreak()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var today = DateTime.UtcNow.Date;
-            var goals = _db.PersonalGoals.Where(g => g.UserId == userId).ToList();
-            
-            // Một chuỗi được coi là còn hiệu lực nếu được cập nhật vào hôm nay hoặc hôm qua.
-            // Nếu quá 1 ngày không có hoạt động, chuỗi của mục tiêu đó coi như về 0.
-            var activeStreaks = goals.Select(g => 
-            {
-                if (!g.LastUpdated.HasValue || g.LastUpdated.Value.Date < today.AddDays(-1))
-                    return 0;
-                return g.CurrentStreak;
-            });
-
-            var streak = activeStreaks.Any() ? activeStreaks.Max() : 0;
-            return Json(new { streak });
-        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]

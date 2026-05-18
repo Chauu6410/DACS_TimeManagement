@@ -525,6 +525,11 @@
                                 <i class="fas fa-bullseye"></i> @Localizer["Goals"]
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentController == "Gamification" ? "active" : "")" asp-controller="Gamification" asp-action="Index">
+                                <i class="fas fa-medal text-warning"></i> @Localizer["Leaderboard"]
+                            </a>
+                        </li>
                         <li class="nav-category mt-2">@Localizer["Organization"]</li>
                         <li class="nav-item">
                             <a class="nav-link @(currentController == "Project" ? "active" : "")" asp-controller="Project" asp-action="Index">

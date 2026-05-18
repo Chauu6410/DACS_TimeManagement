@@ -31,5 +31,8 @@ namespace DACS_TimeManagement.Models
         public double[] WeeklyHours { get; set; } = new double[7];
         public int[] WeeklyTasks { get; set; } = new int[7];
         public List<DACS_TimeManagement.Models.WorkTask> AllTasks { get; set; } = new();
+        public int TotalGoals { get; set; }
+        public int CompletedGoals { get; set; }
+        public int OverallGoalProgress { get; set; }
     }
 }

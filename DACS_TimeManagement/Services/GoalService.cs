@@ -144,28 +144,8 @@ namespace DACS_TimeManagement.Services
                         goal.CurrentValue = goal.CompletedTasks;
                     }
 
-                    // --- Update Streak Logic ---
-                    var today = DateTime.UtcNow.Date;
-                    if (!goal.LastUpdated.HasValue)
-                    {
-                        goal.CurrentStreak = 1;
-                        goal.LastUpdated = DateTime.UtcNow;
-                    }
-                    else if (goal.LastUpdated.Value.Date == today.AddDays(-1))
-                    {
-                        goal.CurrentStreak++;
-                        goal.LastUpdated = DateTime.UtcNow;
-                    }
-                    else if (goal.LastUpdated.Value.Date < today.AddDays(-1))
-                    {
-                        goal.CurrentStreak = 1;
-                        goal.LastUpdated = DateTime.UtcNow;
-                    }
-                    else if (goal.LastUpdated.Value.Date == today)
-                    {
-                        // Already updated today, just keep LastUpdated fresh to the second if needed
-                        goal.LastUpdated = DateTime.UtcNow;
-                    }
+                    // --- Update LastUpdated Logic ---
+                    goal.LastUpdated = DateTime.UtcNow;
 
                     // update status and records
                     await UpdateStatusAndHistoryAsync(goal, note);

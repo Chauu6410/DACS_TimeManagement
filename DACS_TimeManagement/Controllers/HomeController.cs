@@ -48,12 +48,17 @@ namespace DACS_TimeManagement.Controllers
             var tasks = await _taskRepo.GetAllAsync(userId);
             var today = DateTime.Today;
 
+            var goals = await _context.PersonalGoals.Where(g => g.UserId == userId).ToListAsync();
+
             var model = new DashboardViewModel
             {
                 TotalTasks = tasks.Count(),
                 CompletedTasks = tasks.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.Completed),
                 InProgressTasks = tasks.Count(t => t.Status == DACS_TimeManagement.Models.TaskStatus.InProgress),
-                AllTasks = tasks.ToList()
+                AllTasks = tasks.ToList(),
+                TotalGoals = goals.Count,
+                CompletedGoals = goals.Count(g => g.Status == DACS_TimeManagement.Models.GoalStatus.Completed),
+                OverallGoalProgress = goals.Count == 0 ? 0 : (goals.Count(g => g.Status == DACS_TimeManagement.Models.GoalStatus.Completed) * 100 / goals.Count)
             };
 
             // 2. Schedule Data

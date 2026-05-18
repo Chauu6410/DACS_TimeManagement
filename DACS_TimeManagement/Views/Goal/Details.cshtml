@@ -45,34 +45,22 @@
 
                 <!-- Stats Cards -->
                 <div class="row g-3 mb-4">
-                    <div class="col-6 col-md-3">
+                    <div class="col-12 col-md-4">
                         <div class="stat-mini glass text-center p-3">
                             <div class="stat-mini-icon text-primary"><i class="fas fa-chart-line"></i></div>
                             <h4 class="mb-0">@((Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased) ? (Model.CompletedHours < (1.0/60.0) ? (Math.Round(Model.CompletedHours * 3600)) + sUnit : (Model.CompletedHours < 1 ? (Math.Round(Model.CompletedHours * 60)) + mUnit : Model.CompletedHours.ToString("0.##") + hUnit)) : Model.CompletedTasks.ToString())</h4>
                             <small class="text-muted">@Localizer["Completed"]</small>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-12 col-md-4">
                         <div class="stat-mini glass text-center p-3">
                             <div class="stat-mini-icon text-info"><i class="fas fa-bullseye"></i></div>
                             <h4 class="mb-0">@((Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased) ? (Model.TargetHours?.ToString("0.##") + hUnit) : (Model.TargetTasks?.ToString() ?? "-"))</h4>
                             <small class="text-muted">@Localizer["Target"]</small>
                         </div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stat-mini glass text-center p-3">
-                            <div class="stat-mini-icon text-warning"><i class="fas fa-fire"></i></div>
-                            @{
-                                var todayDate = DateTime.UtcNow.Date;
-                                var isStreakActive = Model.LastUpdated.HasValue && Model.LastUpdated.Value.Date >= todayDate.AddDays(-1);
-                                var displayStreak = isStreakActive ? Model.CurrentStreak : 0;
-                            }
-                            <h4 class="mb-0">@displayStreak</h4>
 
-                            <small class="text-muted">@Localizer["Streak"]</small>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-12 col-md-4">
                         <div class="stat-mini glass text-center p-3">
                             @{
                                 var daysLeft = (Model.TargetDate.Date - DateTime.Now.Date).Days;
@@ -228,9 +216,7 @@
                     <li class="d-flex justify-content-between mb-2"><span>@Localizer["TargetDate"]</span><strong>@DateTimeHelper.FormatByLanguage(Model.TargetDate, langCode)</strong></li>
                     <li class="d-flex justify-content-between"><span>@Localizer["GoalType"]</span><strong>@Localizer[Model.Type.ToString()]</strong></li>
                 </ul>
-                <div class="alert alert-info mt-3 small">
-                    <i class="fas fa-lightbulb"></i> @Localizer["MaintainStreakTip"]
-                </div>
+
             </div>
         </div>
     </div>

@@ -27,5 +27,12 @@ namespace DACS_TimeManagement.Models
         
         public TimeSpan WorkStartTime { get; set; } = new TimeSpan(9, 0, 0); // 9:00 AM
         public TimeSpan WorkEndTime { get; set; } = new TimeSpan(17, 0, 0); // 5:00 PM
+
+        // Gamification
+        public int Points { get; set; } = 0;
+        public int CurrentStreak { get; set; } = 0;
+        public int HighestStreak { get; set; } = 0;
+        public int Level { get; set; } = 1;
+        public DateTime? LastTaskCompletedDate { get; set; }
     }
 }

@@ -44,7 +44,6 @@ namespace DACS_TimeManagement.Models
         public string UserId { get; set; }
 
         public DateTime? LastUpdated { get; set; }
-        public int CurrentStreak { get; set; }
 
         // Navigation: many-to-many with WorkTask via GoalTask
         public ICollection<GoalTask> GoalTasks { get; set; } = new List<GoalTask>();
