@@ -16,5 +16,12 @@ namespace DACS_TimeManagement.Models
         public DateTime LogDate { get; set; }
         public double DurationHours { get; set; }
         public string? Note { get; set; }
+
+        // Optional: Link to Goal for focus sessions
+        public int? GoalId { get; set; }
+        public PersonalGoal? Goal { get; set; }
+
+        // Track if this was from a focus session
+        public bool IsFocusSession { get; set; } = false;
     }
 }

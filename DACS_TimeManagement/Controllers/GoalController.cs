@@ -413,7 +413,9 @@ namespace DACS_TimeManagement.Controllers
         {
             double durationHours = durationSeconds / 3600.0;
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var goal = await _db.PersonalGoals.FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId);
+            var goal = await _db.PersonalGoals
+                .Include(g => g.GoalTasks)
+                .FirstOrDefaultAsync(g => g.Id == goalId && g.UserId == userId);
             
             if (goal == null) 
             {
@@ -422,37 +424,99 @@ namespace DACS_TimeManagement.Controllers
                 return NotFound();
             }
 
+            // Format duration for note
+            int hours = durationSeconds / 3600;
+            int minutes = (durationSeconds % 3600) / 60;
+            int seconds = durationSeconds % 60;
+            string durationStr = hours > 0 
+                ? $"{hours}h {minutes}m {seconds}s" 
+                : minutes > 0 
+                    ? $"{minutes}m {seconds}s" 
+                    : $"{seconds}s";
+            
+            string focusNote = $"🌊 Nox Ocean Focus [{durationStr}]" + (string.IsNullOrEmpty(note) ? "" : $" - {note}");
+
             if (taskId.HasValue && taskId.Value > 0)
             {
-                // Task-based logging via TimeLog
+                // Task-based: Create TimeLog entry with Goal link
+                var task = await _db.WorkTasks.FirstOrDefaultAsync(t => t.Id == taskId.Value);
+                if (task == null)
+                {
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = false, message = "Task not found." });
+                    return NotFound();
+                }
+
                 var timeLog = new TimeLog
                 {
                     WorkTaskId = taskId.Value,
                     LogDate = DateTime.UtcNow,
                     DurationHours = durationHours,
-                    Note = note ?? "Pomodoro Focus Session"
+                    Note = focusNote,
+                    GoalId = goalId,
+                    IsFocusSession = true
                 };
                 _db.TimeLogs.Add(timeLog);
                 await _db.SaveChangesAsync();
 
-                // Call GoalService to recalc everything related to this task
+                // Update goal progress via service
                 await _goalService.HandleTimeLogAsync(timeLog);
             }
             else
             {
-                // Time-based (Personal) goal logging directly to goal
-                goal.CurrentValue += durationHours; // Note: setter of CurrentValue handles CompletedHours for TimeBased goals
-                goal.UpdatedAt = DateTime.UtcNow;
-                _db.PersonalGoals.Update(goal);
-                await _db.SaveChangesAsync();
+                // Time-based (Personal): Create TimeLog for first linked task or update goal directly
+                var firstTask = goal.GoalTasks.FirstOrDefault();
                 
-                await _goalService.RecalculateProgressForGoalAsync(goal.Id, userId, note);
+                if (firstTask != null)
+                {
+                    // If goal has linked tasks, log to first task
+                    var timeLog = new TimeLog
+                    {
+                        WorkTaskId = firstTask.WorkTaskId,
+                        LogDate = DateTime.UtcNow,
+                        DurationHours = durationHours,
+                        Note = focusNote,
+                        GoalId = goalId,
+                        IsFocusSession = true
+                    };
+                    _db.TimeLogs.Add(timeLog);
+                    await _db.SaveChangesAsync();
+                    
+                    await _goalService.HandleTimeLogAsync(timeLog);
+                }
+                else
+                {
+                    // No linked tasks: update goal directly and create progress history
+                    goal.CompletedHours += durationHours;
+                    goal.CurrentValue = goal.CompletedHours;
+                    goal.UpdatedAt = DateTime.UtcNow;
+                    _db.PersonalGoals.Update(goal);
+                    
+                    // Create progress history entry
+                    var progressHistory = new GoalProgressHistory
+                    {
+                        GoalId = goal.Id,
+                        Progress = goal.TargetHours.HasValue && goal.TargetHours.Value > 0 
+                            ? (goal.CompletedHours / goal.TargetHours.Value) * 100 
+                            : 0,
+                        RecordedAt = DateTime.UtcNow,
+                        Note = focusNote
+                    };
+                    _db.GoalProgressHistories.Add(progressHistory);
+                    
+                    await _db.SaveChangesAsync();
+                    await _goalService.RecalculateProgressForGoalAsync(goal.Id, userId);
+                }
             }
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                return Json(new { success = true });
+                return Json(new { 
+                    success = true, 
+                    message = $"Logged {durationStr} successfully!",
+                    durationHours = Math.Round(durationHours, 2)
+                });
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Details), new { id = goalId });
         }
 
         // AJAX: Sync goal status for Index view
