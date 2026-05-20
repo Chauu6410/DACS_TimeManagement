@@ -1,151 +1,359 @@
 @inject IViewLocalizer Localizer
 @model DACS_TimeManagement.Models.PersonalGoal
+@using System.Security.Claims
 @{
     ViewData["Title"] = Localizer["FocusMode"] + " - " + Model.Title;
+    var isVi = System.Globalization.CultureInfo.CurrentCulture.Name.StartsWith("vi");
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
-<div id="focusApp" class="focus-app">
-    <!-- Step 1: Task Selection (only for TaskBased goals) -->
-    <div id="selectionScreen" class="selection-screen container py-5 @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? "d-none" : "")">
+<div id="focusApp" class="focus-app nox-ocean-theme">
+    <!-- Ambient Ocean Background Effects -->
+    <div class="ocean-background">
+        <div class="light-beams"></div>
+        <div class="bubble-emitter" id="bgBubbles"></div>
+        <div class="seaweed-bed">
+            <svg viewBox="0 0 1200 120" class="seaweed-svg" preserveAspectRatio="none">
+                <path d="M50 120 C60 80, 40 40, 60 10 C65 40, 55 80, 70 120 Z" fill="#2d6a4f" opacity="0.4" class="seaweed-1"/>
+                <path d="M150 120 C140 70, 160 40, 150 15 C165 40, 155 70, 170 120 Z" fill="#1b4332" opacity="0.6" class="seaweed-2"/>
+                <path d="M220 120 C240 85, 210 50, 230 20 C240 50, 230 85, 250 120 Z" fill="#40916c" opacity="0.3" class="seaweed-3"/>
+                <path d="M380 120 C360 80, 390 40, 370 15 C385 40, 375 80, 390 120 Z" fill="#2d6a4f" opacity="0.5" class="seaweed-2"/>
+                <path d="M550 120 C570 75, 540 40, 560 5 C575 40, 560 75, 580 120 Z" fill="#2d6a4f" opacity="0.5" class="seaweed-1"/>
+                <path d="M620 120 C610 80, 630 45, 620 20 C635 45, 625 80, 640 120 Z" fill="#1b4332" opacity="0.7" class="seaweed-2"/>
+                <path d="M780 120 C800 85, 770 50, 790 20 C800 50, 790 85, 810 120 Z" fill="#40916c" opacity="0.4" class="seaweed-3"/>
+                <path d="M950 120 C940 80, 960 50, 950 25 C965 50, 955 80, 970 120 Z" fill="#40916c" opacity="0.5" class="seaweed-1"/>
+                <path d="M1050 120 C1070 70, 1040 30, 1060 10 C1075 30, 1060 70, 1080 120 Z" fill="#2d6a4f" opacity="0.4" class="seaweed-2"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <div class="top-nav-bar d-flex justify-content-between align-items-center px-4 py-3">
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link text-white text-decoration-none d-flex align-items-center gap-2">
+            <i class="fas fa-chevron-left"></i> @Localizer["BackToDetails"]
+        </a>
+        <button id="btnOpenAquarium" class="btn btn-outline-info rounded-pill px-4">
+            🐠 @(isVi ? "Bể cá đại dương" : "My Ocean Aquarium")
+        </button>
+    </div>
+
+    <!-- Step 1: Selection and Config Screen -->
+    <div id="selectionScreen" class="container py-4 selection-screen">
         <div class="row justify-content-center">
-            <div class="col-md-8 text-center">
-                <div class="glass-premium p-5 rounded-5 shadow-lg">
+            <div class="col-xl-8 col-lg-10">
+                <div class="glass-premium p-4 p-md-5 rounded-5 shadow-lg text-center animate-fade-in">
                     <div class="mb-4">
-                        <i class="fas fa-brain fa-3x text-primary mb-3"></i>
-                        <h2 class="fw-bold">@Localizer["StartFocusSession"]</h2>
-                        <p class="text-muted">@Html.Raw(string.Format(Localizer["SelectTaskFrom"].Value, Model.Title))</p>
+                        <div class="logo-container mb-3">
+                            <i class="fas fa-water fa-3x text-info pulse-icon"></i>
+                        </div>
+                        <h2 class="fw-bold text-white mb-2">@(isVi ? "Nox Ocean Focus" : "Nox Ocean Focus Mode")</h2>
+                        <p class="text-white-50">@(isVi ? "Hãy lựa chọn sinh vật biển bạn muốn nuôi dưỡng bằng cách tập trung." : "Choose the sea creature you want to grow by staying focused.")</p>
                     </div>
 
-                    <div class="task-list-selection text-start mb-5" style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                        @if (Model.GoalTasks != null && Model.GoalTasks.Any())
-                        {
-                            @foreach (var gt in Model.GoalTasks.Where(x => x.WorkTask != null))
-                            {
-                                <div class="task-option p-3 mb-3 rounded-4 border d-flex align-items-center gap-3 bg-white shadow-sm" 
-                                     data-task-id="@gt.WorkTaskId" data-title="@gt.WorkTask.Title">
-                                    <div class="task-icon-circle">
-                                        <i class="fas fa-tasks"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <div class="fw-bold text-dark">@gt.WorkTask.Title</div>
-                                        <div class="small text-muted">
-                                            @Localizer["Status"]: <span class="badge bg-light text-dark fw-normal border">@gt.WorkTask.Status</span>
-                                            • @Localizer["Progress"]: @gt.WorkTask.Progress%
-                                        </div>
-                                    </div>
-                                    <div class="selection-indicator">
-                                        <i class="fas fa-check-circle"></i>
+                    <!-- Mode Toggle -->
+                    <div class="d-flex justify-content-center mb-4">
+                        <div class="mode-tabs-container p-1 rounded-pill bg-dark bg-opacity-50">
+                            <button id="modeCountdown" class="btn mode-tab active rounded-pill px-4 py-2">
+                                <i class="fas fa-hourglass-half me-1"></i> @(isVi ? "Đếm ngược" : "Countdown")
+                            </button>
+                            <button id="modeStopwatch" class="btn mode-tab rounded-pill px-4 py-2">
+                                <i class="fas fa-stopwatch me-1"></i> @(isVi ? "Đếm xuôi (Zen)" : "Stopwatch (Zen)")
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Step 1.1: Choose Sea Creature Grid -->
+                    <div class="mb-4 text-start">
+                        <h5 class="text-white mb-3 fw-bold"><i class="fas fa-fish me-2 text-info"></i>@(isVi ? "1. Chọn sinh vật biển để nuôi dưỡng" : "1. Choose Sea Creature to Grow")</h5>
+                        <div class="row g-3 creature-grid">
+                            <div class="col-6 col-md-4">
+                                <div class="creature-card selected animate-hover-scale" data-type="coral" data-min-time="10">
+                                    <div class="creature-preview" id="preview-coral"></div>
+                                    <div class="creature-info">
+                                        <span class="creature-name">@(isVi ? "San hô hồng" : "Pink Coral")</span>
+                                        <span class="creature-time">≥ 10 @(isVi ? "phút" : "mins")</span>
                                     </div>
                                 </div>
-                            }
-                        }
-                        else
-                        {
-                            <div class="text-center py-4 bg-light rounded-4 border border-dashed">
-                                <i class="fas fa-clipboard-list fa-2x text-muted mb-2"></i>
-                                <p class="text-muted mb-0">@Localizer["NoLinkedTasksFound"]</p>
-                                <p class="small text-muted">@Localizer["PleaseAddTasks"]</p>
                             </div>
-                        }
+                            <div class="col-6 col-md-4">
+                                <div class="creature-card animate-hover-scale" data-type="clownfish" data-min-time="25">
+                                    <div class="creature-preview" id="preview-clownfish"></div>
+                                    <div class="creature-info">
+                                        <span class="creature-name">@(isVi ? "Cá Nemo" : "Clownfish")</span>
+                                        <span class="creature-time">≥ 25 @(isVi ? "phút" : "mins")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="creature-card animate-hover-scale" data-type="octopus" data-min-time="45">
+                                    <div class="creature-preview" id="preview-octopus"></div>
+                                    <div class="creature-info">
+                                        <span class="creature-name">@(isVi ? "Bạch tuộc tím" : "Purple Octopus")</span>
+                                        <span class="creature-time">≥ 45 @(isVi ? "phút" : "mins")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="creature-card animate-hover-scale" data-type="turtle" data-min-time="60">
+                                    <div class="creature-preview" id="preview-turtle"></div>
+                                    <div class="creature-info">
+                                        <span class="creature-name">@(isVi ? "Rùa biển" : "Sea Turtle")</span>
+                                        <span class="creature-time">≥ 60 @(isVi ? "phút" : "mins")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="creature-card animate-hover-scale" data-type="whale" data-min-time="90">
+                                    <div class="creature-preview" id="preview-whale"></div>
+                                    <div class="creature-info">
+                                        <span class="creature-name">@(isVi ? "Cá voi xanh" : "Blue Whale")</span>
+                                        <span class="creature-time">≥ 90 @(isVi ? "phút" : "mins")</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="creature-card animate-hover-scale" data-type="ship" data-min-time="120">
+                                    <div class="creature-preview" id="preview-ship"></div>
+                                    <div class="creature-info">
+                                        <span class="creature-name">@(isVi ? "Tàu cổ chìm" : "Ancient Galleon")</span>
+                                        <span class="creature-time">≥ 120 @(isVi ? "phút" : "mins")</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <button id="btnEnterZen" class="btn btn-primary btn-lg rounded-pill px-5 py-3 shadow">
-                        <i class="fas fa-bolt me-2"></i> @Localizer["EnterZenMode"]
-                    </button>
-                    <div class="mt-3">
-                        <a asp-action="Details" asp-route-id="@Model.Id" class="text-muted text-decoration-none small">@Localizer["BackToDetails"]</a>
+                    <!-- Step 1.2: Duration control (Countdown Mode only) -->
+                    <div id="durationControllerSection" class="mb-4 text-start">
+                        <h5 class="text-white mb-3 fw-bold"><i class="fas fa-clock me-2 text-info"></i>@(isVi ? "2. Thiết lập thời gian tập trung" : "2. Set Focus Duration")</h5>
+                        <div class="duration-controls-box p-3 rounded-4 bg-dark bg-opacity-25 border border-white border-opacity-10 d-flex justify-content-center align-items-center gap-4">
+                            <button id="btnTimeMinus" class="btn btn-outline-light rounded-circle time-adjust-btn"><i class="fas fa-minus"></i></button>
+                            <div class="text-center">
+                                <div id="selectedTimeDisplay" class="fw-bold text-info fs-1 font-monospace">10:00</div>
+                                <div class="small text-white-50">@(isVi ? "Phút : Giây" : "Minutes : Seconds")</div>
+                            </div>
+                            <button id="btnTimePlus" class="btn btn-outline-light rounded-circle time-adjust-btn"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <div id="durationMatchWarning" class="text-info mt-2 text-center small fw-semibold">
+                            <!-- Populated by JS -->
+                        </div>
                     </div>
+
+                    <!-- Step 1.3: Task Selection (Only for TaskBased goals) -->
+                    <div class="mb-5 text-start @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? "d-none" : "")">
+                        <h5 class="text-white mb-3 fw-bold"><i class="fas fa-tasks me-2 text-info"></i>@(isVi ? "3. Chọn nhiệm vụ cần hoàn thành" : "3. Choose Linked Task")</h5>
+                        <div class="task-list-selection" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                            @if (Model.GoalTasks != null && Model.GoalTasks.Any())
+                            {
+                                @foreach (var gt in Model.GoalTasks.Where(x => x.WorkTask != null))
+                                {
+                                    <div class="task-option p-3 mb-2 rounded-4 border border-white border-opacity-10 d-flex align-items-center gap-3 bg-dark bg-opacity-25 text-white" 
+                                         data-task-id="@gt.WorkTaskId" data-title="@gt.WorkTask.Title">
+                                        <div class="task-icon-circle bg-info bg-opacity-25 text-info">
+                                            <i class="fas fa-tasks"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold">@gt.WorkTask.Title</div>
+                                            <div class="small text-white-50">
+                                                @Localizer["Status"]: <span class="badge bg-light text-dark fw-normal border">@gt.WorkTask.Status</span>
+                                                • @Localizer["Progress"]: @gt.WorkTask.Progress%
+                                            </div>
+                                        </div>
+                                        <div class="selection-indicator text-info">
+                                            <i class="far fa-circle select-empty"></i>
+                                            <i class="fas fa-check-circle select-checked"></i>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-4 bg-dark bg-opacity-25 rounded-4 border border-dashed border-white border-opacity-25">
+                                    <i class="fas fa-clipboard-list fa-2x text-white-50 mb-2"></i>
+                                    <p class="text-white-50 mb-0">@Localizer["NoLinkedTasksFound"]</p>
+                                    <p class="small text-white-50">@Localizer["PleaseAddTasks"]</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Start diving Button -->
+                    <button id="btnStartDive" class="btn btn-info btn-lg rounded-pill px-5 py-3 shadow w-100 fw-bold fs-5 text-white btn-glow">
+                        <i class="fas fa-water me-2"></i> @(isVi ? "Bắt đầu lặn" : "Start Diving")
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Step 2: Zen Mode Overlay with Theme Support + Stopwatch Timer -->
-    <div id="zenOverlay" class="zen-overlay @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? "d-flex" : "d-none")" 
-         style="background-image: url('https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1600&q=80');">
-        
-        <!-- Theme Selector Bar -->
-        <div class="theme-bar">
-            <button class="theme-btn active" data-theme="ocean" data-img="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1600&q=80">
-                <i class="fas fa-water"></i> @Localizer["SeaFoam"]
-            </button>
-            <button class="theme-btn" data-theme="ocean-deep" data-img="https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=1600&q=80">
-                <i class="fas fa-fish"></i> @Localizer["Ocean"]
-            </button>
-            <button class="theme-btn" data-theme="forest" data-img="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1600&q=80">
-                <i class="fas fa-tree"></i> @Localizer["Forest"]
-            </button>
-            <button class="theme-btn" data-theme="clouds" data-img="https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=1600&q=80">
-                <i class="fas fa-cloud-sun"></i> @Localizer["Clouds"]
-            </button>
-            <button class="theme-btn" data-theme="flowers" data-img="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1600&q=80">
-                <i class="fas fa-seedling"></i> @Localizer["Flowers"]
-            </button>
-            <button class="theme-btn" data-theme="mountains" data-img="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1600&q=80">
-                <i class="fas fa-mountain"></i> @Localizer["Mountains"]
-            </button>
-        </div>
-
-        <!-- Main Focus Content -->
-        <div class="zen-container">
-            <div class="text-center mb-4">
-                <h1 class="zen-goal-title text-white mb-1">@Model.Title</h1>
-                <p id="focusTaskName" class="text-white-50 fs-5">
-                    @if (Model.Type == DACS_TimeManagement.Models.GoalType.TaskBased)
-                    {<span>@Localizer["SelectATaskToStart"]</span>}
-                    else
-                    {<span>@Localizer["TrackingFocusTime"]</span>}
+    <!-- Step 2: Zen Focus Screen (The Deep Dive) -->
+    <div id="zenOverlay" class="zen-overlay d-none">
+        <div class="zen-container text-center text-white">
+            <div class="mb-4">
+                <h1 class="zen-goal-title mb-1 text-info fw-bold">@Model.Title</h1>
+                <p id="focusTaskName" class="text-white-50 fs-5 mb-0">
+                    <!-- Updated dynamically -->
                 </p>
             </div>
 
-            <div class="timer-panel">
-                <div class="timer-display" id="focusTimerDisplay">00:00:00</div>
-                
-                <div class="timer-controls mb-4">
-                    <button id="startTimerBtn" class="btn btn-success btn-lg rounded-pill px-5 shadow">
-                        <i class="fas fa-play me-2"></i> @Localizer["Start"]
-                    </button>
-                    <button id="stopTimerBtn" class="btn btn-warning btn-lg rounded-pill px-5 shadow" disabled>
-                        <i class="fas fa-stop me-2"></i> @Localizer["Stop"]
-                    </button>
-                    <button id="resetTimerBtn" class="btn btn-secondary btn-lg rounded-pill px-4 shadow">
-                        <i class="fas fa-undo-alt me-2"></i> @Localizer["Reset"]
-                    </button>
+            <!-- Timer Circle Display -->
+            <div class="timer-circle-container mb-4">
+                <!-- Paused Overlay Badge -->
+                <div class="paused-watermark d-none" id="pausedWatermark">
+                    @(isVi ? "ĐANG TẠM DỪNG" : "PAUSED")
                 </div>
-
-                <!-- Distraction Blocker Toggle -->
-                <div class="d-flex justify-content-center mb-4">
-                    <div class="distraction-blocker-card px-4 py-3 rounded-pill d-flex align-items-center gap-3 shadow-sm border border-white border-opacity-25">
-                        <div class="form-check form-switch m-0">
-                            <input class="form-check-input custom-switch" type="checkbox" role="switch" id="strictModeToggle">
-                            <label class="form-check-label text-white fw-semibold" for="strictModeToggle">
-                                <i class="fas fa-shield-alt me-1"></i> @Localizer["DistractionBlocker"]
-                            </label>
-                        </div>
-                        <button id="fullScreenBtn" class="btn btn-sm btn-outline-light rounded-pill px-3 border-opacity-50">
-                            <i class="fas fa-expand me-1"></i> @Localizer["EnableFullScreen"]
-                        </button>
+                <svg class="timer-ring-svg" width="280" height="280" viewBox="0 0 280 280">
+                    <circle class="timer-ring-bg" cx="140" cy="140" r="125" stroke="rgba(255, 255, 255, 0.08)" stroke-width="8" fill="transparent" />
+                    <circle class="timer-ring-progress" id="timerProgressCircle" cx="140" cy="140" r="125" stroke="#0dcaf0" stroke-width="8" stroke-linecap="round" fill="transparent" />
+                </svg>
+                <div class="timer-inner-content">
+                    <div class="creature-zen-display" id="creatureZenDisplay">
+                        <!-- Loaded dynamically -->
                     </div>
+                    <div class="timer-display font-monospace mt-2" id="focusTimerDisplay">00:00:00</div>
                 </div>
+            </div>
 
-                <!-- Note & Save Section (appears after Stop) -->
-                <div id="noteSection" class="note-section mt-4" style="display: none;">
-                    <div class="glass-card p-4 rounded-4">
-                        <label class="form-label text-white fw-bold mb-2">
-                            <i class="fas fa-pen-alt me-2"></i> @Localizer["SessionNote"]
-                        </label>
-                        <textarea id="sessionNote" class="form-control bg-white bg-opacity-25 text-white border-0 rounded-3" rows="3" 
-                                  placeholder="@Localizer["WhatDidYouAchieve"]"></textarea>
-                        <button id="saveSessionBtn" class="btn btn-primary rounded-pill mt-3 px-5 py-2 w-100 fw-bold" disabled>
-                            <i class="fas fa-save me-2"></i> @Localizer["SaveSession"]
-                        </button>
+            <!-- Ambient Sound Controller -->
+            <div class="ambient-sound-widget mb-4 mx-auto p-2 rounded-pill bg-dark bg-opacity-50 border border-white border-opacity-10" style="max-width: 320px;">
+                <div class="d-flex justify-content-between align-items-center px-2">
+                    <span class="small text-white-50"><i class="fas fa-volume-up me-1"></i> @(isVi ? "Âm thanh" : "Ambient")</span>
+                    <div class="btn-group sound-btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-info active" data-sound="mute">🤫</button>
+                        <button type="button" class="btn btn-sm btn-outline-info" data-sound="waves" title="@(isVi ? "Sóng ngầm đại dương" : "Ocean Waves")">🌊</button>
+                        <button type="button" class="btn btn-sm btn-outline-info" data-sound="bubbles" title="@(isVi ? "Bong bóng nước" : "Water Bubbles")">🫧</button>
+                        <button type="button" class="btn btn-sm btn-outline-info" data-sound="both" title="@(isVi ? "Tất cả" : "Combined")">🔊</button>
                     </div>
                 </div>
             </div>
 
-            <button id="exitZenBtn" class="btn btn-outline-light rounded-pill mt-5 px-4 py-2">
-                <i class="fas fa-sign-out-alt me-2"></i> @Localizer["ExitFocus"]
+            <!-- Motivational Quotes -->
+            <div class="quote-display-container mb-4">
+                <p id="motivationalQuote" class="text-white-50 italic fs-6 px-4">
+                    @(isVi ? "Hãy tập trung như đại dương sâu thẳm." : "Stay focused like the deep blue ocean.")
+                </p>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="timer-controls d-flex justify-content-center align-items-center gap-3 mb-4">
+                <!-- Play/Pause toggle -->
+                <button id="playPauseBtn" class="btn btn-info btn-lg rounded-pill px-4 shadow btn-control text-white">
+                    <i class="fas fa-pause me-2"></i> @(isVi ? "Tạm dừng" : "Pause")
+                </button>
+                <!-- Give up / Stop button -->
+                <button id="stopTimerBtn" class="btn btn-danger btn-lg rounded-pill px-4 shadow btn-control">
+                    <i class="fas fa-chevron-circle-up me-2"></i> @(isVi ? "Trồi lên (Huỷ)" : "Give Up")
+                </button>
+            </div>
+
+            <!-- Switches Card -->
+            <div class="d-flex justify-content-center gap-3">
+                <div class="distraction-blocker-card px-3 py-2 rounded-pill d-flex align-items-center gap-3 shadow bg-dark bg-opacity-50 border border-white border-opacity-10">
+                    <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                        <input class="form-check-input custom-switch" type="checkbox" role="switch" id="strictModeToggle">
+                        <label class="form-check-label text-white small fw-semibold" for="strictModeToggle">
+                            <i class="fas fa-shield-alt text-info me-1"></i> @Localizer["DistractionBlocker"]
+                        </label>
+                    </div>
+                    <div class="vr bg-white bg-opacity-25"></div>
+                    <button id="fullScreenBtn" class="btn btn-sm btn-link text-white text-decoration-none p-0">
+                        <i class="fas fa-expand me-1"></i> <span class="small">@(isVi ? "Toàn màn hình" : "Fullscreen")</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3: My Ocean Aquarium View overlay -->
+    <div id="aquariumOverlay" class="aquarium-overlay">
+        <!-- Aquarium HUD -->
+        <div class="aquarium-hud d-flex justify-content-between align-items-center px-4 py-3">
+            <button id="btnCloseAquarium" class="btn btn-outline-light rounded-pill px-4">
+                <i class="fas fa-chevron-left me-2"></i> @(isVi ? "Quay lại tập trung" : "Back to Focus")
             </button>
+            <h4 class="text-white fw-bold mb-0 text-center"><i class="fas fa-fish me-2 text-info"></i>@(isVi ? "Đại Dương Của Tôi" : "My Personal Ocean")</h4>
+            <button id="btnResetAquarium" class="btn btn-outline-danger rounded-pill px-3">
+                <i class="fas fa-trash-alt me-1"></i> @(isVi ? "Đặt lại" : "Reset")
+            </button>
+        </div>
+
+        <!-- Main Aquarium Viewport -->
+        <div class="aquarium-viewport" id="aquariumViewport">
+            <!-- Aquarium Background Elements -->
+            <div class="aquarium-water-glow"></div>
+            <div class="aquarium-light-rays"></div>
+            <div class="aquarium-bubble-emitter" id="aquariumBubbles"></div>
+            <div class="aquarium-seabed">
+                <div class="seabed-sand"></div>
+                <div class="seabed-seaweed">
+                    <svg viewBox="0 0 1200 150" class="aquarium-seaweed-svg" preserveAspectRatio="none">
+                        <path d="M80 150 C95 100, 70 50, 95 10 C102 50, 88 100, 110 150 Z" fill="#2d6a4f" opacity="0.6" class="seaweed-1"/>
+                        <path d="M180 150 C165 90, 195 50, 180 15 C200 50, 185 90, 205 150 Z" fill="#1b4332" opacity="0.8" class="seaweed-2"/>
+                        <path d="M300 150 C325 110, 290 60, 315 20 C328 60, 312 110, 335 150 Z" fill="#40916c" opacity="0.5" class="seaweed-3"/>
+                        <path d="M500 150 C480 100, 520 50, 500 15 C520 50, 505 100, 525 150 Z" fill="#2d6a4f" opacity="0.7" class="seaweed-2"/>
+                        <path d="M720 150 C745 105, 710 60, 735 15 C748 60, 732 105, 755 150 Z" fill="#40916c" opacity="0.5" class="seaweed-3"/>
+                        <path d="M900 150 C880 90, 915 50, 900 20 C920 50, 905 90, 925 150 Z" fill="#1b4332" opacity="0.8" class="seaweed-1"/>
+                        <path d="M1080 150 C1105 100, 1070 50, 1095 10 C1108 50, 1092 100, 1115 150 Z" fill="#2d6a4f" opacity="0.6" class="seaweed-2"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Dynamic Creatures Container -->
+            <div class="aquarium-creatures-container" id="aquariumCreaturesContainer">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- Sidebar / Statistics Counter -->
+        <div class="aquarium-sidebar p-4 bg-dark bg-opacity-75 border-start border-white border-opacity-10">
+            <h5 class="text-white fw-bold border-bottom border-white border-opacity-25 pb-2 mb-3">
+                <i class="fas fa-layer-group text-info me-2"></i>@(isVi ? "Bộ Sưu Tập" : "Collection")
+            </h5>
+            <div class="creature-count-list text-white">
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-white border-opacity-10">
+                    <span class="d-flex align-items-center gap-2">🪸 @(isVi ? "San hô hồng" : "Pink Coral")</span>
+                    <span class="badge bg-info" id="count-coral">0</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-white border-opacity-10">
+                    <span class="d-flex align-items-center gap-2">🐠 @(isVi ? "Cá Nemo" : "Clownfish")</span>
+                    <span class="badge bg-info" id="count-clownfish">0</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-white border-opacity-10">
+                    <span class="d-flex align-items-center gap-2">🐙 @(isVi ? "Bạch tuộc tím" : "Purple Octopus")</span>
+                    <span class="badge bg-info" id="count-octopus">0</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-white border-opacity-10">
+                    <span class="d-flex align-items-center gap-2">🐢 @(isVi ? "Rùa biển" : "Sea Turtle")</span>
+                    <span class="badge bg-info" id="count-turtle">0</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-white border-opacity-10">
+                    <span class="d-flex align-items-center gap-2">🐳 @(isVi ? "Cá voi xanh" : "Blue Whale")</span>
+                    <span class="badge bg-info" id="count-whale">0</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center py-2">
+                    <span class="d-flex align-items-center gap-2">🚢 @(isVi ? "Tàu cổ chìm" : "Ancient Galleon")</span>
+                    <span class="badge bg-info" id="count-ship">0</span>
+                </div>
+            </div>
+            <div class="mt-4 text-center">
+                <div class="small text-white-50 mb-2">@(isVi ? "Đại dương của bạn chứa các sinh vật biển đã được nuôi dưỡng thành công sau các phiên tập trung." : "Your ocean displays sea creatures grown successfully after completing focus sessions.")</div>
+                <div class="fs-4 text-info fw-bold font-monospace" id="totalCreaturesCounter">0</div>
+                <div class="small text-white-50">@(isVi ? "Sinh vật biển" : "Total Creatures")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diving Splash Transition Overlay Screen -->
+    <div id="diveTransition" class="dive-transition d-none">
+        <div class="dive-transition-content text-center">
+            <div class="water-splash">
+                <i class="fas fa-water fa-4x text-info"></i>
+                <div class="splash-ring"></div>
+                <div class="splash-ring delay-1"></div>
+                <div class="splash-ring delay-2"></div>
+            </div>
+            <h3 class="text-white mt-4 fw-bold" id="diveText">@(isVi ? "Đang lặn sâu xuống biển..." : "Diving deep into the ocean...")</h3>
+            <p class="text-white-50 small">@(isVi ? "Chuẩn bị dưỡng khí và tập trung..." : "Prepare your oxygen and focus...")</p>
         </div>
     </div>
 </div>
@@ -156,150 +364,1000 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // DOM Elements
+            // === FULLSCREEN IMMERSIVE MODE ===
+            // Hide layout chrome (sidebar, topbar, pomodoro) for fullscreen immersive focus
+            (function initFullscreenMode() {
+                const sidebar = document.getElementById('sidebar');
+                const topbar = document.querySelector('.topbar');
+                const mainContent = document.querySelector('.main-content');
+                const mainWrapper = document.querySelector('.main-wrapper');
+                const pomodoroBtn = document.getElementById('togglePomodoro');
+                const pomodoroWidget = document.getElementById('pomodoroWidget');
+                const layoutFooter = document.querySelector('.main-content footer');
+                const containerFluid = document.querySelector('.main-content > .container-fluid');
+
+                if (sidebar) sidebar.style.display = 'none';
+                if (topbar) topbar.style.display = 'none';
+                if (pomodoroBtn) pomodoroBtn.style.display = 'none';
+                if (pomodoroWidget) pomodoroWidget.style.display = 'none';
+                if (layoutFooter) layoutFooter.style.display = 'none';
+                if (mainContent) {
+                    mainContent.style.padding = '0';
+                    mainContent.style.margin = '0';
+                    mainContent.style.overflow = 'hidden';
+                    mainContent.style.height = '100vh';
+                    mainContent.style.maxHeight = '100vh';
+                }
+                if (mainWrapper) {
+                    mainWrapper.style.height = '100vh';
+                    mainWrapper.style.overflow = 'hidden';
+                }
+                if (containerFluid) {
+                    containerFluid.style.padding = '0';
+                    containerFluid.style.margin = '0';
+                    containerFluid.style.maxWidth = '100%';
+                    containerFluid.style.height = '100%';
+                }
+                document.body.style.overflow = 'hidden';
+                document.body.style.height = '100vh';
+
+                // Animate entrance
+                const focusApp = document.getElementById('focusApp');
+                if (focusApp) {
+                    focusApp.style.opacity = '0';
+                    focusApp.style.transform = 'scale(1.02)';
+                    requestAnimationFrame(() => {
+                        focusApp.style.transition = 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+                        focusApp.style.opacity = '1';
+                        focusApp.style.transform = 'scale(1)';
+                    });
+                }
+            })();
+
+            // --- CONSTANTS AND CONFIGURATIONS ---
+            const userId = "@userId";
+            const goalId = "@Model.Id";
+            const isVi = @(isVi ? "true" : "false");
+            const isTaskBased = "@Model.Type" === "TaskBased";
+
+            const collectionKey = `nox_ocean_collection_${userId}`;
+
+            // SVGs representing the premium, glowing sea creatures
+            const CREATURE_SVGS = {
+                coral: `<svg viewBox="0 0 100 100" class="creature-svg coral-svg">
+                          <path d="M50 90 C50 70, 30 65, 30 50 C30 35, 45 40, 40 25 C38 15, 52 10, 50 5 C52 10, 58 15, 55 25 C52 35, 65 30, 65 45 C65 60, 48 65, 50 90 Z" fill="#ffa2a2" filter="drop-shadow(0 0 4px #ff6e6e)" />
+                          <path d="M50 90 C52 75, 70 70, 70 55 C70 45, 60 48, 58 35 C56 25, 68 20, 65 10 C68 20, 72 25, 70 35 C68 45, 80 40, 80 60 C80 75, 52 75, 50 90 Z" fill="#ff7f7f" opacity="0.9" filter="drop-shadow(0 0 4px #ff3f3f)" />
+                          <path d="M50 90 C48 75, 30 75, 30 60 C30 48, 42 45, 40 32 C38 22, 28 20, 32 10 C28 20, 35 25, 35 35 C35 45, 20 40, 20 60 C20 75, 48 75, 50 90 Z" fill="#ffb4b4" opacity="0.8" />
+                        </svg>`,
+                clownfish: `<svg viewBox="0 0 100 60" class="creature-svg clownfish-svg">
+                              <path d="M70 30 L95 10 A15 15 0 0 1 95 50 Z" fill="#ff6b00" filter="drop-shadow(0 0 4px #ff6b00)" />
+                              <path d="M75 30 L90 18 A10 10 0 0 1 90 42 Z" fill="#fff" />
+                              <path d="M80 30 L85 24 A5 5 0 0 1 85 36 Z" fill="#ff6b00" />
+                              <ellipse cx="45" cy="30" rx="30" ry="20" fill="#ff6b00" filter="drop-shadow(0 0 5px #ff6b00)" />
+                              <path d="M40 11 C43 20, 43 40, 40 49 C47 48, 47 12, 40 11 Z" fill="#fff" />
+                              <path d="M40 11 C38 20, 38 40, 40 49 C38 48, 38 12, 40 11 Z" fill="#000" opacity="0.2" />
+                              <path d="M20 15 C22 23, 22 37, 20 45 C25 44, 25 16, 20 15 Z" fill="#fff" />
+                              <circle cx="25" cy="24" r="5" fill="#fff" />
+                              <circle cx="24" cy="24" r="2.5" fill="#000" />
+                              <path d="M40 32 C45 35, 45 42, 38 40 Z" fill="#ff6b00" stroke="#000" stroke-width="0.5" />
+                            </svg>`,
+                octopus: `<svg viewBox="0 0 100 100" class="creature-svg octopus-svg">
+                            <ellipse cx="50" cy="40" rx="25" ry="22" fill="#a855f7" filter="drop-shadow(0 0 5px #a855f7)" />
+                            <circle cx="40" cy="42" r="5" fill="#fff" />
+                            <circle cx="40" cy="42" r="2" fill="#000" />
+                            <circle cx="60" cy="42" r="5" fill="#fff" />
+                            <circle cx="60" cy="42" r="2" fill="#000" />
+                            <circle cx="34" cy="48" r="3" fill="#ff99c8" opacity="0.6" />
+                            <circle cx="66" cy="48" r="3" fill="#ff99c8" opacity="0.6" />
+                            <path d="M48 48 Q50 52 52 48" stroke="#000" stroke-width="2" fill="none" />
+                            <g class="tentacles">
+                              <path d="M35 58 C30 72, 20 68, 15 78" stroke="#a855f7" stroke-width="6" stroke-linecap="round" fill="none" />
+                              <path d="M42 60 C40 76, 32 72, 28 82" stroke="#a855f7" stroke-width="6" stroke-linecap="round" fill="none" />
+                              <path d="M50 62 C50 78, 48 76, 48 86" stroke="#9333ea" stroke-width="6" stroke-linecap="round" fill="none" />
+                              <path d="M58 60 C60 76, 68 72, 72 82" stroke="#9333ea" stroke-width="6" stroke-linecap="round" fill="none" />
+                              <path d="M65 58 C70 72, 80 68, 85 78" stroke="#a855f7" stroke-width="6" stroke-linecap="round" fill="none" />
+                            </g>
+                          </svg>`,
+                turtle: `<svg viewBox="0 0 100 80" class="creature-svg turtle-svg">
+                           <path d="M30 20 C20 10, 5 15, 10 30 C15 35, 25 30, 30 28" fill="#10b981" />
+                           <path d="M70 20 C80 10, 95 15, 90 30 C85 35, 75 30, 70 28" fill="#10b981" />
+                           <path d="M35 55 C28 65, 18 65, 22 72 L32 60" fill="#10b981" />
+                           <path d="M65 55 C72 65, 82 65, 78 72 L68 60" fill="#10b981" />
+                           <ellipse cx="50" cy="42" rx="26" ry="22" fill="#047857" filter="drop-shadow(0 0 5px #059669)" />
+                           <ellipse cx="50" cy="42" rx="22" ry="18" fill="#059669" />
+                           <path d="M50 24 L50 60 M28 42 L72 42" stroke="#064e3b" stroke-width="1.5" />
+                           <ellipse cx="50" cy="18" rx="8" ry="10" fill="#34d399" />
+                           <circle cx="47" cy="15" r="1" fill="#000" />
+                           <circle cx="53" cy="15" r="1" fill="#000" />
+                         </svg>`,
+                whale: `<svg viewBox="0 0 150 80" class="creature-svg whale-svg">
+                          <path d="M75 18 C75 10, 70 5, 65 8 C70 5, 75 2, 75 2 C75 2, 80 5, 85 8 C80 5, 75 10, 75 18 Z" fill="#93c5fd" />
+                          <path d="M100 35 C120 30, 130 18, 145 15 C142 25, 142 35, 148 42 C135 40, 120 45, 100 38 Z" fill="#2563eb" filter="drop-shadow(0 0 6px #2563eb)" />
+                          <path d="M20 45 C20 20, 95 18, 105 38 C105 50, 90 55, 60 55 C35 55, 20 52, 20 45 Z" fill="#2563eb" filter="drop-shadow(0 0 6px #3b82f6)" />
+                          <path d="M30 48 C40 38, 80 38, 95 44 C88 51, 60 53, 30 48 Z" fill="#93c5fd" opacity="0.8" />
+                          <path d="M55 48 C50 58, 40 62, 45 65 C50 65, 60 55, 62 49 Z" fill="#1d4ed8" />
+                          <circle cx="35" cy="36" r="2" fill="#fff" />
+                          <circle cx="34.5" cy="36" r="1" fill="#000" />
+                        </svg>`,
+                ship: `<svg viewBox="0 0 120 100" class="creature-svg ship-svg">
+                         <line x1="45" y1="60" x2="45" y2="15" stroke="#78350f" stroke-width="4" />
+                         <line x1="75" y1="60" x2="75" y2="20" stroke="#78350f" stroke-width="4" />
+                         <path d="M45 20 C35 25, 35 40, 45 45 Z" fill="#e5e7eb" opacity="0.6" stroke="#9ca3af" />
+                         <path d="M75 25 C68 30, 68 45, 75 50 Z" fill="#e5e7eb" opacity="0.6" stroke="#9ca3af" />
+                         <path d="M20 55 C40 55, 80 55, 95 50 C105 52, 110 65, 95 70 C75 75, 45 75, 25 70 C15 65, 18 58, 20 55 Z" fill="#78350f" filter="drop-shadow(0 0 5px #78350f)" />
+                         <circle cx="40" cy="63" r="4" fill="#111" />
+                         <circle cx="60" cy="63" r="4" fill="#111" />
+                         <circle cx="80" cy="63" r="4" fill="#111" />
+                         <path d="M45 15 L55 18 L45 21 Z" fill="#ef4444" />
+                       </svg>`
+            };
+
+            const CREATURE_NAMES = {
+                coral: isVi ? "San hô hồng" : "Pink Coral",
+                clownfish: isVi ? "Cá Nemo" : "Clownfish",
+                octopus: isVi ? "Bạch tuộc tím" : "Purple Octopus",
+                turtle: isVi ? "Rùa biển xanh" : "Sea Turtle",
+                whale: isVi ? "Cá voi xanh" : "Blue Whale",
+                ship: isVi ? "Tàu cổ chìm" : "Ancient Galleon"
+            };
+
+            const MOTIVATIONAL_QUOTES = isVi ? [
+                "Hãy tập trung như đại dương sâu thẳm.",
+                "Sinh vật biển của bạn đang lớn dần từng chút một...",
+                "Mỗi giây tập trung làm đại dương của bạn đẹp hơn.",
+                "Tránh xa điện thoại và lặn sâu hơn nào!",
+                "Dưới đáy đại dương yên tĩnh, không gì làm bạn xao nhãng.",
+                "Sự kiên nhẫn tạo nên những rạn san hô kỳ vĩ.",
+                "Hoàn thành mục tiêu để mở rộng đại dương của riêng bạn!"
+            ] : [
+                "Stay focused like the deep blue ocean.",
+                "Your sea creature is growing healthy and strong...",
+                "Every focused second makes your ocean more beautiful.",
+                "Put away your phone and dive deeper!",
+                "In the quiet ocean deep, distractions fade away.",
+                "Patience builds magnificent coral reefs.",
+                "Finish your session to expand your personal ocean!"
+            ];
+
+            // --- AUDIO SYNTHESIS SYSTEM (Web Audio API) ---
+            const SoundManager = {
+                audioCtx: null,
+                oceanNode: null,
+                oceanFilter: null,
+                oceanLfo: null,
+                wavesVolume: null,
+                bubbleInterval: null,
+                activeMode: 'mute',
+
+                init() {
+                    if (this.audioCtx) return;
+                    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                },
+
+                playPlopSound() {
+                    this.init();
+                    if (!this.audioCtx) return;
+                    try {
+                        const osc = this.audioCtx.createOscillator();
+                        const gain = this.audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(180, this.audioCtx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(550, this.audioCtx.currentTime + 0.08);
+                        
+                        gain.gain.setValueAtTime(0.001, this.audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.02, this.audioCtx.currentTime + 0.015);
+                        gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.08);
+
+                        osc.connect(gain);
+                        gain.connect(this.audioCtx.destination);
+                        osc.start();
+                        osc.stop(this.audioCtx.currentTime + 0.08);
+                    } catch(e){}
+                },
+
+                setMode(mode) {
+                    this.activeMode = mode;
+                    this.updateSoundState();
+                },
+
+                updateSoundState() {
+                    if (!isRunning) {
+                        this.stopAll();
+                        return;
+                    }
+
+                    this.init();
+
+                    const shouldPlayWaves = (this.activeMode === 'waves' || this.activeMode === 'both');
+                    const shouldPlayBubbles = (this.activeMode === 'bubbles' || this.activeMode === 'both');
+
+                    if (shouldPlayWaves) {
+                        this.startWaves();
+                    } else {
+                        this.stopWaves();
+                    }
+
+                    if (shouldPlayBubbles) {
+                        this.startBubbles();
+                    } else {
+                        this.stopBubbles();
+                    }
+                },
+
+                startWaves() {
+                    if (this.oceanNode) return;
+                    if (!this.audioCtx) return;
+
+                    try {
+                        const bufferSize = 2 * this.audioCtx.sampleRate;
+                        const noiseBuffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+                        const output = noiseBuffer.getChannelData(0);
+                        for (let i = 0; i < bufferSize; i++) {
+                            output[i] = Math.random() * 2 - 1;
+                        }
+
+                        this.oceanNode = this.audioCtx.createBufferSource();
+                        this.oceanNode.buffer = noiseBuffer;
+                        this.oceanNode.loop = true;
+
+                        this.oceanFilter = this.audioCtx.createBiquadFilter();
+                        this.oceanFilter.type = 'lowpass';
+                        this.oceanFilter.frequency.setValueAtTime(180, this.audioCtx.currentTime);
+                        this.oceanFilter.Q.setValueAtTime(1.5, this.audioCtx.currentTime);
+
+                        this.oceanLfo = this.audioCtx.createOscillator();
+                        this.oceanLfo.type = 'sine';
+                        this.oceanLfo.frequency.setValueAtTime(0.08, this.audioCtx.currentTime); // 12.5 seconds wave cycle
+
+                        const lfoGain = this.audioCtx.createGain();
+                        lfoGain.gain.setValueAtTime(50, this.audioCtx.currentTime);
+
+                        this.oceanLfo.connect(lfoGain);
+                        lfoGain.connect(this.oceanFilter.frequency);
+
+                        this.wavesVolume = this.audioCtx.createGain();
+                        this.wavesVolume.gain.setValueAtTime(0, this.audioCtx.currentTime);
+                        this.wavesVolume.gain.linearRampToValueAtTime(0.15, this.audioCtx.currentTime + 1.0); // 1s Fade-in
+
+                        this.oceanNode.connect(this.oceanFilter);
+                        this.oceanFilter.connect(this.wavesVolume);
+                        this.wavesVolume.connect(this.audioCtx.destination);
+
+                        this.oceanNode.start(0);
+                        this.oceanLfo.start(0);
+                    } catch (e) {
+                        console.error("Wave synthesis error:", e);
+                    }
+                },
+
+                stopWaves() {
+                    if (this.wavesVolume) {
+                        const volumeNode = this.wavesVolume;
+                        const node = this.oceanNode;
+                        const lfo = this.oceanLfo;
+                        try {
+                            volumeNode.gain.setValueAtTime(volumeNode.gain.value, this.audioCtx.currentTime);
+                            volumeNode.gain.linearRampToValueAtTime(0, this.audioCtx.currentTime + 0.5); // Fade out
+                            setTimeout(() => {
+                                try { node.stop(); } catch(e){}
+                                try { lfo.stop(); } catch(e){}
+                            }, 550);
+                        } catch(e){}
+                        this.oceanNode = null;
+                        this.oceanLfo = null;
+                        this.wavesVolume = null;
+                    }
+                    this.oceanFilter = null;
+                },
+
+                startBubbles() {
+                    if (this.bubbleInterval) return;
+                    this.bubbleInterval = setInterval(() => {
+                        if (!isRunning || document.hidden) return;
+                        if (Math.random() < 0.4) {
+                            this.playSingleBubble();
+                        }
+                    }, 850);
+                },
+
+                playSingleBubble() {
+                    if (!this.audioCtx) return;
+                    try {
+                        const osc = this.audioCtx.createOscillator();
+                        const gain = this.audioCtx.createGain();
+                        osc.type = 'sine';
+
+                        const startFreq = 150 + Math.random() * 80;
+                        const endFreq = 600 + Math.random() * 250;
+                        const duration = 0.12 + Math.random() * 0.12;
+
+                        osc.frequency.setValueAtTime(startFreq, this.audioCtx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(endFreq, this.audioCtx.currentTime + duration);
+
+                        gain.gain.setValueAtTime(0.001, this.audioCtx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.02, this.audioCtx.currentTime + 0.015);
+                        gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + duration);
+
+                        osc.connect(gain);
+                        gain.connect(this.audioCtx.destination);
+
+                        osc.start();
+                        osc.stop(this.audioCtx.currentTime + duration);
+                    } catch (e) {
+                        console.error("Bubble play error:", e);
+                    }
+                },
+
+                stopBubbles() {
+                    if (this.bubbleInterval) {
+                        clearInterval(this.bubbleInterval);
+                        this.bubbleInterval = null;
+                    }
+                },
+
+                stopAll() {
+                    this.stopWaves();
+                    this.stopBubbles();
+                }
+            };
+
+            // --- DOM ELEMENTS ---
             const selectionScreen = document.getElementById('selectionScreen');
             const zenOverlay = document.getElementById('zenOverlay');
+            const aquariumOverlay = document.getElementById('aquariumOverlay');
+            const aquariumViewport = document.getElementById('aquariumViewport');
+            const aquariumCreaturesContainer = document.getElementById('aquariumCreaturesContainer');
+
+            const btnStartDive = document.getElementById('btnStartDive');
+            const btnOpenAquarium = document.getElementById('btnOpenAquarium');
+            const btnCloseAquarium = document.getElementById('btnCloseAquarium');
+            const btnResetAquarium = document.getElementById('btnResetAquarium');
+
+            const modeCountdown = document.getElementById('modeCountdown');
+            const modeStopwatch = document.getElementById('modeStopwatch');
+
+            const creatureCards = document.querySelectorAll('.creature-card');
+            const btnTimeMinus = document.getElementById('btnTimeMinus');
+            const btnTimePlus = document.getElementById('btnTimePlus');
+            const selectedTimeDisplay = document.getElementById('selectedTimeDisplay');
+            const durationMatchWarning = document.getElementById('durationMatchWarning');
+
             const taskOptions = document.querySelectorAll('.task-option');
-            const btnEnterZen = document.getElementById('btnEnterZen');
-            const startTimerBtn = document.getElementById('startTimerBtn');
-            const stopTimerBtn = document.getElementById('stopTimerBtn');
-            const resetTimerBtn = document.getElementById('resetTimerBtn');
-            const saveSessionBtn = document.getElementById('saveSessionBtn');
-            const exitZenBtn = document.getElementById('exitZenBtn');
+
             const focusTimerDisplay = document.getElementById('focusTimerDisplay');
-            const noteSection = document.getElementById('noteSection');
-            const sessionNote = document.getElementById('sessionNote');
-            const focusTaskNameSpan = document.getElementById('focusTaskName');
-            
-            // Theme buttons
-            const themeBtns = document.querySelectorAll('.theme-btn');
-            
-            // Distraction Blocker elements
+            const timerProgressCircle = document.getElementById('timerProgressCircle');
+            const creatureZenDisplay = document.getElementById('creatureZenDisplay');
+            const focusTaskName = document.getElementById('focusTaskName');
+            const motivationalQuote = document.getElementById('motivationalQuote');
+            const pausedWatermark = document.getElementById('pausedWatermark');
+
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const stopTimerBtn = document.getElementById('stopTimerBtn');
+
             const strictModeToggle = document.getElementById('strictModeToggle');
             const fullScreenBtn = document.getElementById('fullScreenBtn');
-            
-            // State variables
+            const diveTransition = document.getElementById('diveTransition');
+
+            // --- STATE VARIABLES ---
+            let activeMode = 'countdown'; // 'countdown' or 'stopwatch'
+            let selectedCreature = 'coral';
+            let targetDurationMinutes = 10;
             let selectedTaskId = null;
             let selectedTaskTitle = "";
-            let elapsedSeconds = 0;          // Total seconds elapsed
+
+            let elapsedSeconds = 0;
+            let totalTargetSeconds = 600;
             let timerInterval = null;
             let isRunning = false;
-            let sessionSaved = false;
-            let isTaskBased = "@Model.Type" === "TaskBased";
+            let isPaused = false;
+            let strictModeActive = false;
+            let quoteInterval = null;
+
+            // Timer Circle Circumference calculation
+            const radius = timerProgressCircle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            timerProgressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
             
-            // Helper: format HH:MM:SS
-            function formatTime(seconds) {
-                const hrs = Math.floor(seconds / 3600);
-                const mins = Math.floor((seconds % 3600) / 60);
-                const secs = seconds % 60;
-                return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            function setProgress(percent) {
+                const offset = circumference - (percent / 100) * circumference;
+                timerProgressCircle.style.strokeDashoffset = offset;
             }
-            
-            function updateTimerDisplay() {
-                focusTimerDisplay.textContent = formatTime(elapsedSeconds);
+            setProgress(100);
+
+            // --- LOCAL STORAGE OCEAN COLLECTION LOGIC ---
+            function getCollection() {
+                const data = localStorage.getItem(collectionKey);
+                return data ? JSON.parse(data) : { coral: 0, clownfish: 0, octopus: 0, turtle: 0, whale: 0, ship: 0 };
             }
-            
-            // Stop timer and clear interval
-            function stopTimerInternal() {
-                if (timerInterval) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
+
+            function saveCollection(col) {
+                localStorage.setItem(collectionKey, JSON.stringify(col));
+            }
+
+            function addCreature(type) {
+                const col = getCollection();
+                col[type] = (col[type] || 0) + 1;
+                saveCollection(col);
+                renderAquarium();
+            }
+
+            function renderAquarium() {
+                const col = getCollection();
+                aquariumCreaturesContainer.innerHTML = '';
+
+                // Update Counts HUD
+                let total = 0;
+                for (const [key, count] of Object.entries(col)) {
+                    const badge = document.getElementById(`count-${key}`);
+                    if (badge) badge.textContent = count;
+                    total += count;
                 }
-                isRunning = false;
+                document.getElementById('totalCreaturesCounter').textContent = total;
+
+                // Spawn SVG creatures in aquarium
+                for (const [type, count] of Object.entries(col)) {
+                    for (let i = 0; i < count; i++) {
+                        const el = document.createElement('div');
+                        el.className = `aquarium-creature creature-${type}`;
+                        el.innerHTML = CREATURE_SVGS[type];
+
+                        if (type === 'coral' || type === 'ship') {
+                            const left = 5 + Math.random() * 85;
+                            el.style.left = `${left}%`;
+                            el.style.bottom = type === 'ship' ? '12px' : '5px';
+                            const scale = 0.8 + Math.random() * 0.4;
+                            el.style.transform = `scale(${scale})`;
+                        } else {
+                            const top = 15 + Math.random() * 55;
+                            el.style.top = `${top}%`;
+
+                            const duration = 12 + Math.random() * 18;
+                            const delay = -(Math.random() * 20);
+                            el.style.animationDuration = `${duration}s`;
+                            el.style.animationDelay = `${delay}s`;
+
+                            if (Math.random() > 0.5) {
+                                el.classList.add('swim-right');
+                            } else {
+                                el.classList.add('swim-left');
+                            }
+
+                            const scale = 0.6 + Math.random() * 0.5;
+                            el.style.setProperty('--creature-scale', scale);
+                        }
+                        aquariumCreaturesContainer.appendChild(el);
+                    }
+                }
             }
-            
-            // Start counting
+
+            // Populates Step 1 small previews of creatures using CSS
+            function populateStep1Previews() {
+                creatureCards.forEach(card => {
+                    const type = card.dataset.type;
+                    const previewContainer = card.querySelector('.creature-preview');
+                    if (previewContainer) {
+                        previewContainer.innerHTML = CREATURE_SVGS[type];
+                    }
+                });
+            }
+            populateStep1Previews();
+
+            // --- SELECTION UI EVENT HANDLERS ---
+            modeCountdown.addEventListener('click', () => {
+                SoundManager.playPlopSound();
+                activeMode = 'countdown';
+                modeCountdown.classList.add('active');
+                modeStopwatch.classList.remove('active');
+                document.getElementById('durationControllerSection').classList.remove('d-none');
+                updateCreatureDurationConstraints();
+            });
+
+            modeStopwatch.addEventListener('click', () => {
+                SoundManager.playPlopSound();
+                activeMode = 'stopwatch';
+                modeStopwatch.classList.add('active');
+                modeCountdown.classList.remove('active');
+                document.getElementById('durationControllerSection').classList.add('d-none');
+                updateCreatureDurationConstraints();
+            });
+
+            creatureCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    SoundManager.playPlopSound();
+                    creatureCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedCreature = this.dataset.type;
+                    const minTime = parseInt(this.dataset.minTime);
+
+                    if (activeMode === 'countdown') {
+                        if (targetDurationMinutes < minTime) {
+                            targetDurationMinutes = minTime;
+                        }
+                        updateDurationDisplay();
+                    }
+                    updateCreatureDurationConstraints();
+                });
+            });
+
+            btnTimeMinus.addEventListener('click', () => {
+                SoundManager.playPlopSound();
+                if (targetDurationMinutes > 5) {
+                    targetDurationMinutes -= 5;
+                    const activeCard = document.querySelector('.creature-card.selected');
+                    const minTime = activeCard ? parseInt(activeCard.dataset.minTime) : 10;
+                    if (targetDurationMinutes < minTime) {
+                        targetDurationMinutes = minTime;
+                        Swal.fire({
+                            icon: 'info',
+                            title: isVi ? 'Thời gian tối thiểu' : 'Minimum Duration',
+                            text: isVi 
+                                ? `Sinh vật đã chọn yêu cầu thời gian tập trung tối thiểu là ${minTime} phút.`
+                                : `The selected creature requires a minimum of ${minTime} minutes focus duration.`,
+                            timer: 2000,
+                            showConfirmButton: false,
+                            customClass: { popup: 'rounded-5 glass-premium shadow' }
+                        });
+                    }
+                    updateDurationDisplay();
+                }
+            });
+
+            btnTimePlus.addEventListener('click', () => {
+                SoundManager.playPlopSound();
+                if (targetDurationMinutes < 180) {
+                    targetDurationMinutes += 5;
+                    updateDurationDisplay();
+                }
+            });
+
+            function updateDurationDisplay() {
+                selectedTimeDisplay.textContent = `${targetDurationMinutes.toString().padStart(2, '0')}:00`;
+                updateCreatureDurationConstraints();
+            }
+
+            function updateCreatureDurationConstraints() {
+                if (activeMode === 'stopwatch') {
+                    durationMatchWarning.innerHTML = isVi 
+                        ? `<i class="fas fa-magic me-1"></i> Sinh vật lớn lên dựa trên thời gian thực tập trung của bạn.`
+                        : `<i class="fas fa-magic me-1"></i> Companion will grow based on your real focus duration.`;
+                    return;
+                }
+
+                let highestAffordable = 'coral';
+                if (targetDurationMinutes >= 120) highestAffordable = 'ship';
+                else if (targetDurationMinutes >= 90) highestAffordable = 'whale';
+                else if (targetDurationMinutes >= 60) highestAffordable = 'turtle';
+                else if (targetDurationMinutes >= 45) highestAffordable = 'octopus';
+                else if (targetDurationMinutes >= 25) highestAffordable = 'clownfish';
+
+                const targetName = CREATURE_NAMES[selectedCreature];
+                const activeCard = document.querySelector('.creature-card.selected');
+                const reqTime = activeCard ? parseInt(activeCard.dataset.minTime) : 10;
+
+                if (targetDurationMinutes >= reqTime) {
+                    durationMatchWarning.innerHTML = isVi 
+                        ? `<i class="fas fa-check-circle text-success me-1"></i> Đủ điều kiện nuôi dưỡng: <strong>${targetName}</strong>`
+                        : `<i class="fas fa-check-circle text-success me-1"></i> Eligible to grow: <strong>${targetName}</strong>`;
+                } else {
+                    creatureCards.forEach(c => {
+                        c.classList.remove('selected');
+                        if (c.dataset.type === highestAffordable) {
+                            c.classList.add('selected');
+                            selectedCreature = highestAffordable;
+                        }
+                    });
+                    const adjustedName = CREATURE_NAMES[selectedCreature];
+                    durationMatchWarning.innerHTML = isVi 
+                        ? `<i class="fas fa-exclamation-circle text-warning me-1"></i> Đã chỉnh sinh vật thành: <strong>${adjustedName}</strong> (do thiếu thời gian)`
+                        : `<i class="fas fa-exclamation-circle text-warning me-1"></i> Adjusted to: <strong>${adjustedName}</strong> due to duration constraints`;
+                }
+            }
+
+            // Task list selection logic
+            if (isTaskBased) {
+                taskOptions.forEach(opt => {
+                    opt.addEventListener('click', function() {
+                        SoundManager.playPlopSound();
+                        taskOptions.forEach(o => {
+                            o.classList.remove('active', 'border-info');
+                            o.querySelector('.selection-indicator i').className = 'far fa-circle select-empty';
+                        });
+                        this.classList.add('active', 'border-info');
+                        this.querySelector('.selection-indicator i').className = 'fas fa-check-circle select-checked';
+                        selectedTaskId = this.dataset.taskId;
+                        selectedTaskTitle = this.dataset.title;
+                    });
+                });
+            }
+
+            // --- DIVE / START TRANSITION ---
+            btnStartDive.addEventListener('click', () => {
+                if (isTaskBased && !selectedTaskId) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: '@Localizer["TaskRequiredTitle"]',
+                        text: '@Localizer["TaskRequiredDescription"]',
+                        customClass: { popup: 'rounded-5 glass-premium shadow' }
+                    });
+                    return;
+                }
+
+                SoundManager.playPlopSound();
+
+                // Setup state
+                isRunning = false;
+                isPaused = false;
+                elapsedSeconds = 0;
+                if (activeMode === 'countdown') {
+                    totalTargetSeconds = targetDurationMinutes * 60;
+                } else {
+                    totalTargetSeconds = 0;
+                }
+
+                // UI setup
+                focusTaskName.innerHTML = isTaskBased 
+                    ? `🎯 <span class="fw-bold">${selectedTaskTitle}</span> • <span>${isVi ? "Nuôi dưỡng" : "Growing"}: ${CREATURE_NAMES[selectedCreature]}</span>`
+                    : `🧘 @Localizer["TrackingFocusTime"] • <span>${isVi ? "Nuôi dưỡng" : "Growing"}: ${CREATURE_NAMES[selectedCreature]}</span>`;
+
+                creatureZenDisplay.innerHTML = CREATURE_SVGS[selectedCreature];
+                updateTimerDisplay();
+
+                // Show Splash diving transition
+                diveTransition.classList.remove('d-none');
+                setTimeout(() => diveTransition.classList.add('show'), 50);
+
+                // Play rapid splash bubble sound
+                for (let i = 0; i < 6; i++) {
+                    setTimeout(() => SoundManager.playSingleBubble(), i * 150);
+                }
+
+                setTimeout(() => {
+                    diveTransition.classList.remove('show');
+                    setTimeout(() => {
+                        diveTransition.classList.add('d-none');
+                        
+                        // Hide selection screen and show focus overlay
+                        selectionScreen.classList.add('d-none');
+                        zenOverlay.classList.remove('d-none');
+                        zenOverlay.classList.add('d-flex', 'fade-in');
+                        
+                        // Auto start timer
+                        startTimer();
+                    }, 500);
+                }, 1600);
+            });
+
+            // --- TIMER RUNTIME LOGIC ---
+            function updateTimerDisplay() {
+                let secondsToDisplay = 0;
+                if (activeMode === 'countdown') {
+                    secondsToDisplay = totalTargetSeconds - elapsedSeconds;
+                    if (secondsToDisplay < 0) secondsToDisplay = 0;
+                    
+                    const progressPercent = (secondsToDisplay / totalTargetSeconds) * 100;
+                    setProgress(progressPercent);
+                } else {
+                    secondsToDisplay = elapsedSeconds;
+                    // Stopwatch fills from 0 to 60 seconds to show active seconds ticking
+                    const progressPercent = ((elapsedSeconds % 60) / 60) * 100;
+                    setProgress(progressPercent);
+                }
+
+                const hrs = Math.floor(secondsToDisplay / 3600);
+                const mins = Math.floor((secondsToDisplay % 3600) / 60);
+                const secs = secondsToDisplay % 60;
+                
+                focusTimerDisplay.textContent = hrs > 0 
+                    ? `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+                    : `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
             function startTimer() {
-                if (sessionSaved) return;
-                if (timerInterval) stopTimerInternal();
+                if (timerInterval) clearInterval(timerInterval);
                 isRunning = true;
+                isPaused = false;
+                
+                // Reset controls
+                playPauseBtn.innerHTML = `<i class="fas fa-pause me-2"></i> ${isVi ? "Tạm dừng" : "Pause"}`;
+                playPauseBtn.className = "btn btn-info btn-lg rounded-pill px-4 shadow btn-control text-white";
+                focusTimerDisplay.classList.remove('timer-paused');
+                pausedWatermark.classList.add('d-none');
+
+                // Strict mode visibility check for pause button
+                if (strictModeActive) {
+                    playPauseBtn.classList.add('d-none');
+                } else {
+                    playPauseBtn.classList.remove('d-none');
+                }
+
+                // Sync audio
+                SoundManager.updateSoundState();
+
                 timerInterval = setInterval(() => {
                     if (isRunning) {
                         elapsedSeconds++;
                         updateTimerDisplay();
+
+                        if (activeMode === 'countdown' && elapsedSeconds >= totalTargetSeconds) {
+                            completeFocusSession();
+                        }
                     }
                 }, 1000);
+
+                if (quoteInterval) clearInterval(quoteInterval);
+                quoteInterval = setInterval(() => {
+                    const rIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
+                    motivationalQuote.style.opacity = 0;
+                    setTimeout(() => {
+                        motivationalQuote.textContent = MOTIVATIONAL_QUOTES[rIndex];
+                        motivationalQuote.style.opacity = 1;
+                    }, 400);
+                }, 15000);
             }
-            
-            // Reset timer (stop, set to 0, reset UI)
-            function resetTimer() {
-                if (sessionSaved) {
-                    Swal.fire('Thông báo', 'Phiên đã được lưu, không thể đặt lại. Thoát và bắt đầu lại.', 'info');
+
+            function pauseTimerInternal() {
+                isRunning = false;
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                if (quoteInterval) {
+                    clearInterval(quoteInterval);
+                    quoteInterval = null;
+                }
+                SoundManager.stopAll();
+            }
+
+            // --- PLAY / PAUSE BUTTON ---
+            playPauseBtn.addEventListener('click', () => {
+                SoundManager.playPlopSound();
+                if (strictModeActive) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: isVi ? 'Chế độ Nghiêm ngặt' : 'Strict Mode Active',
+                        text: isVi ? 'Không thể tạm dừng khi đang ở chế độ Chặn xao nhãng!' : 'You cannot pause while Distraction Blocker is active!',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
                     return;
                 }
-                // Stop if running
+
                 if (isRunning) {
-                    stopTimerInternal();
-                }
-                elapsedSeconds = 0;
-                updateTimerDisplay();
-                // Reset buttons state
-                startTimerBtn.disabled = false;
-                stopTimerBtn.disabled = true;
-                // Hide note & save section, clear note
-                noteSection.style.display = 'none';
-                sessionNote.value = '';
-                saveSessionBtn.disabled = true;
-                // Reset saved flag
-                sessionSaved = false;
-            }
-            
-            // Stop action: pause timer, show note section and enable save
-            function stopTimer() {
-                if (sessionSaved) return;
-                if (!isRunning) {
-                    Swal.fire('Chú ý', 'Đồng hồ chưa chạy!', 'info');
-                    return;
-                }
-                // Stop timer
-                stopTimerInternal();
-                // Update buttons
-                startTimerBtn.disabled = false;
-                stopTimerBtn.disabled = true;
-                // Show note section
-                noteSection.style.display = 'block';
-                // Enable save if at least 1 second
-                if (elapsedSeconds >= 1) {
-                    saveSessionBtn.disabled = false;
+                    // Pause
+                    pauseTimerInternal();
+                    isPaused = true;
+                    playPauseBtn.innerHTML = `<i class="fas fa-play me-2"></i> ${isVi ? "Tiếp tục" : "Resume"}`;
+                    playPauseBtn.className = "btn btn-success btn-lg rounded-pill px-4 shadow btn-control text-white";
+                    focusTimerDisplay.classList.add('timer-paused');
+                    pausedWatermark.classList.remove('d-none');
                 } else {
-                    saveSessionBtn.disabled = true;
-                    Swal.fire('Thông báo', 'Vui lòng tập trung ít nhất 1 giây để lưu phiên.', 'warning');
+                    // Resume
+                    startTimer();
                 }
-            }
-            
-            // Save session with note
-            async function saveSession() {
-                if (sessionSaved) {
-                    Swal.fire('Đã lưu', 'Phiên tập trung này đã được lưu trước đó.', 'info');
-                    return;
+            });
+
+            // --- STOP / GIVE UP SEQUENCE ---
+            stopTimerBtn.addEventListener('click', () => {
+                SoundManager.playPlopSound();
+                const wasRunningBeforePrompt = isRunning;
+                pauseTimerInternal();
+
+                // Dynamic sad grey creature SVG
+                const greyCreatureSVG = CREATURE_SVGS[selectedCreature]
+                    .replace(/fill="#[^"]+"/g, 'fill="#9ca3af"')
+                    .replace(/stroke="#[^"]+"/g, 'stroke="#4b5563"')
+                    .replace(/filter="[^"]+"/g, 'style="filter: grayscale(1) opacity(0.4);"');
+
+                if (activeMode === 'countdown') {
+                    Swal.fire({
+                        title: isVi ? 'Từ bỏ lặn sâu?' : 'Give up diving?',
+                        html: `<div class="text-center mb-3">
+                                 <div style="width:110px; height:110px; margin:0 auto; opacity:0.7;">
+                                    ${greyCreatureSVG}
+                                 </div>
+                                 <p class="mt-3 mb-0">${isVi 
+                                     ? `Nếu từ bỏ lúc này, sinh vật biển <strong>${CREATURE_NAMES[selectedCreature]}</strong> của bạn sẽ tan biến! Bạn vẫn muốn trồi lên chứ?`
+                                     : `If you give up now, your <strong>${CREATURE_NAMES[selectedCreature]}</strong> will vanish! Do you still want to surface?`}</p>
+                               </div>`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: isVi ? 'Từ bỏ' : 'Give up',
+                        cancelButtonText: isVi ? 'Tập trung tiếp' : 'Stay Focused',
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        customClass: { popup: 'rounded-5 glass-premium shadow-lg' }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const actualMins = Math.floor(elapsedSeconds / 60);
+                            if (actualMins >= 1) {
+                                Swal.fire({
+                                    title: isVi ? 'Lưu thời gian tập trung?' : 'Save Focus Time?',
+                                    text: isVi 
+                                        ? `Bạn đã tập trung được ${actualMins} phút. Bạn có muốn lưu nhật ký công việc này mà không nhận được sinh vật biển?`
+                                        : `You focused for ${actualMins} minutes. Would you like to log this time without receiving a creature?`,
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonText: isVi ? 'Lưu' : 'Save',
+                                    cancelButtonText: isVi ? 'Không lưu' : 'Discard',
+                                    customClass: { popup: 'rounded-5 glass-premium shadow' }
+                                }).then((saveRes) => {
+                                    if (saveRes.isConfirmed) {
+                                        promptSaveNoteAndRedirect(elapsedSeconds, false);
+                                    } else {
+                                        exitToSelection();
+                                    }
+                                });
+                            } else {
+                                exitToSelection();
+                            }
+                        } else {
+                            // Resume if they canceled the give up prompt
+                            if (wasRunningBeforePrompt && !isPaused) {
+                                startTimer();
+                            } else {
+                                // Keep paused state
+                                isPaused = true;
+                                playPauseBtn.innerHTML = `<i class="fas fa-play me-2"></i> ${isVi ? "Tiếp tục" : "Resume"}`;
+                                playPauseBtn.className = "btn btn-success btn-lg rounded-pill px-4 shadow btn-control text-white";
+                                focusTimerDisplay.classList.add('timer-paused');
+                                pausedWatermark.classList.remove('d-none');
+                            }
+                        }
+                    });
+                } else {
+                    const actualMins = Math.floor(elapsedSeconds / 60);
+                    if (actualMins < 10) {
+                        Swal.fire({
+                            title: isVi ? 'Dừng tập trung?' : 'Stop Focus?',
+                            text: isVi 
+                                ? `Thời gian tập trung dưới 10 phút sẽ không đủ để sinh trưởng sinh vật biển. Bạn có muốn lưu lại thời gian này?`
+                                : `Focusing under 10 mins is not enough to grow a creature. Do you want to save this log anyway?`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: isVi ? 'Lưu thời gian' : 'Save Time',
+                            cancelButtonText: isVi ? 'Huỷ & Tập trung tiếp' : 'Cancel & Resume',
+                            customClass: { popup: 'rounded-5 glass-premium shadow' }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                promptSaveNoteAndRedirect(elapsedSeconds, false);
+                            } else {
+                                if (wasRunningBeforePrompt && !isPaused) {
+                                    startTimer();
+                                } else {
+                                    isPaused = true;
+                                    playPauseBtn.innerHTML = `<i class="fas fa-play me-2"></i> ${isVi ? "Tiếp tục" : "Resume"}`;
+                                    playPauseBtn.className = "btn btn-success btn-lg rounded-pill px-4 shadow btn-control text-white";
+                                    focusTimerDisplay.classList.add('timer-paused');
+                                    pausedWatermark.classList.remove('d-none');
+                                }
+                            }
+                        });
+                    } else {
+                        let earnedType = 'coral';
+                        if (actualMins >= 120) earnedType = 'ship';
+                        else if (actualMins >= 90) earnedType = 'whale';
+                        else if (actualMins >= 60) earnedType = 'turtle';
+                        else if (actualMins >= 45) earnedType = 'octopus';
+                        else if (actualMins >= 25) earnedType = 'clownfish';
+
+                        completeStopwatchSession(elapsedSeconds, earnedType);
+                    }
                 }
-                const note = sessionNote.value.trim();
-                if (!note) {
-                    Swal.fire('Thiếu ghi chú', 'Vui lòng nhập ghi chú về những gì bạn đã đạt được.', 'warning');
-                    return;
-                }
-                if (elapsedSeconds < 1) {
-                    Swal.fire('Lỗi', 'Không thể lưu phiên trống.', 'error');
-                    return;
-                }
+            });
+
+            function exitToSelection() {
+                pauseTimerInternal();
+                strictModeToggle.checked = false;
+                strictModeActive = false;
+                isPaused = false;
                 
-                // Prepare data
-                const durationHours = elapsedSeconds / 3600;
+                zenOverlay.classList.add('d-none');
+                zenOverlay.classList.remove('d-flex');
+                selectionScreen.classList.remove('d-none');
+                selectionScreen.classList.add('fade-in');
+            }
+
+            // --- COMPLETION HANDLERS ---
+            function completeFocusSession() {
+                pauseTimerInternal();
+                addCreature(selectedCreature);
+
+                Swal.fire({
+                    title: isVi ? 'Nuôi dưỡng thành công!' : 'Grow Successful!',
+                    html: isVi 
+                        ? `<div class="text-center">
+                             <div class="glow-animation-container p-3 mb-3 mx-auto" style="width:140px; height:140px;">
+                                ${CREATURE_SVGS[selectedCreature]}
+                             </div>
+                             <p class="fs-5">Tuyệt vời! Bạn đã nuôi dưỡng thành công sinh vật: <strong>${CREATURE_NAMES[selectedCreature]}</strong>!</p>
+                           </div>`
+                        : `<div class="text-center">
+                             <div class="glow-animation-container p-3 mb-3 mx-auto" style="width:140px; height:140px;">
+                                ${CREATURE_SVGS[selectedCreature]}
+                             </div>
+                             <p class="fs-5">Awesome! You successfully grew: <strong>${CREATURE_NAMES[selectedCreature]}</strong>!</p>
+                           </div>`,
+                    icon: 'success',
+                    allowOutsideClick: false,
+                    confirmButtonText: isVi ? 'Ghi lại nhật ký' : 'Record Session Log',
+                    customClass: { popup: 'rounded-5 glass-premium shadow-lg border border-info' }
+                }).then(() => {
+                    promptSaveNoteAndRedirect(elapsedSeconds, true);
+                });
+            }
+
+            function completeStopwatchSession(durationSecs, earnedType) {
+                pauseTimerInternal();
+                addCreature(earnedType);
+
+                Swal.fire({
+                    title: isVi ? 'Tập trung xuất sắc!' : 'Excellent Focus!',
+                    html: isVi 
+                        ? `<div class="text-center">
+                             <div class="glow-animation-container p-3 mb-3 mx-auto" style="width:140px; height:140px;">
+                                ${CREATURE_SVGS[earnedType]}
+                             </div>
+                             <p class="fs-5">Bạn đã tập trung ${Math.floor(durationSecs / 60)} phút và nuôi dưỡng thành công: <strong>${CREATURE_NAMES[earnedType]}</strong>!</p>
+                           </div>`
+                        : `<div class="text-center">
+                             <div class="glow-animation-container p-3 mb-3 mx-auto" style="width:140px; height:140px;">
+                                ${CREATURE_SVGS[earnedType]}
+                             </div>
+                             <p class="fs-5">You focused for ${Math.floor(durationSecs / 60)} minutes and successfully grew: <strong>${CREATURE_NAMES[earnedType]}</strong>!</p>
+                           </div>`,
+                    icon: 'success',
+                    allowOutsideClick: false,
+                    confirmButtonText: isVi ? 'Ghi lại nhật ký' : 'Record Session Log',
+                    customClass: { popup: 'rounded-5 glass-premium shadow-lg border border-info' }
+                }).then(() => {
+                    promptSaveNoteAndRedirect(durationSecs, true);
+                });
+            }
+
+            function promptSaveNoteAndRedirect(durationSecs, hasCreature) {
+                const durationStr = formatTime(durationSecs);
+                const titleStr = hasCreature 
+                    ? (isVi ? `Đã nuôi dưỡng ${CREATURE_NAMES[selectedCreature]}` : `Grew ${CREATURE_NAMES[selectedCreature]}`)
+                    : (isVi ? "Tập trung không sinh vật" : "Focus session (No creature)");
+
+                Swal.fire({
+                    title: isVi ? 'Ghi chú phiên làm việc' : 'Session Notes',
+                    input: 'textarea',
+                    inputLabel: isVi ? 'Bạn đã hoàn thành những công việc gì?' : 'What did you accomplish during this session?',
+                    inputPlaceholder: isVi ? 'Nhập nội dung công việc thực tế...' : 'Type details of your work...',
+                    inputAttributes: {
+                        'aria-label': isVi ? 'Nội dung công việc' : 'Work detail input'
+                    },
+                    confirmButtonText: isVi ? 'Lưu phiên' : 'Save Session',
+                    allowOutsideClick: false,
+                    preConfirm: (value) => {
+                        if (!value.trim()) {
+                            Swal.showValidationMessage(isVi ? 'Vui lòng nhập nội dung công việc để ghi nhận.' : 'Please enter a description of your work.');
+                        }
+                        return value;
+                    },
+                    customClass: { popup: 'rounded-5 glass-premium shadow-lg border border-info' }
+                }).then((res) => {
+                    const note = res.value;
+                    saveSessionAjax(durationSecs, `[Focus ${durationStr} - ${titleStr}] ${note}`);
+                });
+            }
+
+            async function saveSessionAjax(durationSecs, finalNote) {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                 const body = new URLSearchParams();
-                body.append('goalId', '@Model.Id');
+                body.append('goalId', goalId);
                 body.append('taskId', selectedTaskId || "");
-                body.append('durationSeconds', elapsedSeconds);
-                // Append note with optional duration summary
-                const durationStr = formatTime(elapsedSeconds);
-                const finalNote = `[Focus ${durationStr}] ${note}`;
+                body.append('durationSeconds', durationSecs);
                 body.append('note', finalNote);
                 body.append('__RequestVerificationToken', token);
-                
-                // Show loading
-                saveSessionBtn.disabled = true;
-                saveSessionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
-                
+
+                Swal.fire({
+                    title: '@Localizer["Saving"]',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
                 try {
                     const response = await fetch('/Goal/RecordFocusSession', {
                         method: 'POST',
@@ -308,13 +1366,6 @@
                     });
                     const data = await response.json();
                     if (data.success) {
-                        sessionSaved = true;
-                        // Disable all timer controls after save
-                        startTimerBtn.disabled = true;
-                        stopTimerBtn.disabled = true;
-                        resetTimerBtn.disabled = true;
-                        saveSessionBtn.disabled = true;
-                        exitZenBtn.disabled = false;
                         Swal.fire({
                             icon: 'success',
                             title: '@Localizer["SessionSaved"]',
@@ -322,107 +1373,20 @@
                             timer: 2000,
                             showConfirmButton: false
                         }).then(() => {
-                            window.location.href = '/Goal/Details/@Model.Id';
+                            window.location.href = `/Goal/Details/${goalId}`;
                         });
                     } else {
                         throw new Error(data.message || '@Localizer["UnknownError"]');
                     }
-                } catch (error) {
-                    console.error('Save error:', error);
-                    saveSessionBtn.disabled = false;
-                    saveSessionBtn.innerHTML = '<i class="fas fa-save me-2"></i> @Localizer["SaveSession"]';
+                } catch (err) {
+                    console.error("AJAX Error:", err);
                     Swal.fire('@Localizer["Error"]', '@Localizer["ErrorSavingSession"]', 'error');
                 }
             }
-            
-            // Exit with confirmation
-            function exitFocus() {
-                if (sessionSaved) {
-                    window.location.href = '/Goal/Details/@Model.Id';
-                    return;
-                }
-                let warningMsg = '@Localizer["ExitWarning"]';
-                if (elapsedSeconds > 0 && !sessionSaved) {
-                    Swal.fire({
-                        title: '@Localizer["ExitSessionTitle"]',
-                        text: warningMsg,
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: '@Localizer["Exit"]',
-                        cancelButtonText: '@Localizer["Stay"]'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = '/Goal/Details/@Model.Id';
-                        }
-                    });
-                } else {
-                    window.location.href = '/Goal/Details/@Model.Id';
-                }
-            }
-            
-            // --- Task selection logic (for TaskBased) ---
-            if (isTaskBased) {
-                taskOptions.forEach(opt => {
-                    opt.addEventListener('click', function() {
-                        taskOptions.forEach(o => o.classList.remove('active', 'border-primary'));
-                        this.classList.add('active', 'border-primary');
-                        selectedTaskId = this.dataset.taskId;
-                        selectedTaskTitle = this.dataset.title;
-                    });
-                });
-                
-                btnEnterZen.addEventListener('click', function() {
-                    if (!selectedTaskId) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: '@Localizer["TaskRequiredTitle"]',
-                            text: '@Localizer["TaskRequiredDescription"]'
-                        });
-                        return;
-                    }
-                    // Update task name in zen mode
-                    focusTaskNameSpan.innerHTML = `<span class="fw-bold">🎯 ${selectedTaskTitle}</span>`;
-                    // Hide selection screen with animation
-                    selectionScreen.classList.add('fade-out');
-                    setTimeout(() => {
-                        selectionScreen.classList.add('d-none');
-                        zenOverlay.classList.remove('d-none');
-                        zenOverlay.classList.add('d-flex', 'fade-in');
-                        // Reset timer state before session start
-                        resetTimer();
-                    }, 500);
-                });
-            } else {
-                // TimeBased: directly show zen overlay, no need task selection
-                // But still we might allow optional task selection? Not required.
-                selectedTaskId = null;
-                selectedTaskTitle = "@Model.Title";
-                focusTaskNameSpan.innerHTML = `<span>🧘 @Localizer["TrackingFocusTime"]</span>`;
-                resetTimer();
-            }
-            
-            // Auto initial reset for TimeBased
-            if (!isTaskBased) {
-                resetTimer();
-            }
-            
-            // --- Theme switching ---
-            themeBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const imgUrl = this.dataset.img;
-                    if (imgUrl) {
-                        zenOverlay.style.backgroundImage = `url('${imgUrl}')`;
-                    }
-                    // Update active state
-                    themeBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-            
-            // --- Distraction Blocker Logic ---
-            let strictModeActive = false;
-            
+
+            // --- STRICT MODE & VISIBILITY CHANGE ---
             strictModeToggle.addEventListener('change', function() {
+                SoundManager.playPlopSound();
                 strictModeActive = this.checked;
                 if (strictModeActive) {
                     Swal.fire({
@@ -430,30 +1394,121 @@
                         text: '@Localizer["DistractionMessage"]',
                         icon: 'info',
                         timer: 2000,
-                        showConfirmButton: false
+                        showConfirmButton: false,
+                        customClass: { popup: 'rounded-5 glass-premium shadow' }
                     });
                 }
             });
 
-            // Detect tab visibility change
-            document.addEventListener('visibilitychange', function() {
+            document.addEventListener('visibilitychange', () => {
                 if (document.hidden && strictModeActive && isRunning) {
-                    // When user leaves the tab
-                    console.warn("Distraction detected!");
-                } else if (!document.hidden && strictModeActive && isRunning) {
-                    // When user comes back
+                    pauseTimerInternal();
                     Swal.fire({
-                        title: '@Localizer["DistractionWarning"]',
-                        text: '@Localizer["DistractionMessage"]',
-                        icon: 'warning',
+                        icon: 'error',
+                        title: isVi ? 'Thất bại!' : 'Failed!',
+                        text: isVi 
+                            ? 'Bạn đã rời khỏi trang tập trung trong chế độ Chặn xao nhãng! Sinh vật biển của bạn đã tan biến.'
+                            : 'You left the focus page in Strict Mode! Your sea creature has withered.',
                         confirmButtonText: 'OK',
-                        customClass: { popup: 'rounded-4 shadow-lg' }
+                        customClass: { popup: 'rounded-5 glass-premium shadow-lg border border-danger' }
+                    }).then(() => {
+                        exitToSelection();
                     });
                 }
             });
 
-            // Full Screen Logic
+            window.addEventListener('beforeunload', function(e) {
+                if (isRunning) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+                SoundManager.stopAll();
+            });
+
+            // --- SOUND CONTROLLER EVENTS ---
+            const soundButtons = document.querySelectorAll('.sound-btn-group button');
+            soundButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    SoundManager.playPlopSound();
+                    soundButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const sound = this.dataset.sound;
+                    SoundManager.setMode(sound);
+                });
+            });
+
+            // --- BACKGROUND BUBBLE SPANNER ---
+            function initBubbles(containerId, isBig) {
+                const emitter = document.getElementById(containerId);
+                if (!emitter) return;
+
+                setInterval(() => {
+                    if (document.hidden) return;
+
+                    const bubble = document.createElement('div');
+                    bubble.className = isBig ? 'bg-bubble big' : 'bg-bubble';
+                    
+                    const size = (isBig ? 10 : 5) + Math.random() * 15;
+                    bubble.style.width = `${size}px`;
+                    bubble.style.height = `${size}px`;
+                    bubble.style.left = `${Math.random() * 100}%`;
+                    
+                    const duration = 6 + Math.random() * 8;
+                    bubble.style.animationDuration = `${duration}s`;
+                    bubble.style.opacity = 0.2 + Math.random() * 0.4;
+
+                    emitter.appendChild(bubble);
+
+                    setTimeout(() => { bubble.remove(); }, duration * 1000);
+                }, 350);
+            }
+            initBubbles('bgBubbles', false);
+            initBubbles('aquariumBubbles', true);
+
+            // --- AQUARIUM OVERLAY CONTROLS ---
+            btnOpenAquarium.addEventListener('click', () => {
+                SoundManager.playPlopSound();
+                aquariumOverlay.classList.add('show');
+                renderAquarium();
+            });
+
+            btnCloseAquarium.addEventListener('click', () => {
+                SoundManager.playPlopSound();
+                aquariumOverlay.classList.remove('show');
+            });
+
+            btnResetAquarium.addEventListener('click', () => {
+                SoundManager.playPlopSound();
+                Swal.fire({
+                    title: isVi ? 'Đặt lại Đại dương?' : 'Reset Ocean?',
+                    text: isVi 
+                        ? 'Tất cả sinh vật biển bạn thu hoạch được sẽ bị xóa sạch! Bạn chắc chắn chứ?'
+                        : 'All harvested sea creatures will be cleared forever! Are you sure?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: isVi ? 'Xóa sạch' : 'Clear All',
+                    cancelButtonText: isVi ? 'Huỷ' : 'Cancel',
+                    confirmButtonColor: '#d33',
+                    customClass: { popup: 'rounded-5 glass-premium shadow-lg' }
+                }).then((res) => {
+                    if (res.isConfirmed) {
+                        localStorage.removeItem(collectionKey);
+                        renderAquarium();
+                        Swal.fire({
+                            icon: 'success',
+                            title: isVi ? 'Đã dọn dẹp!' : 'Cleared!',
+                            text: isVi ? 'Đại dương đã được đưa về trạng thái nguyên sơ.' : 'Your ocean has been returned to its pristine state.',
+                            timer: 1500,
+                            showConfirmButton: false,
+                            customClass: { popup: 'rounded-5 glass-premium shadow' }
+                        });
+                    }
+                });
+            });
+
+            // --- FULLSCREEN CONTROLS ---
             fullScreenBtn.addEventListener('click', function() {
+                SoundManager.playPlopSound();
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen().catch(err => {
                         console.error(`Error attempting to enable full-screen mode: ${err.message}`);
@@ -465,345 +1520,808 @@
 
             document.addEventListener('fullscreenchange', () => {
                 if (document.fullscreenElement) {
-                    fullScreenBtn.innerHTML = '<i class="fas fa-compress me-1"></i> Exit Full Screen';
+                    fullScreenBtn.innerHTML = '<i class="fas fa-compress me-1"></i> <span class="small">' + (isVi ? 'Thoát toàn màn hình' : 'Exit Fullscreen') + '</span>';
                 } else {
-                    fullScreenBtn.innerHTML = '<i class="fas fa-expand me-1"></i> @Localizer["EnableFullScreen"]';
+                    fullScreenBtn.innerHTML = '<i class="fas fa-expand me-1"></i> <span class="small">' + (isVi ? 'Toàn màn hình' : 'Fullscreen') + '</span>';
                 }
-            });
-
-            // --- Timer event handlers ---
-            startTimerBtn.addEventListener('click', () => {
-                if (sessionSaved) {
-                    Swal.fire('@Localizer["Saved"]', '@Localizer["SessionAlreadySaved"]', 'info');
-                    return;
-                }
-                if (!isRunning) {
-                    startTimer();
-                    startTimerBtn.disabled = true;
-                    stopTimerBtn.disabled = false;
-                    
-                    // Auto-enable strict mode if not already (optional recommendation)
-                    // strictModeToggle.checked = true;
-                    // strictModeActive = true;
-
-                    // Hide note section if visible during restart
-                    if (noteSection.style.display === 'block') {
-                        noteSection.style.display = 'none';
-                        sessionNote.value = '';
-                        saveSessionBtn.disabled = true;
-                    }
-                }
-            });
-            
-            stopTimerBtn.addEventListener('click', stopTimer);
-            resetTimerBtn.addEventListener('click', resetTimer);
-            saveSessionBtn.addEventListener('click', saveSession);
-            exitZenBtn.addEventListener('click', exitFocus);
-            
-            // Prevent leaving tab if timer is running
-            window.addEventListener('beforeunload', function(e) {
-                if (isRunning || (strictModeActive && elapsedSeconds > 0)) {
-                    e.preventDefault();
-                    e.returnValue = ''; // Shows standard browser confirmation
-                }
-                if (timerInterval) clearInterval(timerInterval);
             });
         });
     </script>
 }
 
 <style>
-    /* Base Styles */
+    /* CSS Grid/Layout variables for Nox Ocean theme */
+    :root {
+        --ocean-deep: radial-gradient(circle at center, #0d2b45 0%, #030814 100%);
+        --ocean-bright: radial-gradient(circle at center, #1e3d59 0%, #081121 100%);
+        --neon-cyan: #0dcaf0;
+        --neon-blue: #3b82f6;
+        --neon-cyan-glow: 0 0 15px rgba(13, 202, 240, 0.6);
+        --neon-blue-glow: 0 0 15px rgba(59, 130, 246, 0.6);
+        --glass-bg: rgba(10, 20, 38, 0.55);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --focus-primary: #6366f1;
+        --focus-primary-light: #818cf8;
+        --focus-accent: #0dcaf0;
+    }
+
+    /* Core Layout Styles - FULLSCREEN IMMERSIVE */
     .focus-app {
-        min-height: 100vh;
-        background: #0f172a;
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
-    
-    .glass-premium {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-    }
-    
-    /* Task Selection Styles */
-    .task-option {
-        cursor: pointer;
-        transition: all 0.2s ease;
-        border: 1px solid #e2e8f0;
-        position: relative;
-    }
-    .task-option:hover {
-        transform: translateX(5px);
-        border-color: #6366f1;
-    }
-    .task-option.active {
-        border-color: #6366f1;
-        background: #f5f3ff !important;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
-    }
-    .task-icon-circle {
-        width: 45px;
-        height: 45px;
-        border-radius: 14px;
-        background: #f1f5f9;
-        color: #64748b;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: 0.3s;
-    }
-    .task-option.active .task-icon-circle {
-        background: #6366f1;
-        color: white;
-    }
-    .selection-indicator {
-        font-size: 1.25rem;
-        color: #6366f1;
-        opacity: 0;
-        transition: 0.3s;
-    }
-    .task-option.active .selection-indicator {
-        opacity: 1;
-    }
-    
-    .fade-out {
-        opacity: 0;
-        transform: translateY(-20px);
-        transition: 0.5s ease;
-    }
-    .fade-in {
-        animation: fadeIn 0.8s forwards;
-    }
-    @@keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-    
-    /* Zen Overlay Main Background */
-    .zen-overlay {
         position: fixed;
         inset: 0;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        z-index: 2000;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: background-image 0.4s ease;
+        width: 100vw;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background: #081121;
+        z-index: 50;
     }
-    .zen-overlay::before {
-        content: '';
+
+    /* Ocean Background Visual Effects */
+    .ocean-background {
         position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        backdrop-filter: blur(3px);
-        z-index: 1;
+        background: var(--ocean-deep);
+        z-index: -2;
+        overflow: hidden;
     }
-    .zen-overlay > * {
-        z-index: 2;
+
+    .light-beams {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60vh;
+        background: radial-gradient(ellipse at 50% 0%, rgba(13, 202, 240, 0.15) 0%, rgba(3, 8, 20, 0) 70%);
+        filter: blur(10px);
+        pointer-events: none;
+        animation: beamShimmer 10s ease-in-out infinite alternate;
     }
-    
-    /* Theme Bar */
-    .theme-bar {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        gap: 12px;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(12px);
-        padding: 10px 20px;
-        border-radius: 60px;
-        z-index: 2100;
-        border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+
+    @@keyframes beamShimmer {
+        0% { opacity: 0.7; transform: scaleX(0.9) translateX(-5%); }
+        100% { opacity: 1; transform: scaleX(1.1) translateX(5%); }
     }
-    .theme-btn {
-        background: transparent;
+
+    .bubble-emitter, .aquarium-bubble-emitter {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    /* CSS Wobble bubbles */
+    .bg-bubble {
+        position: absolute;
+        bottom: -40px;
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.02) 70%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        animation: riseAndWobble linear forwards;
+    }
+
+    .bg-bubble.big {
+        background: radial-gradient(circle at 30% 30%, rgba(13, 202, 240, 0.25) 0%, rgba(13, 202, 240, 0.02) 70%);
+        border: 1px solid rgba(13, 202, 240, 0.2);
+    }
+
+    @@keyframes riseAndWobble {
+        0% { transform: translateY(0) translateX(0); }
+        33% { transform: translateY(-35vh) translateX(12px); }
+        66% { transform: translateY(-70vh) translateX(-12px); }
+        100% { transform: translateY(-110vh) translateX(0); }
+    }
+
+    .seaweed-bed {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 120px;
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    .seaweed-svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .seaweed-svg path, .aquarium-seaweed-svg path {
+        transform-origin: bottom center;
+    }
+
+    .seaweed-1 { animation: seaweedSway 5s ease-in-out infinite alternate; }
+    .seaweed-2 { animation: seaweedSway 7s ease-in-out infinite alternate -1.5s; }
+    .seaweed-3 { animation: seaweedSway 6s ease-in-out infinite alternate -3s; }
+
+    @@keyframes seaweedSway {
+        0% { transform: skewX(-4deg) scaleY(0.96); }
+        100% { transform: skewX(4deg) scaleY(1.04); }
+    }
+
+    /* Glass Premium Cards - Project Design System Integration */
+    .glass-premium {
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(28px) saturate(160%);
+        -webkit-backdrop-filter: blur(28px) saturate(160%);
+        border: 1px solid rgba(99, 102, 241, 0.12);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .logo-container {
+        display: inline-block;
+        padding: 18px;
+        border-radius: 50%;
+        background: rgba(13, 202, 240, 0.08);
+        border: 1px solid rgba(13, 202, 240, 0.2);
+        box-shadow: var(--neon-cyan-glow);
+    }
+
+    .pulse-icon {
+        animation: pulseIcon 3s ease-in-out infinite;
+    }
+
+    @@keyframes pulseIcon {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); filter: brightness(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    /* Mode Selection Tabs */
+    .mode-tabs-container {
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mode-tab {
         border: none;
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .mode-tab:hover {
         color: white;
-        font-weight: 500;
-        font-size: 0.9rem;
-        padding: 6px 16px;
-        border-radius: 40px;
-        transition: all 0.2s;
+    }
+
+    .mode-tab.active {
+        background: #0dcaf0 !important;
+        color: white !important;
+        box-shadow: var(--neon-cyan-glow);
+    }
+
+    /* Creature Card Grid */
+    .creature-card {
         cursor: pointer;
+        padding: 15px 10px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        text-align: center;
         display: flex;
+        flex-direction: column;
         align-items: center;
         gap: 8px;
     }
-    .theme-btn i {
-        font-size: 1rem;
+
+    .creature-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(13, 202, 240, 0.3);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     }
-    .theme-btn:hover {
-        background: rgba(255,255,255,0.2);
-        transform: translateY(-2px);
+
+    .creature-card.selected {
+        background: rgba(13, 202, 240, 0.1);
+        border-color: var(--neon-cyan);
+        box-shadow: var(--neon-cyan-glow);
     }
-    .theme-btn.active {
+
+    .creature-preview {
+        width: 65px;
+        height: 65px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .creature-card.selected .creature-preview {
+        transform: scale(1.1);
+    }
+
+    .creature-svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .creature-name {
+        display: block;
+        color: white;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .creature-time {
+        display: block;
+        color: rgba(13, 202, 240, 0.8);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Adjust Buttons and Slider */
+    .time-adjust-btn {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-color: rgba(255, 255, 255, 0.2);
+        transition: all 0.2s;
+    }
+
+    .time-adjust-btn:hover {
         background: white;
-        color: #0f172a;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    
-    /* Zen Container */
-    .zen-container {
-        text-align: center;
-        max-width: 700px;
-        width: 90%;
-        padding: 2rem;
-        background: rgba(15, 23, 42, 0.4);
-        backdrop-filter: blur(16px);
-        border-radius: 56px;
-        border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: 0 25px 40px rgba(0,0,0,0.3);
-        animation: scaleUp 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    }
-    @@keyframes scaleUp {
-        from { transform: scale(0.95); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-    
-    .zen-goal-title {
-        font-size: 2rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    }
-    
-    /* Timer Panel */
-    .timer-panel {
-        background: rgba(0,0,0,0.4);
-        backdrop-filter: blur(8px);
-        border-radius: 48px;
-        padding: 2rem 1.5rem;
-        margin-top: 1rem;
+        color: black;
+        transform: scale(1.1);
     }
 
-    .distraction-blocker-card {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
-    }
-    .distraction-blocker-card:hover {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.4) !important;
-    }
-
-    .custom-switch {
-        width: 3rem !important;
-        height: 1.5rem !important;
+    /* Task option selection */
+    .task-option {
         cursor: pointer;
+        transition: all 0.25s;
     }
-    .custom-switch:checked {
-        background-color: #10b981 !important;
-        border-color: #10b981 !important;
+
+    .task-option:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(13, 202, 240, 0.3) !important;
+    }
+
+    .task-option.active {
+        background: rgba(13, 202, 240, 0.08);
+        border-color: var(--neon-cyan) !important;
+        box-shadow: 0 4px 15px rgba(13, 202, 240, 0.1);
+    }
+
+    .task-icon-circle {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .selection-indicator .select-checked {
+        display: none;
+    }
+
+    .task-option.active .selection-indicator .select-empty {
+        display: none;
+    }
+
+    .task-option.active .selection-indicator .select-checked {
+        display: block;
+        animation: scaleCheck 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @@keyframes scaleCheck {
+        from { transform: scale(0.6); }
+        to { transform: scale(1); }
+    }
+
+    .btn-glow {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-glow::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50px;
+        box-shadow: var(--neon-cyan-glow);
+        opacity: 0.8;
+        transition: all 0.3s;
+    }
+
+    .btn-glow:hover::after {
+        box-shadow: 0 0 25px rgba(13, 202, 240, 1);
+    }
+
+    .fade-out {
+        opacity: 0;
+        transform: scale(0.95) translateY(15px);
+        transition: all 0.4s ease-out;
+    }
+
+    .fade-in {
+        animation: fadeInAnim 0.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    }
+
+    @@keyframes fadeInAnim {
+        from { opacity: 0; transform: scale(0.98) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Step 2: Zen Focus overlay */
+    .zen-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: radial-gradient(circle at center, #091a2e 0%, #03060c 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .zen-container {
+        width: 90%;
+        max-width: 600px;
+        padding: 30px;
+        border-radius: 40px;
+        background: rgba(10, 20, 38, 0.35);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Circular Timer Progress Ring */
+    .timer-circle-container {
+        position: relative;
+        width: 280px;
+        height: 280px;
+        margin: 0 auto;
+    }
+
+    .timer-ring-svg {
+        transform: rotate(-90deg);
+        transform-origin: center;
+    }
+
+    .timer-ring-progress {
+        transition: stroke-dashoffset 1s linear;
+        filter: drop-shadow(0 0 8px rgba(13, 202, 240, 0.7));
+    }
+
+    .timer-inner-content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .creature-zen-display {
+        width: 95px;
+        height: 95px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: floatFloating 4s ease-in-out infinite alternate;
+    }
+
+    @@keyframes floatFloating {
+        0% { transform: translateY(-5px) rotate(-1deg); }
+        100% { transform: translateY(5px) rotate(2deg); }
     }
 
     .timer-display {
-        font-size: 5rem;
+        font-size: 3rem;
         font-weight: 800;
-        font-family: 'JetBrains Mono', monospace;
-        letter-spacing: 4px;
+        letter-spacing: 2px;
         color: white;
-        text-shadow: 0 4px 20px rgba(0,0,0,0.5);
-        background: rgba(0,0,0,0.3);
-        padding: 20px;
-        border-radius: 60px;
-        margin-bottom: 30px;
+        text-shadow: var(--neon-cyan-glow);
     }
-    .timer-controls {
+
+    /* Pulsing paused timer text */
+    .timer-display.timer-paused {
+        animation: timerPausedPulse 1.5s ease-in-out infinite;
+    }
+
+    @@keyframes timerPausedPulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.3; }
+        100% { opacity: 1; }
+    }
+
+    .paused-watermark {
+        position: absolute;
+        top: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(239, 68, 68, 0.85);
+        color: white;
+        font-weight: 800;
+        font-size: 0.75rem;
+        padding: 4px 14px;
+        border-radius: 8px;
+        letter-spacing: 1.5px;
+        pointer-events: none;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        z-index: 10;
+        animation: pulseIcon 1.5s ease-in-out infinite;
+    }
+
+    /* Sound Switch HUD */
+    .sound-btn-group .btn {
+        padding: 4px 12px;
+        border-color: rgba(13, 202, 240, 0.2);
+    }
+
+    .sound-btn-group .btn.active {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
+        box-shadow: var(--neon-cyan-glow);
+    }
+
+    .quote-display-container {
+        height: 48px;
         display: flex;
-        gap: 20px;
+        align-items: center;
         justify-content: center;
-        flex-wrap: wrap;
     }
-    .timer-controls .btn {
-        font-weight: 600;
-        min-width: 130px;
-        transition: transform 0.2s, box-shadow 0.2s;
+
+    #motivationalQuote {
+        transition: opacity 0.4s;
     }
-    .timer-controls .btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+
+    .btn-control {
+        min-width: 140px;
+        font-weight: bold;
     }
-    
-    /* Note Section Glass Card */
-    .glass-card {
-        background: rgba(255,255,255,0.15);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255,255,255,0.3);
-        border-radius: 28px;
+
+    .custom-switch {
+        width: 2.8rem;
+        height: 1.4rem;
+        cursor: pointer;
     }
-    .form-control {
-        background: rgba(255,255,255,0.2) !important;
-        color: white !important;
-        resize: vertical;
+
+    .custom-switch:checked {
+        background-color: #0dcaf0;
+        border-color: #0dcaf0;
     }
-    .form-control::placeholder {
-        color: rgba(255,255,255,0.6);
+
+    /* Step 3: My Ocean Aquarium overlay (SMOOTH TRANSITION) */
+    .aquarium-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        background: radial-gradient(circle at center, #0f2744 0%, #030814 100%);
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        transform: translateY(100%) scale(0.96);
+        transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.1, 0.8, 0.25, 1);
+        pointer-events: none;
     }
-    .form-control:focus {
-        background: rgba(255,255,255,0.3);
-        box-shadow: 0 0 0 3px rgba(255,255,255,0.4);
-        border-color: transparent;
-        color: white;
+
+    .aquarium-overlay.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
     }
-    
-    #exitZenBtn {
-        transition: all 0.2s;
-        font-weight: 500;
-        border-width: 2px;
+
+    .aquarium-hud {
+        z-index: 2005;
+        background: rgba(5, 10, 20, 0.5);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    #exitZenBtn:hover {
-        background: white;
-        color: #0f172a;
-        transform: scale(1.02);
+
+    .aquarium-viewport {
+        position: relative;
+        flex-grow: 1;
+        width: 100%;
+        overflow: hidden;
+        z-index: 2001;
     }
-    
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .timer-display {
-            font-size: 2.8rem;
-            letter-spacing: 2px;
-            padding: 12px;
+
+    .aquarium-water-glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 30%, rgba(13, 202, 240, 0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .aquarium-light-rays {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 70%;
+        background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.03) 30%, rgba(255, 255, 255, 0.05) 35%, transparent 45%, transparent 60%, rgba(255, 255, 255, 0.04) 70%, transparent 80%);
+        pointer-events: none;
+        animation: raySweep 12s ease-in-out infinite alternate;
+    }
+
+    @@keyframes raySweep {
+        0% { transform: scaleX(0.9) translateX(-10%); opacity: 0.8; }
+        100% { transform: scaleX(1.1) translateX(10%); opacity: 1; }
+    }
+
+    .aquarium-seabed {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 120px;
+        z-index: 2002;
+        pointer-events: none;
+    }
+
+    .seabed-sand {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 25px;
+        background: linear-gradient(to top, #14283c 0%, #0d1e2d 100%);
+        border-top: 2px solid rgba(255, 255, 255, 0.05);
+        border-radius: 100% 100% 0 0 / 12px 12px 0 0;
+    }
+
+    .seabed-seaweed {
+        position: absolute;
+        bottom: 12px;
+        left: 0;
+        right: 0;
+        height: 110px;
+    }
+
+    .aquarium-seaweed-svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .aquarium-sidebar {
+        position: absolute;
+        right: 0;
+        top: 73px;
+        bottom: 0;
+        width: 280px;
+        z-index: 2004;
+        backdrop-filter: blur(15px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Swimming creatures logic */
+    .aquarium-creatures-container {
+        position: absolute;
+        inset: 0;
+        z-index: 2003;
+    }
+
+    .aquarium-creature {
+        position: absolute;
+        pointer-events: auto;
+        user-select: none;
+    }
+
+    /* Coral and static ship positions */
+    .aquarium-creature.creature-coral {
+        width: 60px;
+        height: 60px;
+        transform-origin: bottom center;
+        animation: coralSway 5s ease-in-out infinite alternate;
+    }
+
+    .aquarium-creature.creature-ship {
+        width: 80px;
+        height: 80px;
+        transform-origin: bottom center;
+        animation: shipSway 6s ease-in-out infinite alternate;
+    }
+
+    @@keyframes coralSway {
+        0% { transform: skewX(-2deg) scale(var(--creature-scale, 1)); }
+        100% { transform: skewX(2deg) scale(var(--creature-scale, 1)); }
+    }
+
+    @@keyframes shipSway {
+        0% { transform: rotate(-1deg) scale(var(--creature-scale, 1)); }
+        100% { transform: rotate(1deg) scale(var(--creature-scale, 1)); }
+    }
+
+    /* Swim Animations for active species */
+    .swim-right {
+        animation: swimRightAnim linear infinite, floatVertical 5s ease-in-out infinite alternate;
+    }
+
+    .swim-left {
+        animation: swimLeftAnim linear infinite, floatVertical 5s ease-in-out infinite alternate;
+    }
+
+    /* Octopus / Jellyfish pulse */
+    .creature-octopus.swim-right, .creature-octopus.swim-left {
+        animation-name: swimRightAnim, octopusPulse;
+        animation-duration: 35s, 6s;
+    }
+    .creature-octopus.swim-left {
+        animation-name: swimLeftAnim, octopusPulse;
+    }
+
+    @@keyframes octopusPulse {
+        0% { transform: translateY(0) scale(var(--creature-scale, 1)); }
+        50% { transform: translateY(-20px) scale(calc(var(--creature-scale, 1) * 0.95)) scaleX(1.05); }
+        100% { transform: translateY(0) scale(var(--creature-scale, 1)); }
+    }
+
+    .creature-clownfish { width: 50px; height: 35px; }
+    .creature-octopus { width: 55px; height: 55px; }
+    .creature-turtle { width: 60px; height: 48px; }
+    .creature-whale { width: 110px; height: 60px; }
+
+    /* Float vertical offset so they bob while swimming */
+    @@keyframes floatVertical {
+        0% { margin-top: -15px; }
+        100% { margin-top: 15px; }
+    }
+
+    /* Swim Right Animation */
+    @@keyframes swimRightAnim {
+        0% {
+            left: -150px;
+            transform: scaleX(1) scale(var(--creature-scale, 1));
         }
-        .timer-controls .btn {
-            min-width: 100px;
-            padding: 8px 16px;
-            font-size: 0.9rem;
+        48% {
+            left: calc(100% - 250px);
+            transform: scaleX(1) scale(var(--creature-scale, 1));
         }
-        .theme-bar {
-            gap: 6px;
-            padding: 6px 12px;
-            top: 12px;
+        50% {
+            left: calc(100% - 250px);
+            transform: scaleX(-1) scale(var(--creature-scale, 1));
         }
-        .theme-btn {
-            font-size: 0.7rem;
-            padding: 4px 10px;
+        98% {
+            left: -150px;
+            transform: scaleX(-1) scale(var(--creature-scale, 1));
         }
-        .zen-goal-title {
-            font-size: 1.5rem;
-        }
-        .zen-container {
-            width: 95%;
-            padding: 1rem;
+        100% {
+            left: -150px;
+            transform: scaleX(1) scale(var(--creature-scale, 1));
         }
     }
-    
-    /* Custom scrollbar for tasks */
+
+    /* Swim Left Animation */
+    @@keyframes swimLeftAnim {
+        0% {
+            right: -150px;
+            transform: scaleX(-1) scale(var(--creature-scale, 1));
+        }
+        48% {
+            right: calc(100% - 250px);
+            transform: scaleX(-1) scale(var(--creature-scale, 1));
+        }
+        50% {
+            right: calc(100% - 250px);
+            transform: scaleX(1) scale(var(--creature-scale, 1));
+        }
+        98% {
+            right: -150px;
+            transform: scaleX(1) scale(var(--creature-scale, 1));
+        }
+        100% {
+            right: -150px;
+            transform: scaleX(-1) scale(var(--creature-scale, 1));
+        }
+    }
+
+    /* Glow animation for SweetAlert popup success */
+    .glow-animation-container {
+        animation: glowPulse 2s ease-in-out infinite;
+        filter: drop-shadow(0 0 10px #0dcaf0);
+    }
+
+    @@keyframes glowPulse {
+        0% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(13, 202, 240, 0.6)); }
+        50% { transform: scale(1.1); filter: drop-shadow(0 0 20px rgba(13, 202, 240, 1)); }
+        100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(13, 202, 240, 0.6)); }
+    }
+
+    /* Scrollbar */
     .task-list-selection::-webkit-scrollbar {
         width: 6px;
     }
     .task-list-selection::-webkit-scrollbar-track {
-        background: #f1f5f9;
+        background: rgba(255, 255, 255, 0.05);
         border-radius: 10px;
     }
     .task-list-selection::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: rgba(255, 255, 255, 0.2);
         border-radius: 10px;
+    }
+
+    /* Diving transition screen styles */
+    .dive-transition {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: radial-gradient(circle at center, #05162a 0%, #01040a 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+    .dive-transition.show {
+        opacity: 1;
+    }
+    .water-splash {
+        position: relative;
+        display: inline-block;
+    }
+    .splash-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 60px;
+        border: 2px solid #0dcaf0;
+        border-radius: 50%;
+        opacity: 0;
+        animation: splashRingAnim 2.2s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+    }
+    .splash-ring.delay-1 { animation-delay: 0.7s; }
+    .splash-ring.delay-2 { animation-delay: 1.4s; }
+
+    @@keyframes splashRingAnim {
+        0% { width: 60px; height: 60px; opacity: 0.8; }
+        100% { width: 220px; height: 220px; opacity: 0; }
+    }
+
+    /* Hover Micro-interactions */
+    .animate-hover-scale {
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .animate-hover-scale:hover {
+        transform: scale(1.05);
+    }
+
+    /* Responsive scaling */
+    @@media (max-width: 991px) {
+        .aquarium-sidebar {
+            position: relative;
+            top: 0;
+            width: 100%;
+            border-left: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            height: auto;
+        }
+        .aquarium-overlay {
+            overflow-y: auto;
+        }
+        .aquarium-viewport {
+            height: 60vh;
+            flex-grow: 0;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .timer-circle-container {
+            width: 220px;
+            height: 220px;
+        }
+        .timer-ring-svg {
+            width: 220px;
+            height: 220px;
+        }
+        .timer-ring-bg, .timer-ring-progress {
+            cx: 110;
+            cy: 110;
+            r: 95;
+        }
+        .creature-zen-display {
+            width: 70px;
+            height: 70px;
+        }
+        .timer-display {
+            font-size: 2.2rem;
+        }
     }
 </style>
