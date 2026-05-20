@@ -79,7 +79,7 @@
   <data name="Today's Schedule" xml:space="preserve">
     <value>Lịch trình hôm nay</value>
   </data>
-  <data name="AddEvent" xml:space="preserve">
+  <data name="Add Event" xml:space="preserve">
     <value>Thêm sự kiện</value>
   </data>
   <data name="No Events Today" xml:space="preserve">
@@ -177,5 +177,95 @@
   </data>
   <data name="Delete" xml:space="preserve">
     <value>Xóa</value>
+  </data>
+  <data name="Set up detailed parameters for your new task" xml:space="preserve">
+    <value>Thiết lập các thông số chi tiết cho nhiệm vụ mới của bạn</value>
+  </data>
+  <data name="e.g. Redesign Q3 Website" xml:space="preserve">
+    <value>vd: Thiết kế lại Website Q3</value>
+  </data>
+  <data name="Brief description of this task goal..." xml:space="preserve">
+    <value>Mô tả ngắn gọn mục tiêu của nhiệm vụ này...</value>
+  </data>
+  <data name="Please enter a task title." xml:space="preserve">
+    <value>Vui lòng nhập tiêu đề nhiệm vụ.</value>
+  </data>
+  <data name="End date must be after start date." xml:space="preserve">
+    <value>Ngày kết thúc phải sau ngày bắt đầu.</value>
+  </data>
+  <data name="Task created successfully!" xml:space="preserve">
+    <value>Tạo nhiệm vụ thành công!</value>
+  </data>
+  <data name="Failed to create task." xml:space="preserve">
+    <value>Không thể tạo nhiệm vụ.</value>
+  </data>
+  <data name="An error occurred while creating the task. Please try again." xml:space="preserve">
+    <value>Đã xảy ra lỗi khi tạo nhiệm vụ. Vui lòng thử lại.</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Tiêu đề</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Mô tả</value>
+  </data>
+  <data name="Project" xml:space="preserve">
+    <value>Dự án</value>
+  </data>
+  <data name="Assignee" xml:space="preserve">
+    <value>Người thực hiện</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Đang tải</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Lỗi</value>
+  </data>
+  <data name="Success" xml:space="preserve">
+    <value>Thành công</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Bắt đầu</value>
+  </data>
+  <data name="End" xml:space="preserve">
+    <value>Kết thúc</value>
+  </data>
+  <data name="Priority" xml:space="preserve">
+    <value>Độ ưu tiên</value>
+  </data>
+  <data name="Low" xml:space="preserve">
+    <value>Thấp</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Trạng thái</value>
+  </data>
+  <data name="Todo" xml:space="preserve">
+    <value>Cần làm</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>Kiểm thử</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Hủy</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Tạo mới</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Cấp độ</value>
+  </data>
+  <data name="Pts" xml:space="preserve">
+    <value>Điểm</value>
+  </data>
+  <data name="Streak" xml:space="preserve">
+    <value>Chuỗi ngày</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>Ngày</value>
+  </data>
+  <data name="Focus" xml:space="preserve">
+    <value>Tập trung</value>
+  </data>
+  <data name="StartFocus" xml:space="preserve">
+    <value>Bắt đầu tập trung</value>
   </data>
 </root>

@@ -293,18 +293,18 @@
         
         <!-- Gamification Stats -->
         <div class="d-flex gap-3">
-            <div class="glass-card px-3 py-2 d-flex align-items-center gap-2">
+            <div class="glass-card px-3 py-2 d-flex align-items-center gap-2 shadow-sm border border-light">
                 <i class="fas fa-star text-warning"></i>
                 <div>
                     <div class="small text-muted" style="line-height: 1;">@Localizer["Level"] @Model.Level</div>
-                    <div class="fw-bold" style="line-height: 1.2;">@Model.Points <span class="fw-normal small">Pts</span></div>
+                    <div class="fw-bold" style="line-height: 1.2;">@Model.Points <span class="fw-normal small text-muted">@Localizer["Pts"]</span></div>
                 </div>
             </div>
-            <div class="glass-card px-3 py-2 d-flex align-items-center gap-2">
+            <div class="glass-card px-3 py-2 d-flex align-items-center gap-2 shadow-sm border border-light">
                 <i class="fas fa-fire text-danger"></i>
                 <div>
                     <div class="small text-muted" style="line-height: 1;">@Localizer["Streak"]</div>
-                    <div class="fw-bold" style="line-height: 1.2;">@Model.CurrentStreak <span class="fw-normal small">Days</span></div>
+                    <div class="fw-bold" style="line-height: 1.2;">@Model.CurrentStreak <span class="fw-normal small text-muted">@Localizer["Days"]</span></div>
                 </div>
             </div>
         </div>
@@ -321,7 +321,7 @@
                         <h5 class="fw-bold m-0" style="color: var(--dark);">@Localizer["Today's Schedule"]</h5>
                     </div>
                     <a asp-controller="Calendar" asp-action="Index" class="btn btn-outline-modern btn-sm rounded-pill px-3">
-                        <i class="fas fa-plus me-1"></i>@Localizer["AddEvent"]
+                        <i class="fas fa-plus me-1"></i> @Localizer["Add Event"]
                     </a>
                 </div>
                 <div class="p-4 pt-3 flex-grow-1">
@@ -371,15 +371,20 @@
                     {
                         @foreach (var task in Model.InProgressFocusTasks)
                         {
-                            <div class="task-modern mb-2 p-3 border rounded" style="background: var(--body-bg);">
-                                <div class="d-flex gap-3 align-items-center">
-                                    <input type="checkbox" class="task-checkbox" data-id="@task.Id">
-                                    <div>
-                                        <div class="fw-semibold small" style="color: var(--dark);">@task.Title</div>
-                                        <div class="small text-muted mt-1" style="font-size: 0.75rem;">
-                                            <i class="far fa-clock me-1"></i>@task.DueDate.ToString("d", new System.Globalization.CultureInfo(langCode == "vi" ? "vi-VN" : "en-US"))
+                            <div class="task-modern mb-2 p-3 border rounded transition-all hover-lift" style="background: var(--body-bg);">
+                                <div class="d-flex gap-3 align-items-center justify-content-between">
+                                    <div class="d-flex gap-3 align-items-center">
+                                        <input type="checkbox" class="task-checkbox" data-id="@task.Id">
+                                        <div>
+                                            <div class="fw-semibold small" style="color: var(--dark);">@task.Title</div>
+                                            <div class="small text-muted mt-1" style="font-size: 0.75rem;">
+                                                <i class="far fa-clock me-1"></i>@task.DueDate.ToString("d", new System.Globalization.CultureInfo(langCode == "vi" ? "vi-VN" : "en-US"))
+                                            </div>
                                         </div>
                                     </div>
+                                    <button class="btn btn-sm btn-link text-primary p-0 btn-focus-task" data-title="@task.Title" title="@Localizer["StartFocus"]">
+                                        <i class="fas fa-play-circle fa-lg"></i>
+                                    </button>
                                 </div>
                             </div>
                         }
@@ -399,10 +404,10 @@
                 <h6 class="fw-bold mb-3" style="color: var(--dark);">@Localizer["Quick Actions"]</h6>
                 <div class="d-flex flex-column gap-2">
                     <button type="button" class="btn btn-primary-modern w-100 text-start" data-bs-toggle="modal" data-bs-target="#createTaskModal">
-                        <i class="fas fa-plus-circle me-2"></i>@Localizer["Add Task"]
+                        <i class="fas fa-plus-circle me-2"></i> @Localizer["Add Task"]
                     </button>
                     <a asp-controller="Calendar" asp-action="Index" class="btn btn-outline-modern w-100 text-start">
-                        <i class="fas fa-calendar-alt me-2"></i>@Localizer["Calendar"]
+                        <i class="fas fa-calendar-alt me-2"></i> @Localizer["Calendar"]
                     </a>
                 </div>
             </div>
@@ -436,7 +441,7 @@
                     </div>
                     <div>
                         <h4 class="mb-0 fw-bold">@Localizer["Create New Task"]</h4>
-                        <p class="opacity-75 small mb-0">Thiết lập các thông số chi tiết cho nhiệm vụ mới của bạn</p>
+                        <p class="opacity-75 small mb-0">@Localizer["Set up detailed parameters for your new task"]</p>
                     </div>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -450,7 +455,7 @@
                         <label for="taskTitle" class="task-modal-label">
                             <i class="fas fa-tag text-primary"></i> @Localizer["Title"] <span class="text-danger">*</span>
                         </label>
-                        <input type="text" id="taskTitle" name="Title" class="form-control task-modal-input" placeholder="vd: Thiết kế lại Website Q3" required />
+                        <input type="text" id="taskTitle" name="Title" class="form-control task-modal-input" placeholder="@Localizer["e.g. Redesign Q3 Website"]" required />
                     </div>
 
                     <!-- Description -->
@@ -458,7 +463,7 @@
                         <label for="taskDesc" class="task-modal-label">
                             <i class="fas fa-align-left text-primary"></i> @Localizer["Description"]
                         </label>
-                        <textarea id="taskDesc" name="Description" class="form-control task-modal-input" rows="3" placeholder="Mô tả ngắn gọn mục tiêu của nhiệm vụ này..."></textarea>
+                        <textarea id="taskDesc" name="Description" class="form-control task-modal-input" rows="3" placeholder="@Localizer["Brief description of this task goal..."]"></textarea>
                     </div>
 
                     <!-- Project Selection & Assignee -->
@@ -562,6 +567,17 @@
                             else console.error('Failed to complete task');
                         })
                         .catch(err => console.error(err));
+                }
+            });
+        });
+
+        // Focus Task Start Button handler
+        document.querySelectorAll('.btn-focus-task').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const title = this.dataset.title;
+                if (window.startFocusOnTask) {
+                    window.startFocusOnTask(title);
                 }
             });
         });
