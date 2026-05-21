@@ -69,7 +69,26 @@ namespace DACS_TimeManagement.Services
 
         public async Task<UserProfile?> GetUserProfileGamificationAsync(string userId)
         {
-            return await _context.UserProfiles.FirstOrDefaultAsync(u => u.UserId == userId);
+            var profile = await _context.UserProfiles.FirstOrDefaultAsync(u => u.UserId == userId);
+            if (profile == null && !string.IsNullOrEmpty(userId))
+            {
+                var user = await _context.Users.FindAsync(userId);
+                if (user != null)
+                {
+                    return new UserProfile
+                    {
+                        UserId = userId,
+                        Email = user.Email,
+                        FullName = user.UserName,
+                        Points = 0,
+                        Level = 1,
+                        CurrentStreak = 0,
+                        HighestStreak = 0,
+                        JoinDate = DateTime.UtcNow
+                    };
+                }
+            }
+            return profile;
         }
 
         public async Task<List<UserProfile>> GetProjectLeaderboardAsync(int projectId)
@@ -86,11 +105,48 @@ namespace DACS_TimeManagement.Services
                 projectMembers.Add(project.UserId);
             }
 
-            return await _context.UserProfiles
+            var profiles = await _context.UserProfiles
                 .Where(u => projectMembers.Contains(u.UserId))
+                .ToListAsync();
+
+            var users = await _context.Users
+                .Where(u => projectMembers.Contains(u.Id))
+                .ToListAsync();
+
+            var result = new List<UserProfile>();
+            foreach (var userId in projectMembers)
+            {
+                var profile = profiles.FirstOrDefault(p => p.UserId == userId);
+                if (profile == null)
+                {
+                    var user = users.FirstOrDefault(u => u.Id == userId);
+                    if (user != null)
+                    {
+                        // Create a default profile in memory for leaderboard display
+                        profile = new UserProfile
+                        {
+                            UserId = userId,
+                            Email = user.Email,
+                            FullName = user.UserName, // Using UserName as fallback
+                            Points = 0,
+                            Level = 1,
+                            CurrentStreak = 0,
+                            HighestStreak = 0,
+                            JoinDate = DateTime.UtcNow
+                        };
+                    }
+                }
+                
+                if (profile != null)
+                {
+                    result.Add(profile);
+                }
+            }
+
+            return result
                 .OrderByDescending(u => u.Points)
                 .ThenByDescending(u => u.CurrentStreak)
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<List<UserProfile>> GetGlobalLeaderboardAsync(int limit = 10)

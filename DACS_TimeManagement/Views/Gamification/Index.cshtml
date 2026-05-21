@@ -17,51 +17,101 @@
 }
 
 <style>
-    /* Stats Card Premium (Left Widget) */
-    .stats-card {
-        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Premium Gamification Styles */
+    :root {
+        --lb-bg: #ffffff;
+        --lb-surface: #f8fafc;
+        --lb-border: #e2e8f0;
+        --lb-text: #0d1224;
+        --lb-text-muted: #64748b;
+        --lb-hover: #f1f5f9;
+        
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: rgba(255, 255, 255, 0.8);
+    }
+
+    body.theme-dark {
+        --lb-bg: #0d1224;
+        --lb-surface: #161b30;
+        --lb-border: rgba(255,255,255,0.08);
+        --lb-text: #f1f5f9;
+        --lb-text-muted: #94a3b8;
+        --lb-hover: rgba(255,255,255,0.03);
+        
+        --glass-bg: rgba(22, 27, 48, 0.9);
+        --glass-border: rgba(255, 255, 255, 0.05);
+    }
+
+    .gamification-container {
+        /* Reduced top margin to shorten gap to title */
+        margin-top: -10px; 
+    }
+
+    /* Premium Stats Card */
+    .premium-stats-card {
+        background: linear-gradient(145deg, var(--lb-surface), var(--lb-bg));
+        border: 1px solid var(--lb-border);
         border-radius: 24px;
         position: relative;
         overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    }
+    
+    body.theme-dark .premium-stats-card {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
-    .stats-card:hover {
+    .premium-stats-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 20px 30px rgba(49, 46, 129, 0.25);
     }
 
-    .stats-card::before {
-        content: '';
-        position: absolute;
-        top: -30%;
-        right: -20%;
-        width: 200px;
-        height: 200px;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.3) 0%, rgba(168, 85, 247, 0) 70%);
-        border-radius: 50%;
-        pointer-events: none;
+    /* Abstract Shapes */
+    .abstract-shape-1 {
+        position: absolute; top: -50px; right: -50px; width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%);
+        border-radius: 50%; pointer-events: none;
+    }
+    .abstract-shape-2 {
+        position: absolute; bottom: -50px; left: -50px; width: 180px; height: 180px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, rgba(168, 85, 247, 0) 70%);
+        border-radius: 50%; pointer-events: none;
     }
 
-    .stats-card::after {
-        content: '';
-        position: absolute;
-        bottom: -20%;
-        left: -10%;
-        width: 180px;
-        height: 180px;
-        background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, rgba(99, 102, 241, 0) 70%);
-        border-radius: 50%;
-        pointer-events: none;
+    /* Stat Box Mini */
+    .stat-box-mini {
+        background: var(--lb-bg);
+        border: 1px solid var(--lb-border);
+        border-radius: 16px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.2s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
+    .stat-box-mini:hover {
+        border-color: rgba(99, 102, 241, 0.5);
+        transform: translateY(-2px);
+    }
+    .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--lb-text); line-height: 1.2; }
+    .stat-lbl { font-size: 0.75rem; font-weight: 600; color: var(--lb-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-    /* Table Premium for Leaderboard */
+    /* Leaderboard Table Glass */
+    .glass-leaderboard {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    body.theme-dark .glass-leaderboard { box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+
     .table-leaderboard {
         border-collapse: separate;
-        border-spacing: 0 8px;
+        border-spacing: 0 6px;
+        margin-bottom: 0;
     }
-
     .table-leaderboard thead th {
         border: none;
         background: transparent;
@@ -69,261 +119,217 @@
         font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: var(--gray-500);
-        padding: 12px 16px;
+        color: var(--lb-text-muted);
+        padding: 1rem 1.5rem;
     }
-
     .table-leaderboard tbody tr {
         transition: all 0.2s ease;
     }
-
     .table-leaderboard tbody td {
         border: none;
-        padding: 14px 16px;
+        padding: 1rem 1.5rem;
         vertical-align: middle;
-        background: var(--gray-100);
-        border-top: 1px solid var(--gray-300);
-        border-bottom: 1px solid var(--gray-300);
-        color: var(--gray-800);
+        background: var(--lb-surface);
+        border-top: 1px solid var(--lb-border);
+        border-bottom: 1px solid var(--lb-border);
+        color: var(--lb-text);
+        font-weight: 500;
     }
-
     .table-leaderboard tbody td:first-child {
-        border-left: 1px solid var(--gray-300);
-        border-top-left-radius: 12px;
-        border-bottom-left-radius: 12px;
+        border-left: 1px solid var(--lb-border);
+        border-top-left-radius: 16px;
+        border-bottom-left-radius: 16px;
     }
-
     .table-leaderboard tbody td:last-child {
-        border-right: 1px solid var(--gray-300);
-        border-top-right-radius: 12px;
-        border-bottom-right-radius: 12px;
+        border-right: 1px solid var(--lb-border);
+        border-top-right-radius: 16px;
+        border-bottom-right-radius: 16px;
     }
-
     .table-leaderboard tbody tr:hover td {
-        background: var(--gray-200);
+        background: var(--lb-hover);
     }
 
-    /* Rank Badges */
-    .rank-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 38px;
-        height: 38px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        border-radius: 50%;
-        background: var(--gray-300);
-        color: var(--gray-800);
-    }
-
-    .rank-gold {
-        background: linear-gradient(135deg, #ffd700, #ffb347);
-        color: white !important;
-        box-shadow: 0 4px 10px rgba(255, 179, 71, 0.3);
-    }
-
-    .rank-silver {
-        background: linear-gradient(135deg, #cbd5e1, #94a3b8);
-        color: #0d1224 !important;
-        box-shadow: 0 4px 10px rgba(148, 163, 184, 0.2);
-    }
-
-    .rank-bronze {
-        background: linear-gradient(135deg, #d97706, #b45309);
-        color: white !important;
-        box-shadow: 0 4px 10px rgba(180, 83, 9, 0.3);
-    }
-
-    /* Level Badge */
-    .level-badge {
-        background: linear-gradient(135deg, #6366f1, #4f46e5);
-        color: white !important;
-        font-weight: 700;
-        padding: 5px 12px;
-        border-radius: 40px;
-        font-size: 0.75rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        box-shadow: 0 2px 6px rgba(99,102,241,0.25);
-    }
-
-    /* Dropdown Filter Select */
-    .filter-select {
-        background-color: var(--gray-100) !important;
-        border: 1px solid var(--gray-300) !important;
-        border-radius: 30px;
-        padding: 8px 24px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--gray-800) !important;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        appearance: none;
-        -webkit-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 16px center;
-        padding-right: 40px !important;
-    }
-
-    .filter-select:hover, .filter-select:focus {
-        border-color: var(--primary) !important;
-        box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
-        outline: none;
-    }
-
-    /* Streak Fire Badge */
-    .streak-fire {
-        background: rgba(249, 115, 22, 0.1) !important;
-        padding: 5px 12px;
-        border-radius: 40px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        color: #f97316 !important;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    /* Current User Highlight Row */
+    /* Current User Highlight */
     .current-user-row td {
-        background: rgba(99, 102, 241, 0.08) !important;
+        background: rgba(99, 102, 241, 0.06) !important;
         border-top: 1px solid rgba(99, 102, 241, 0.3) !important;
         border-bottom: 1px solid rgba(99, 102, 241, 0.3) !important;
     }
-
     .current-user-row td:first-child {
-        border-left: 3px solid #6366f1 !important;
+        border-left: 4px solid #6366f1 !important;
     }
-
     .current-user-row td:last-child {
         border-right: 1px solid rgba(99, 102, 241, 0.3) !important;
     }
 
-    /* User Avatar */
+    /* Filter Select Modern */
+    .filter-select {
+        background-color: var(--lb-surface) !important;
+        border: 1px solid var(--lb-border) !important;
+        border-radius: 30px;
+        padding: 8px 32px 8px 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--lb-text) !important;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236366f1' class='bi bi-chevron-down' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+    }
+    .filter-select:focus {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2) !important;
+        outline: none;
+    }
+
+    /* Badges */
+    .rank-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 40px; height: 40px; font-weight: 800; font-size: 1rem;
+        border-radius: 12px; background: var(--lb-bg); color: var(--lb-text);
+        border: 1px solid var(--lb-border);
+    }
+    .rank-gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: white; border: none; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3); }
+    .rank-silver { background: linear-gradient(135deg, #cbd5e1, #64748b); color: white; border: none; box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3); }
+    .rank-bronze { background: linear-gradient(135deg, #d97706, #92400e); color: white; border: none; box-shadow: 0 4px 12px rgba(146, 64, 14, 0.3); }
+
+    .level-badge {
+        background: linear-gradient(135deg, #818cf8, #6366f1);
+        color: white; font-weight: 700; padding: 6px 14px;
+        border-radius: 30px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;
+        box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+    }
+    .streak-fire {
+        background: rgba(249, 115, 22, 0.1); padding: 6px 14px;
+        border-radius: 30px; font-size: 0.85rem; font-weight: 800;
+        color: #f97316; display: inline-flex; align-items: center; gap: 6px;
+    }
+
     .user-avatar {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, #6366f1, #a855f7);
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: white !important;
-        font-weight: 700;
-        margin-right: 12px;
-        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2);
+        width: 42px; height: 42px; background: linear-gradient(135deg, #6366f1, #a855f7);
+        border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+        color: white; font-weight: 800; margin-right: 14px; flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); border: 2px solid var(--lb-bg);
     }
 </style>
 
-<div class="container-fluid pt-0 pb-4" data-aos="fade-up">
-    <!-- Header -->
-    <div class="d-flex justify-content-end align-items-center mb-2 flex-wrap gap-3">
-        <form method="get" class="d-flex">
-            <select name="projectId" class="form-select filter-select" onchange="this.form.submit()">
-                <option value="">@Localizer["Global Ranking"]</option>
-                @if (projects != null)
-                {
-                    foreach (var proj in projects)
-                    {
-                        if (selectedProjectId != null && selectedProjectId == proj.Id)
-                        {
-                            <option value="@proj.Id" selected>📁 @proj.Name</option>
-                        }
-                        else
-                        {
-                            <option value="@proj.Id">📁 @proj.Name</option>
-                        }
-                    }
-                }
-            </select>
-        </form>
-    </div>
+<div class="gamification-container" data-aos="fade-up">
+    <!-- Header Controls Removed -->
 
     <div class="row g-4">
-        <!-- My Stats Card (Left Side) -->
+        <!-- My Profile Widget -->
         <div class="col-lg-4 col-md-12">
-            <div class="stats-card text-white p-4 h-100 shadow-lg d-flex flex-column justify-content-between">
-                <div>
-                    <div class="d-flex justify-content-between align-items-start mb-4">
-                        <div>
-                            <h6 class="fw-semibold mb-1 text-white-50"><i class="fas fa-chart-line me-2"></i> @Localizer["My Performance"]</h6>
-                            <h3 class="fw-bold mb-0 text-white">@(userProfile?.FullName ?? (userProfile?.Email ?? "Guest"))</h3>
-                        </div>
-                        <div class="bg-white bg-opacity-20 rounded-3 p-2">
-                            <i class="fas fa-gamepad fs-4 text-white"></i>
-                        </div>
-                    </div>
-
+            <div class="premium-stats-card p-4 h-100">
+                <div class="abstract-shape-1"></div>
+                <div class="abstract-shape-2"></div>
+                
+                <div class="position-relative z-1">
                     @if (userProfile != null)
                     {
-                        <div class="row g-3">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="user-avatar overflow-hidden" style="width: 56px; height: 56px; font-size: 1.5rem;">
+                                @if (!string.IsNullOrEmpty(userProfile.AvatarUrl))
+                                {
+                                    <img src="@userProfile.AvatarUrl" alt="Avatar" class="w-100 h-100 object-fit-cover" />
+                                }
+                                else
+                                {
+                                    @(userProfile.FullName?.Substring(0,1).ToUpper() ?? (userProfile.Email?.Substring(0,1).ToUpper() ?? "U"))
+                                }
+                            </div>
+                            <div class="text-truncate">
+                                <div class="fw-bold fs-5 text-truncate" style="color: var(--lb-text);">@(userProfile.FullName ?? userProfile.Email)</div>
+                                <div class="level-badge mt-1"><i class="fas fa-star"></i> Level @userProfile.Level</div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
                             <div class="col-6">
-                                <div class="bg-white bg-opacity-10 rounded-4 p-3 text-center border border-white border-opacity-10">
-                                    <div class="fs-2 fw-bold text-white">@userProfile.Points</div>
-                                    <div class="small text-white-50">@Localizer["Total XP"]</div>
+                                <div class="stat-box-mini">
+                                    <div class="stat-val text-primary">@userProfile.Points</div>
+                                    <div class="stat-lbl">@Localizer["Total XP"]</div>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="bg-white bg-opacity-10 rounded-4 p-3 text-center border border-white border-opacity-10">
-                                    <div class="fs-2 fw-bold text-white">@userProfile.Level</div>
-                                    <div class="small text-white-50">@Localizer["Level"]</div>
+                                <div class="stat-box-mini">
+                                    <div class="stat-val text-warning">#@(userRank > 0 ? userRank.ToString() : "—")</div>
+                                    <div class="stat-lbl">@Localizer["Global Rank"]</div>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="bg-white bg-opacity-10 rounded-4 p-3 text-center border border-white border-opacity-10">
-                                    <div class="fs-4 fw-bold text-white"><i class="fas fa-fire text-warning me-1"></i> @userProfile.CurrentStreak</div>
-                                    <div class="small text-white-50">@Localizer["Current Streak"]</div>
+                                <div class="stat-box-mini">
+                                    <div class="stat-val" style="color: #f97316;"><i class="fas fa-fire me-1"></i>@userProfile.CurrentStreak</div>
+                                    <div class="stat-lbl">@Localizer["Current Streak"]</div>
                                 </div>
                             </div>
                             <div class="col-6">
-                                <div class="bg-white bg-opacity-10 rounded-4 p-3 text-center border border-white border-opacity-10">
-                                    <div class="fs-4 fw-bold text-white"><i class="fas fa-trophy text-warning me-1"></i> @userProfile.HighestStreak</div>
-                                    <div class="small text-white-50">@Localizer["Best Streak"]</div>
+                                <div class="stat-box-mini">
+                                    <div class="stat-val text-success"><i class="fas fa-trophy me-1"></i>@userProfile.HighestStreak</div>
+                                    <div class="stat-lbl">@Localizer["Best Streak"]</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded-4" style="background: rgba(99, 102, 241, 0.08); border: 1px dashed rgba(99, 102, 241, 0.3);">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="fs-2 text-primary opacity-50"><i class="fas fa-medal"></i></div>
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color: var(--lb-text);">@Localizer["Keep Climbing!"]</h6>
+                                    <p class="small mb-0" style="color: var(--lb-text-muted);">@Localizer["Complete tasks consistently to earn more points and level up."]</p>
                                 </div>
                             </div>
                         </div>
                     }
                     else
                     {
-                        <div class="alert alert-light bg-white bg-opacity-10 border-0 text-white mt-3 text-center">
-                            <i class="fas fa-sign-in-alt me-2 text-white"></i> @Localizer["Login to see your stats"]
+                        <div class="alert alert-info border-0 mt-3 d-flex align-items-center">
+                            <i class="fas fa-info-circle me-3 fs-4"></i>
+                            <div>@Localizer["Login to see your stats"]</div>
                         </div>
                     }
                 </div>
-
-                @if (userProfile != null)
-                {
-                    <div class="mt-4 pt-3 border-top border-white-20">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-white-50"><i class="fas fa-ranking-star me-2"></i> @Localizer["Global Rank"]</span>
-                            <span class="fw-bold fs-5 bg-white bg-opacity-20 px-3 py-1 rounded-3 text-white">#@(userRank > 0 ? userRank.ToString() : "—")</span>
-                        </div>
-                        @if (Model != null)
-                        {
-                            <div class="small text-white-50 mt-2">
-                                <i class="fas fa-users me-1 text-white-50"></i> @Localizer["out of"] @Model.Count @Localizer["active participants"]
-                            </div>
-                        }
-                    </div>
-                }
             </div>
         </div>
 
-        <!-- Leaderboard Table (Right Side) -->
+        <!-- Leaderboard Table -->
         <div class="col-lg-8 col-md-12">
-            <div class="glass-card p-4">
-                <div class="table-responsive">
-                    <table class="table table-leaderboard mb-0">
-                        <thead>
+            <div class="glass-leaderboard p-3 p-md-4">
+                <!-- Leaderboard Filter inside the card -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 d-none d-sm-block" style="color: var(--lb-text);">@Localizer["Rankings"]</h5>
+                    <form method="get" class="d-flex ms-auto">
+                        <select name="projectId" class="form-select filter-select" onchange="this.form.submit()">
+                            <option value="">🌍 @Localizer["Global Ranking"]</option>
+                            @if (projects != null)
+                            {
+                                foreach (var proj in projects)
+                                {
+                                    if (selectedProjectId != null && selectedProjectId == proj.Id)
+                                    {
+                                        <option value="@proj.Id" selected>📁 @proj.Name</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@proj.Id">📁 @proj.Name</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </form>
+                </div>
+                
+                <div class="table-responsive pb-2">
+                    <table class="table table-leaderboard">
+                        <thead class="text-nowrap">
                             <tr>
-                                <th scope="col"># @Localizer["Rank"]</th>
-                                <th scope="col">@Localizer["User"]</th>
-                                <th scope="col">@Localizer["Level"]</th>
-                                <th scope="col">@Localizer["Points"]</th>
-                                <th scope="col">@Localizer["Streak"]</th>
+                                <th scope="col" class="text-center" style="width: 1%;">@Localizer["Rank"]</th>
+                                <th scope="col" class="w-100">@Localizer["User"]</th>
+                                <th scope="col" class="text-center" style="width: 1%;">@Localizer["Level"]</th>
+                                <th scope="col" class="text-end" style="width: 1%;">@Localizer["Points"]</th>
+                                <th scope="col" class="text-center" style="width: 1%;">@Localizer["Streak"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -334,54 +340,52 @@
                                 {
                                     bool isCurrentUser = (userProfile != null && user.UserId == userProfile.UserId);
                                     <tr class="@(isCurrentUser ? "current-user-row" : "")">
-                                        <td>
-                                            @if (rank == 1)
-                                            {
-                                                <div class="rank-badge rank-gold">
-                                                    <i class="fas fa-crown text-white"></i>
-                                                </div>
-                                            }
-                                            else if (rank == 2)
-                                            {
-                                                <div class="rank-badge rank-silver">
-                                                    <i class="fas fa-medal text-dark"></i>
-                                                </div>
-                                            }
-                                            else if (rank == 3)
-                                            {
-                                                <div class="rank-badge rank-bronze">
-                                                    <i class="fas fa-medal text-white"></i>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="rank-badge">@rank</div>
-                                            }
+                                        <td class="text-center">
+                                            @if (rank == 1) { <div class="rank-badge rank-gold"><i class="fas fa-crown"></i></div> }
+                                            else if (rank == 2) { <div class="rank-badge rank-silver"><i class="fas fa-medal"></i></div> }
+                                            else if (rank == 3) { <div class="rank-badge rank-bronze"><i class="fas fa-medal"></i></div> }
+                                            else { <div class="rank-badge">@rank</div> }
                                         </td>
-                                        <td>
+                                        <td class="text-nowrap">
                                             <div class="d-flex align-items-center">
-                                                <div class="user-avatar">
-                                                    @(string.IsNullOrEmpty(user.FullName) ? (user.Email?.Substring(0,1).ToUpper() ?? "U") : user.FullName.Substring(0,1).ToUpper())
+                                                <div class="user-avatar overflow-hidden">
+                                                    @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                                                    {
+                                                        <img src="@user.AvatarUrl" alt="Avatar" class="w-100 h-100 object-fit-cover" />
+                                                    }
+                                                    else
+                                                    {
+                                                        @(string.IsNullOrEmpty(user.FullName) ? (user.Email?.Substring(0,1).ToUpper() ?? "U") : user.FullName.Substring(0,1).ToUpper())
+                                                    }
                                                 </div>
-                                                <div class="fw-semibold" style="color: var(--gray-800);">
-                                                    @(string.IsNullOrEmpty(user.FullName) ? (user.Email ?? "User") : user.FullName)
+                                                <div class="text-truncate">
+                                                    <div class="fw-bold text-truncate" style="color: var(--lb-text);">
+                                                        @(string.IsNullOrEmpty(user.FullName) ? (user.Email ?? "User") : user.FullName)
+                                                    </div>
                                                     @if (isCurrentUser)
                                                     {
-                                                        <span class="badge bg-primary bg-opacity-10 text-primary ms-2 rounded-pill" style="font-size: 0.7rem;">@Localizer["You"]</span>
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill mt-1" style="font-size: 0.65rem;">@Localizer["You"]</span>
                                                     }
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
-                                            <div class="level-badge">
-                                                <i class="fas fa-rocket text-white"></i> Lv @user.Level
+                                        <td class="text-center">
+                                            <span class="fw-bold text-primary">@user.Level</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="fw-black fs-5" style="color: #10b981; font-weight: 800;">
+                                                @user.Points <span style="font-size: 0.7rem; color: var(--lb-text-muted); font-weight: 600;">XP</span>
                                             </div>
                                         </td>
-                                        <td class="fw-bold text-success fs-6">@user.Points <span class="text-muted fw-normal" style="font-size: 0.8rem;">xp</span></td>
-                                        <td>
-                                            <div class="streak-fire">
-                                                <i class="fas fa-fire"></i> @user.CurrentStreak
-                                            </div>
+                                        <td class="text-center">
+                                            @if (user.CurrentStreak >= 3)
+                                            {
+                                                <div class="streak-fire"><i class="fas fa-fire"></i> @user.CurrentStreak</div>
+                                            }
+                                            else
+                                            {
+                                                <div class="fw-bold" style="color: var(--lb-text-muted);">@user.CurrentStreak</div>
+                                            }
                                         </td>
                                     </tr>
                                     rank++;
@@ -391,10 +395,12 @@
                             {
                                 <tr>
                                     <td colspan="5" class="text-center py-5">
-                                        <div class="d-flex flex-column align-items-center gap-2">
-                                            <i class="fas fa-chart-simple fs-1 text-muted"></i>
-                                            <span class="text-muted fw-medium">@Localizer["No leaderboard data available"]</span>
-                                            <small class="text-muted">@Localizer["Start tracking time to appear here"]</small>
+                                        <div class="d-flex flex-column align-items-center gap-3">
+                                            <div class="p-4 rounded-circle" style="background: var(--lb-surface);">
+                                                <i class="fas fa-ghost fs-1" style="color: var(--lb-text-muted);"></i>
+                                            </div>
+                                            <h5 class="fw-bold" style="color: var(--lb-text);">@Localizer["No Data"]</h5>
+                                            <p style="color: var(--lb-text-muted);">@Localizer["Start tracking time to appear here"]</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -402,13 +408,6 @@
                         </tbody>
                     </table>
                 </div>
-
-                @if (Model != null && Model.Any() && userProfile != null && userRank > 10)
-                {
-                    <div class="mt-3 text-center text-muted small border-top pt-3" style="border-color: var(--gray-300) !important;">
-                        <i class="fas fa-arrow-down me-1"></i> @Localizer["Your current rank is"] #@userRank . @Localizer["Keep working to climb up!"]
-                    </div>
-                }
             </div>
         </div>
     </div>

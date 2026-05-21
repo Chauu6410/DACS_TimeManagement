@@ -95,7 +95,7 @@
     <value>Bảng xếp hạng thời gian thực dựa trên điểm tích lũy &amp; hoạt động</value>
   </data>
   <data name="Global Ranking" xml:space="preserve">
-    <value>🌍 Xếp hạng toàn cầu</value>
+    <value>Xếp hạng toàn cầu</value>
   </data>
   <data name="Rank" xml:space="preserve">
     <value>Hạng</value>
@@ -123,5 +123,14 @@
   </data>
   <data name="Keep working to climb up!" xml:space="preserve">
     <value>Hãy tiếp tục cố gắng để thăng hạng nhé!</value>
+  </data>
+  <data name="Rankings" xml:space="preserve">
+    <value>Xếp hạng</value>
+  </data>
+  <data name="Keep Climbing!" xml:space="preserve">
+    <value>Tiếp tục thăng hạng!</value>
+  </data>
+  <data name="Complete tasks consistently to earn more points and level up." xml:space="preserve">
+    <value>Hoàn thành nhiệm vụ đều đặn để kiếm thêm điểm và thăng cấp.</value>
   </data>
 </root>
