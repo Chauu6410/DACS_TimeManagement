@@ -337,7 +337,7 @@
         <button class="btn-close" onclick="document.getElementById('todoSidebar').style.display='none'"></button>
     </div>
     <div class="todo-sidebar-body">
-        <input type="date" id="todoDateFilter" class="filter-date-input" />
+        <input type="text" id="todoDateFilter" class="filter-date-input" />
         <div class="action-buttons-row">
             <button id="openSetTaskFromSidebarBtn" class="btn-set-task"><i class="fas fa-plus me-1"></i> @Localizer["SetTask"]</button>
             <button id="openAutoPlanModalBtn" class="btn-auto-plan"><i class="fas fa-magic me-1"></i> @Localizer["AutoPlan"]</button>
@@ -508,6 +508,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
     
     <script>
         let calendar, currentUserId = '@currentUserId';
@@ -623,7 +626,7 @@
                                 <div class="scheduled-time"><i class="far fa-clock"></i> ${escapeHtml(t.start)} - ${escapeHtml(t.end)}</div>
                                 <div class="scheduled-title">${escapeHtml(t.title)}</div>
                             </div>
-                            <button class="delete-scheduled-btn" onclick="deleteScheduledEvent(${t.id})"><i class="fas fa-trash-alt"></i></button>
+                            <button class="delete-scheduled-btn" onclick="${t.isGeneric ? 'deleteGenericEvent' : 'deleteScheduledEvent'}(${t.id})"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </div>`).join('');
             } catch(e) { console.error(e); }
@@ -1002,8 +1005,15 @@
                 // Sidebar setup
                 const dateFilter = document.getElementById('todoDateFilter');
                 if(dateFilter) {
-                    dateFilter.value = new Date().toISOString().slice(0,10);
-                    dateFilter.addEventListener('change', loadScheduledTasksByDate);
+                    const isVi = '@System.Globalization.CultureInfo.CurrentCulture.Name'.startsWith('vi');
+                    flatpickr(dateFilter, {
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: isVi ? "d/m/Y" : "m/d/Y",
+                        locale: isVi ? "vn" : "en",
+                        defaultDate: new Date(),
+                        onChange: loadScheduledTasksByDate
+                    });
                     loadScheduledTasksByDate();
                 }
                 const setTaskBtn = document.getElementById('openSetTaskFromSidebarBtn');

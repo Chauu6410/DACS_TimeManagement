@@ -282,27 +282,43 @@ namespace DACS_TimeManagement.Controllers
                 .Include(se => se.Task)!.ThenInclude(t => t.Project)
                 .Where(se => se.Task != null && (se.Task.AssigneeId == userId || (se.Task.UserId == userId && string.IsNullOrEmpty(se.Task.AssigneeId)))
                              && se.StartTime >= startOfDay && se.StartTime < endOfDay)
-                .OrderBy(se => se.StartTime)
                 .Select(se => new
                 {
                     id = se.Id,
                     title = (se.Task!.Project != null ? se.Task.Project.Name + " - " : "") + (se.Task.Title ?? "Unnamed Task"),
                     startDateTime = se.StartTime,
                     endDateTime = se.EndTime,
-                    color = se.Color ?? "#818cf8"
+                    color = se.Color ?? "#818cf8",
+                    isGeneric = false
                 })
                 .ToListAsync();
 
-            var scheduledEvents = scheduledEventsQuery.Select(se => new
-            {
-                id = se.id,
-                title = se.title,
-                start = se.startDateTime.ToString("HH:mm"),
-                end = se.endDateTime.ToString("HH:mm"),
-                color = se.color
-            });
+            var genericEventsQuery = await _context.CalendarEvents
+                .Where(e => e.UserId == userId && e.StartTime >= startOfDay && e.StartTime < endOfDay)
+                .Select(e => new
+                {
+                    id = e.Id,
+                    title = (e.IsImportant ? "⭐ " : "") + e.Subject,
+                    startDateTime = e.StartTime,
+                    endDateTime = e.EndTime,
+                    color = e.ThemeColor ?? (e.IsImportant ? "#fb923c" : "#60a5fa"),
+                    isGeneric = true
+                })
+                .ToListAsync();
 
-            return Ok(scheduledEvents);
+            var allEvents = scheduledEventsQuery.Concat(genericEventsQuery)
+                .OrderBy(e => e.startDateTime)
+                .Select(e => new
+                {
+                    id = e.id,
+                    title = e.title,
+                    start = e.startDateTime.ToString("HH:mm"),
+                    end = e.endDateTime.ToString("HH:mm"),
+                    color = e.color,
+                    isGeneric = e.isGeneric
+                });
+
+            return Ok(allEvents);
         }
 
         // POST: Calendar/CreateScheduledEvent - Tạo scheduled event từ Task
