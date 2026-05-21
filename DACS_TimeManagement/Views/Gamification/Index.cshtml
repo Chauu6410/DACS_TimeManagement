@@ -321,15 +321,15 @@
                     </form>
                 </div>
                 
-                <div class="table-responsive pb-2">
-                    <table class="table table-leaderboard">
+                <div class="pb-2">
+                    <table class="table table-leaderboard" style="table-layout: fixed; width: 100%;">
                         <thead class="text-nowrap">
                             <tr>
-                                <th scope="col" class="text-center" style="width: 1%;">@Localizer["Rank"]</th>
-                                <th scope="col" class="w-100">@Localizer["User"]</th>
-                                <th scope="col" class="text-center" style="width: 1%;">@Localizer["Level"]</th>
-                                <th scope="col" class="text-end" style="width: 1%;">@Localizer["Points"]</th>
-                                <th scope="col" class="text-center" style="width: 1%;">@Localizer["Streak"]</th>
+                                <th scope="col" class="text-center" style="width: 10%;">@Localizer["Rank"]</th>
+                                <th scope="col" class="text-start" style="width: 45%;">@Localizer["User"]</th>
+                                <th scope="col" class="text-center" style="width: 15%;">@Localizer["Level"]</th>
+                                <th scope="col" class="text-end" style="width: 15%;">@Localizer["Points"]</th>
+                                <th scope="col" class="text-center" style="width: 15%;">@Localizer["Streak"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -340,7 +340,7 @@
                                 {
                                     bool isCurrentUser = (userProfile != null && user.UserId == userProfile.UserId);
                                     <tr class="@(isCurrentUser ? "current-user-row" : "")">
-                                        <td class="text-center">
+                                        <td class="text-center text-nowrap">
                                             @if (rank == 1) { <div class="rank-badge rank-gold"><i class="fas fa-crown"></i></div> }
                                             else if (rank == 2) { <div class="rank-badge rank-silver"><i class="fas fa-medal"></i></div> }
                                             else if (rank == 3) { <div class="rank-badge rank-bronze"><i class="fas fa-medal"></i></div> }
@@ -369,15 +369,15 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="text-center">
+                                        <td class="text-center text-nowrap">
                                             <span class="fw-bold text-primary">@user.Level</span>
                                         </td>
-                                        <td class="text-end">
+                                        <td class="text-end text-nowrap">
                                             <div class="fw-black fs-5" style="color: #10b981; font-weight: 800;">
                                                 @user.Points <span style="font-size: 0.7rem; color: var(--lb-text-muted); font-weight: 600;">XP</span>
                                             </div>
                                         </td>
-                                        <td class="text-center">
+                                        <td class="text-center text-nowrap">
                                             @if (user.CurrentStreak >= 3)
                                             {
                                                 <div class="streak-fire"><i class="fas fa-fire"></i> @user.CurrentStreak</div>
