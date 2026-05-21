@@ -58,9 +58,9 @@
 
 /* Dark Theme Variables */
 body.theme-dark {
-    --pastel-primary-bg: #3730a3;
-    --pastel-primary-text: #e0e7ff;
-    --pastel-primary-hover: #4f46e5;
+    --pastel-primary-bg: #7980ff;
+    --pastel-primary-text: #ffffff;
+    --pastel-primary-hover: #6366f1;
     --pastel-success-bg: #065f46;
     --pastel-success-text: #a7f3d0;
     --pastel-success-hover: #047857;
@@ -73,17 +73,17 @@ body.theme-dark {
     --pastel-info-bg: #0c4a6e;
     --pastel-info-text: #bae6fd;
     --pastel-info-hover: #075985;
-    --pastel-secondary-bg: #334155;
+    --pastel-secondary-bg: #161b30;
     --pastel-secondary-text: #cbd5e1;
-    --gray-100: #0f172a;
-    --gray-200: #1e293b;
-    --gray-300: #334155;
+    --gray-100: #0d1224; /* Deep Navy Background */
+    --gray-200: #161b30; /* Card Background */
+    --gray-300: rgba(255, 255, 255, 0.06); /* Thin borders */
     --gray-400: #475569;
     --gray-500: #64748b;
-    --gray-600: #94a3b8;
+    --gray-600: #94a3b8; /* Muted text */
     --gray-700: #cbd5e1;
-    --gray-800: #e2e8f0;
-    --gray-900: #f8fafc;
+    --gray-800: #e2e8f0; /* Text */
+    --gray-900: #ffffff; /* Bright Text */
 }
 
 /* --- 2. Base Styles --- */
@@ -151,7 +151,7 @@ input, select, textarea {
     font-weight: var(--fw-semibold);
     letter-spacing: 0.01em;
     transition: var(--transition-base);
-    border-radius: 8px;
+    border-radius: 12px;
     border: none;
 }
 
@@ -617,10 +617,187 @@ body.theme-dark .hover-lift:hover {
 
 body.theme-dark .modal-body label.form-label,
 body.theme-dark .modal-body label.form-check-label {
-    color: var(--gray-100) !important;
+    color: var(--text-dark, #f1f5f9) !important;
 }
 
 
 .modal-header .btn-close-white {
     filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* --- 11. Dark Mode Bootstrap Overrides --- */
+body.theme-dark .bg-white,
+body.theme-dark .bg-light,
+body.theme-dark .calendar-wrapper,
+body.theme-dark #calendar,
+body.theme-dark .todo-sidebar,
+body.theme-dark .work-schedule-sidebar,
+body.theme-dark .todo-sidebar-header,
+body.theme-dark .work-schedule-header,
+body.theme-dark .scheduled-item,
+body.theme-dark .info-card,
+body.theme-dark .empty-state-card,
+body.theme-dark .custom-radio-card label {
+    background-color: var(--card-bg, #161b30) !important;
+    color: var(--text-dark, #ffffff) !important;
+}
+
+/* Calendar & Schedule Dark Mode Specifics */
+body.theme-dark .fc {
+    --fc-border-color: var(--border-color, rgba(255, 255, 255, 0.06));
+    --fc-button-bg-color: var(--bg-light, #0d1224);
+    --fc-button-border-color: var(--border-color, rgba(255, 255, 255, 0.06));
+    --fc-button-hover-bg-color: var(--border-color, rgba(255, 255, 255, 0.06));
+    --fc-button-text-color: var(--text-dark, #ffffff);
+    --fc-page-bg-color: var(--card-bg, #161b30);
+    --fc-neutral-bg-color: var(--card-bg, #161b30);
+    --fc-list-event-hover-bg-color: var(--bg-light, #0d1224);
+}
+body.theme-dark .fc .fc-button-primary {
+    color: var(--text-dark, #f1f5f9);
+}
+body.theme-dark .fc-daygrid-day-number, 
+body.theme-dark .fc-col-header-cell-cushion {
+    color: var(--text-dark, #ffffff) !important;
+}
+body.theme-dark .quick-create-container {
+    background-color: var(--card-bg, #161b30) !important;
+    border-color: var(--border-color, rgba(255, 255, 255, 0.06)) !important;
+}
+body.theme-dark #quickCreateInput {
+    background: transparent;
+    color: var(--text-dark, #ffffff) !important;
+}
+body.theme-dark #quickCreateInput::placeholder {
+    color: var(--text-muted, #94a3b8) !important;
+}
+body.theme-dark .fc-theme-standard td, 
+body.theme-dark .fc-theme-standard th {
+    border-color: var(--border-color, rgba(255, 255, 255, 0.06)) !important;
+}
+
+/* Global Fixes for Inline Hardcoded White Backgrounds */
+body.theme-dark [style*="background: white"], 
+body.theme-dark [style*="background-color: white"],
+body.theme-dark [style*="background: #ffffff"],
+body.theme-dark [style*="background-color: #ffffff"],
+body.theme-dark [style*="background: #fff"],
+body.theme-dark [style*="background-color: #fff"] {
+    background-color: var(--card-bg, #161b30) !important;
+    color: var(--text-dark, #ffffff) !important;
+}
+
+
+body.theme-dark .text-dark {
+    color: var(--text-dark, #f1f5f9) !important;
+}
+
+body.theme-dark .text-muted {
+    color: var(--text-muted, #94a3b8) !important;
+}
+
+body.theme-dark .modal-content {
+    background-color: var(--card-bg, #161b30) !important;
+    color: var(--text-dark, #ffffff) !important;
+    border-color: var(--border-color, rgba(255, 255, 255, 0.06)) !important;
+    border-radius: 24px !important;
+    box-shadow: var(--shadow-lg) !important;
+}
+
+body.theme-dark .form-control,
+body.theme-dark .form-select,
+body.theme-dark .form-control:disabled,
+body.theme-dark .form-control[readonly] {
+    background-color: var(--bg-light, #0f172a) !important;
+    color: var(--text-dark, #f1f5f9) !important;
+    border-color: var(--border-color, #334155) !important;
+}
+
+body.theme-dark .form-control:focus,
+body.theme-dark .form-select:focus {
+    background-color: var(--bg-light, #0f172a) !important;
+    color: var(--text-dark, #f1f5f9) !important;
+    border-color: var(--primary, #818cf8) !important;
+    box-shadow: 0 0 0 0.25rem rgba(129, 140, 248, 0.25) !important;
+}
+
+body.theme-dark .form-control::placeholder {
+    color: var(--text-muted, #94a3b8) !important;
+}
+
+body.theme-dark .dropdown-menu {
+    background-color: var(--card-bg, #161b30) !important;
+    border-color: var(--border-color, rgba(255, 255, 255, 0.06)) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+body.theme-dark .dropdown-item {
+    color: var(--text-dark, #f1f5f9) !important;
+}
+
+body.theme-dark .dropdown-item:hover,
+body.theme-dark .dropdown-item:focus {
+    background-color: var(--bg-light, #0f172a) !important;
+    color: var(--primary, #818cf8) !important;
+}
+
+body.theme-dark .dropdown-header {
+    color: var(--text-muted, #94a3b8) !important;
+}
+
+body.theme-dark .dropdown-divider {
+    border-top-color: var(--border-color, #334155) !important;
+}
+
+body.theme-dark .table {
+    color: var(--text-dark, #f1f5f9) !important;
+}
+
+body.theme-dark .table td,
+body.theme-dark .table th {
+    border-color: var(--border-color, #334155) !important;
+}
+
+body.theme-dark .border,
+body.theme-dark .border-top,
+body.theme-dark .border-bottom,
+body.theme-dark .border-start,
+body.theme-dark .border-end {
+    border-color: var(--border-color, rgba(255, 255, 255, 0.06)) !important;
+}
+
+/* Fix text colors that blend into the dark background */
+body.theme-dark [style*="color: #161b30"],
+body.theme-dark [style*="color: #0d1224"],
+body.theme-dark [style*="color: #334155"],
+body.theme-dark [style*="color:#161b30"],
+body.theme-dark [style*="color:#0d1224"],
+body.theme-dark [style*="color:#334155"],
+body.theme-dark .text-pastel-dark,
+body.theme-dark .goal-title,
+body.theme-dark .scheduled-title,
+body.theme-dark .user-name {
+    color: var(--text-dark, #ffffff) !important;
+}
+
+body.theme-dark .text-muted,
+body.theme-dark .text-pastel-muted,
+body.theme-dark .user-role {
+    color: var(--text-muted, #94a3b8) !important;
+}
+
+body.theme-dark .table-pastel,
+body.theme-dark .bg-pastel-card {
+    background-color: var(--card-bg, #161b30) !important;
+}
+
+/* Fix dark text on specific elements that change background in dark mode */
+body.theme-dark .bg-pastel-secondary {
+    color: #ffffff !important;
+}
+
+/* Text dynamic input in task details */
+body.theme-dark .text-dynamic-input {
+    color: #ffffff !important;
 }

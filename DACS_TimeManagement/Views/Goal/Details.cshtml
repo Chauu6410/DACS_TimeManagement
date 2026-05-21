@@ -82,13 +82,38 @@
                             </button>
                         </div>
                         <div class="ai-strategy-content small text-dark" id="aiContent-@Model.Id">
-                            @if (!string.IsNullOrEmpty(Model.AIActionPlan))
+                            @{
+                                var isVi = langCode == "vi";
+                                var strategy = isVi ? Model.AIActionPlanVi : Model.AIActionPlanEn;
+                                if (string.IsNullOrEmpty(strategy) && !string.IsNullOrEmpty(Model.AIActionPlan))
+                                {
+                                    strategy = Model.AIActionPlan; // Fallback to legacy
+                                }
+                            }
+                            @if (!string.IsNullOrEmpty(strategy))
                             {
-                                @Html.Raw(Model.AIActionPlan.Replace("\n", "<br/>"))
+                                <div id="aiContainer" class="ai-response-container">
+                                    <div id="aiStreamOutput">@Html.Raw(strategy.Replace("\n", "<br/>"))</div>
+                                </div>
+                            }
+                            else if (!string.IsNullOrEmpty(Model.AIActionPlanVi) || !string.IsNullOrEmpty(Model.AIActionPlanEn))
+                            {
+                                @* Strategy exists in another language, translate automatically *@
+                                <div id="aiTranslationLoading" class="text-center py-4">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                    <span class="small text-muted">@Localizer["TranslatingStrategy"]...</span>
+                                </div>
+                                <div id="aiContainer" class="ai-response-container d-none">
+                                    <div id="aiStreamOutput"></div>
+                                </div>
                             }
                             else
                             {
-                                <span class="text-muted italic">@Localizer["NoStrategyGenerated"]</span>
+                                <div id="aiContainer" class="ai-response-container">
+                                    <div id="aiStreamOutput">
+                                        <span class="text-muted italic">@Localizer["NoStrategyGenerated"]</span>
+                                    </div>
+                                </div>
                             }
                         </div>
                     </div>
@@ -111,8 +136,8 @@
                                 <i class="fas fa-history"></i>
                             </div>
                             <div class="lh-1">
-                                <h4 class="fw-bold mb-0" style="color: #1e293b;">@Localizer["Time"]</h4>
-                                <h4 class="fw-bold mb-0" style="color: #1e293b;">@Localizer["History"]</h4>
+                                <h4 class="fw-bold mb-0" style="color: #161b30;">@Localizer["Time"]</h4>
+                                <h4 class="fw-bold mb-0" style="color: #161b30;">@Localizer["History"]</h4>
                             </div>
                         </div>
                         @{
@@ -360,10 +385,55 @@
             }
         }
 
+        async function autoTranslateGoalStrategy() {
+            const loading = document.getElementById('aiTranslationLoading');
+            const container = document.getElementById('aiContainer');
+            const output = document.getElementById('aiStreamOutput');
+            const langCode = '@(langCode)';
+
+            if (!loading) return; // Means strategy exists for current language or none at all
+
+            if (container) container.classList.add('translating');
+            loading.classList.remove('d-none');
+
+            try {
+                const response = await fetch('/api/ai/translate-strategy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ goalId: @Model.Id, targetLang: langCode })
+                });
+                
+                if (!response.ok) throw new Error("Translation request failed");
+                
+                const data = await response.json();
+                if (data.result) {
+                    if (typeof marked !== 'undefined') {
+                        output.innerHTML = marked.parse(data.result);
+                    } else {
+                        output.innerHTML = data.result.replace(/\n/g, "<br/>");
+                    }
+                    loading.classList.add('d-none');
+                    if (container) {
+                        container.classList.remove('d-none', 'translating');
+                    }
+                }
+            } catch (err) {
+                console.error("Translation error:", err);
+                if (container) container.classList.remove('translating');
+                loading.innerHTML = '<div class="alert alert-warning py-2 small"><i class="fas fa-language me-2"></i>' + @Html.Raw(Json.Serialize(Localizer["Error"].Value)) + '</div>';
+            }
+        }
+
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', function() {
             loadProgressChart();
             updateProgressDisplays();
+            
+            const viExists = @(string.IsNullOrEmpty(Model.AIActionPlanVi) ? "false" : "true");
+            const enExists = @(string.IsNullOrEmpty(Model.AIActionPlanEn) ? "false" : "true");
+            if (viExists || enExists) {
+                autoTranslateGoalStrategy();
+            }
 
             // AI Integration
             document.querySelectorAll('.regenerate-ai-btn').forEach(btn => {
@@ -589,7 +659,7 @@
     .btn-primary-custom:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3); color: white; }
     
     .btn-outline-custom { background: white; color: #475569; border: 1px solid #e2e8f0; padding: 10px 24px; border-radius: 50px; font-weight: 600; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; justify-content: center; }
-    .btn-outline-custom:hover { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
+    .btn-outline-custom:hover { background: #f8fafc; border-color: #cbd5e1; color: #161b30; }
     
     .btn-danger-custom { background: #fee2e2; color: #dc2626; border: none; padding: 10px 24px; border-radius: 50px; font-weight: 600; transition: all 0.3s; width: 100%; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
     .btn-danger-custom:hover { background: #fecaca; }
@@ -671,4 +741,57 @@
     .status-badge.ontrack { background: #f0fdf4; color: #15803d; }
     
     @@media (max-width: 768px) { .sticky-top { position: relative; } }
+
+    /* --- Dark Mode Overrides for Goal Details --- */
+    body.theme-dark .glass {
+        background: var(--card-bg, #161b30) !important;
+        border-color: #334155 !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+    }
+    body.theme-dark .stat-mini {
+        background: var(--bg-light, #0d1224) !important;
+        border-color: #334155 !important;
+    }
+    body.theme-dark .progress-bar-large {
+        background: var(--bg-light, #0d1224) !important;
+    }
+    body.theme-dark .btn-outline-custom {
+        background: transparent !important;
+        color: var(--text-dark, #ffffff) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+    body.theme-dark .btn-outline-custom:hover {
+        background: rgba(255, 255, 255, 0.06) !important;
+    }
+    body.theme-dark .btn-danger-custom {
+        background: rgba(220, 38, 38, 0.15) !important;
+        color: #fca5a5 !important;
+    }
+    body.theme-dark .btn-danger-custom:hover {
+        background: rgba(220, 38, 38, 0.25) !important;
+    }
+    body.theme-dark .ai-response-content blockquote {
+        background: var(--bg-light, #0d1224) !important;
+        color: var(--text-muted, #94a3b8) !important;
+    }
+    body.theme-dark .ai-response-content code {
+        background: var(--bg-light, #0d1224) !important;
+        color: #fca5a5 !important;
+    }
+    body.theme-dark .badge-total-history {
+        background: rgba(99, 102, 241, 0.15) !important;
+        color: #a5b4fc !important;
+    }
+    body.theme-dark .timeline-item {
+        border-bottom-color: #334155 !important;
+    }
+    body.theme-dark .timeline-item:hover {
+        background: rgba(255, 255, 255, 0.03) !important;
+    }
+    body.theme-dark .status-badge.active { background: rgba(2, 132, 199, 0.2); color: #7dd3fc; }
+    body.theme-dark .status-badge.completed { background: rgba(22, 101, 52, 0.2); color: #86efac; }
+    body.theme-dark .status-badge.overdue { background: rgba(153, 27, 27, 0.2); color: #fca5a5; }
+    body.theme-dark .status-badge.behind { background: rgba(146, 64, 14, 0.2); color: #fde047; }
+    body.theme-dark .status-badge.ontrack { background: rgba(21, 128, 61, 0.2); color: #86efac; }
+    body.theme-dark .icon-box-history { color: #a5b4fc; }
 </style>

@@ -80,7 +80,7 @@
     }
 
     .text-gradient-pastel {
-        background: linear-gradient(135deg, var(--pastel-primary-dark, #818cf8), #c4b5fd);
+        background: linear-gradient(135deg, var(--pastel-primary-dark, #7980ff), #c4b5fd);
         background-clip: text;
         -webkit-background-clip: text;
         color: transparent;
@@ -98,10 +98,10 @@
         background: rgba(99, 102, 241, 0.12);
     }
     .text-pastel-primary {
-        color: var(--pastel-primary-dark, #818cf8);
+        color: var(--pastel-primary-dark, #7980ff);
     }
     .text-pastel-dark {
-        color: var(--pastel-dark, #1e293b);
+        color: var(--pastel-dark, #161b30);
     }
     .text-pastel-muted {
         color: var(--pastel-muted, #64748b);
@@ -111,7 +111,7 @@
     }
 
     .bg-gradient-pastel-primary {
-        background: linear-gradient(135deg, var(--pastel-primary, #a5b4fc), var(--pastel-primary-dark, #818cf8));
+        background: linear-gradient(135deg, var(--pastel-primary, #a5b4fc), var(--pastel-primary-dark, #7980ff));
     }
 
     .hover-lift {
@@ -126,13 +126,13 @@
     .form-control, .form-select {
         border: 1px solid var(--pastel-border, #e2e8f0);
         background-color: var(--pastel-card-bg, #ffffff);
-        color: var(--pastel-dark, #0f172a);
+        color: var(--pastel-dark, #0d1224);
         transition: all 0.2s ease;
         font-size: 0.95rem;
         padding: 0.7rem 1rem;
     }
     .form-control:focus, .form-select:focus {
-        border-color: var(--pastel-primary-dark, #818cf8);
+        border-color: var(--pastel-primary-dark, #7980ff);
         box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
         outline: none;
     }
@@ -150,13 +150,13 @@
     /* Buttons Pastel */
     .btn-pastel-primary {
         background: var(--pastel-primary, #a5b4fc);
-        color: #1e293b;
+        color: #161b30;
         border: none;
         transition: all 0.2s;
         font-weight: 500;
     }
     .btn-pastel-primary:hover {
-        background: var(--pastel-primary-dark, #818cf8);
+        background: var(--pastel-primary-dark, #7980ff);
         color: white;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
@@ -164,17 +164,17 @@
 
     /* Dark Mode Variables */
     body.theme-dark {
-        --pastel-primary: #818cf8;
+        --pastel-primary: #7980ff;
         --pastel-primary-dark: #6366f1;
-        --pastel-border: #334155;
-        --pastel-card-bg: #1e293b;
+        --pastel-border: rgba(255, 255, 255, 0.06);
+        --pastel-card-bg: #161b30;
         --pastel-dark: #f1f5f9;
         --pastel-muted: #94a3b8;
-        --pastel-soft: #0f172a;
+        --pastel-soft: #0d1224;
     }
     body.theme-dark .form-control,
     body.theme-dark .form-select {
-        background-color: #1e293b;
+        background-color: #161b30;
         border-color: #334155;
         color: #f1f5f9;
     }
@@ -182,7 +182,7 @@
         background: rgba(99, 102, 241, 0.2);
     }
     body.theme-dark .bg-pastel-soft {
-        background: #0f172a;
+        background: #0d1224;
     }
     body.theme-dark .btn-pastel-primary {
         background: #4f46e5;

@@ -38,7 +38,9 @@ namespace DACS_TimeManagement.Models
 
         // Link to Project (optional)
         public int? ProjectId { get; set; }
-        public string? AIActionPlan { get; set; }
+        public string? AIActionPlan { get; set; } // Legacy field
+        public string? AIActionPlanVi { get; set; }
+        public string? AIActionPlanEn { get; set; }
         public Project? Project { get; set; }
 
         public string UserId { get; set; }

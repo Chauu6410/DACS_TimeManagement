@@ -67,20 +67,20 @@
 
         /* Dark Theme */
         .theme-dark {
-            --primary: #818cf8;
+            --primary: #7980ff;
             --primary-dark: #6366f1;
-            --bg-light: #0f172a;
-            --sidebar-bg: #1e293b;
-            --topbar-bg: rgba(30,41,59,0.85);
-            --card-bg: #1e293b;
-            --text-dark: #f1f5f9;
+            --bg-light: #0d1224; /* Deep Navy Main Background */
+            --sidebar-bg: #161b30; /* Card/Component Background */
+            --topbar-bg: rgba(22, 27, 48, 0.85); /* Component BG with opacity */
+            --card-bg: #161b30;
+            --text-dark: #ffffff;
             --text-muted: #94a3b8;
-            --border-color: #334155;
-            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.3);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3);
-            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.4);
-            --pomodoro-gradient-start: #f97316;
-            --pomodoro-gradient-end: #ef4444;
+            --border-color: #334155; /* Thin subtle border */
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.3);
+            --pomodoro-gradient-start: #ff5733; /* Tomato accent */
+            --pomodoro-gradient-end: #ea580c;
         }
 
         * {
@@ -92,11 +92,12 @@
         body {
             font-family: 'Inter', sans-serif;
             font-size: var(--font-base);
-            background: linear-gradient(135deg, var(--bg-light) 0%, rgba(99,102,241,0.03) 100%);
+            background: var(--bg-light);
             color: var(--text-dark);
             overflow-x: hidden;
             height: 100vh;
             display: flex;
+            transition: background 0.2s;
         }
 
         /* Landing Page Mode: body không có flex đặc biệt, cuộn tự nhiên */
@@ -316,7 +317,7 @@
         .card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
+            border-radius: 24px; /* Bo góc lớn, mềm mại */
             box-shadow: var(--shadow-md);
             transition: var(--transition);
         }

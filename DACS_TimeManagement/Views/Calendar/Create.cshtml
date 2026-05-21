@@ -116,7 +116,7 @@
     }
 
     .bg-gradient-pastel-primary {
-        background: linear-gradient(135deg, var(--pastel-primary, #a5b4fc), var(--pastel-primary-dark, #818cf8));
+        background: linear-gradient(135deg, var(--pastel-primary, #a5b4fc), var(--pastel-primary-dark, #7980ff));
     }
 
     .icon-circle {
@@ -142,13 +142,13 @@
     .form-control, .form-select {
         border: 1px solid var(--pastel-border, #e2e8f0);
         background-color: var(--pastel-card-bg, #ffffff);
-        color: var(--pastel-dark, #0f172a);
+        color: var(--pastel-dark, #0d1224);
         transition: all 0.2s ease;
         font-size: 0.95rem;
         padding: 0.7rem 1rem;
     }
     .form-control:focus, .form-select:focus {
-        border-color: var(--pastel-primary-dark, #818cf8);
+        border-color: var(--pastel-primary-dark, #7980ff);
         box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
         outline: none;
     }
@@ -159,8 +159,8 @@
         color: var(--pastel-muted, #64748b);
     }
     .form-check-input:checked {
-        background-color: var(--pastel-primary-dark, #818cf8);
-        border-color: var(--pastel-primary-dark, #818cf8);
+        background-color: var(--pastel-primary-dark, #7980ff);
+        border-color: var(--pastel-primary-dark, #7980ff);
     }
 
     /* Alert pastel */
@@ -173,25 +173,25 @@
     /* Buttons pastel */
     .btn-pastel-primary {
         background: var(--pastel-primary, #a5b4fc);
-        color: #1e293b;
+        color: #161b30;
         border: none;
         transition: all 0.2s;
         font-weight: 500;
     }
     .btn-pastel-primary:hover {
-        background: var(--pastel-primary-dark, #818cf8);
+        background: var(--pastel-primary-dark, #7980ff);
         color: white;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
     }
     .btn-outline-pastel {
-        border: 1px solid var(--pastel-primary-dark, #818cf8);
-        color: var(--pastel-primary-dark, #818cf8);
+        border: 1px solid var(--pastel-primary-dark, #7980ff);
+        color: var(--pastel-primary-dark, #7980ff);
         background: transparent;
         transition: all 0.2s;
     }
     .btn-outline-pastel:hover {
-        background: var(--pastel-primary-dark, #818cf8);
+        background: var(--pastel-primary-dark, #7980ff);
         color: white;
     }
 
@@ -203,10 +203,10 @@
 
     /* Dark mode variables */
     body.theme-dark {
-        --pastel-primary: #818cf8;
+        --pastel-primary: #7980ff;
         --pastel-primary-dark: #6366f1;
-        --pastel-border: #334155;
-        --pastel-card-bg: #1e293b;
+        --pastel-border: rgba(255, 255, 255, 0.06);
+        --pastel-card-bg: #161b30;
         --pastel-dark: #f1f5f9;
         --pastel-muted: #94a3b8;
     }
@@ -221,12 +221,12 @@
         color: #fca5a5;
     }
     body.theme-dark .btn-outline-pastel {
-        border-color: #818cf8;
+        border-color: #7980ff;
         color: #a5b4fc;
     }
     body.theme-dark .btn-outline-pastel:hover {
-        background: #818cf8;
-        color: #1e293b;
+        background: #7980ff;
+        color: #161b30;
     }
     body.theme-dark .btn-pastel-primary {
         background: #4f46e5;

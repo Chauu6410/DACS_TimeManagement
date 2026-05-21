@@ -35,8 +35,7 @@ namespace DACS_TimeManagement.Controllers
             try
             {
                 var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var profile = await _db.Set<UserProfile>().AsNoTracking().FirstOrDefaultAsync(up => up.UserId == userId);
-                var lang = profile?.Language ?? System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName ?? "en";
+                var lang = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
                 var isVi = lang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
 
                 string context = isVi
@@ -125,8 +124,7 @@ Details: {request.Project?.Detail ?? "N/A"}
                 }
 
                 var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var profile = await _db.Set<UserProfile>().AsNoTracking().FirstOrDefaultAsync(up => up.UserId == userId, cancellationToken);
-                var lang = profile?.Language ?? System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName ?? "en";
+                var lang = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
                 var isVi = lang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
 
                 string context = isVi
@@ -160,7 +158,16 @@ Details: {request.Project?.Detail ?? "N/A"}
                 // Save to DB after successful stream
                 if (fullResult.Length > 0)
                 {
-                    goal.AIActionPlan = fullResult.ToString();
+                    if (isVi)
+                    {
+                        goal.AIActionPlanVi = fullResult.ToString();
+                        goal.AIActionPlanEn = null; // Clear stale English version to force re-translation
+                    }
+                    else
+                    {
+                        goal.AIActionPlanEn = fullResult.ToString();
+                        goal.AIActionPlanVi = null; // Clear stale Vietnamese version to force re-translation
+                    }
                     goal.UpdatedAt = DateTime.UtcNow;
                     await _db.SaveChangesAsync(cancellationToken);
                 }
@@ -192,8 +199,7 @@ Details: {request.Project?.Detail ?? "N/A"}
                 }
 
                 var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                var profile = await _db.Set<UserProfile>().AsNoTracking().FirstOrDefaultAsync(up => up.UserId == userId, cancellationToken);
-                var lang = profile?.Language ?? System.Threading.Thread.CurrentThread.CurrentUICulture.Name ?? "vi";
+                var lang = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
                 var isVi = lang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
 
                 string context = isVi
@@ -298,23 +304,49 @@ Format: Use professional Markdown. Answer in English.";
         {
             try
             {
-                var project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId);
-                if (project == null) return NotFound();
-
                 var isVi = request.TargetLang == "vi";
-                string sourceText = isVi ? project.AIStrategyEn : project.AIStrategyVi;
+                string sourceText = null;
+                Project project = null;
+                PersonalGoal goal = null;
+
+                if (request.ProjectId.HasValue)
+                {
+                    project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId);
+                    if (project == null) return NotFound();
+                    sourceText = isVi ? project.AIStrategyEn : project.AIStrategyVi;
+                }
+                else if (request.GoalId.HasValue)
+                {
+                    goal = await _db.Set<PersonalGoal>().FirstOrDefaultAsync(g => g.Id == request.GoalId);
+                    if (goal == null) return NotFound();
+                    sourceText = isVi ? goal.AIActionPlanEn : goal.AIActionPlanVi;
+                }
+                else
+                {
+                    return BadRequest("Must provide ProjectId or GoalId.");
+                }
+
                 if (string.IsNullOrEmpty(sourceText)) return BadRequest("No source strategy to translate.");
 
-                string context = "Bạn là một chuyên gia dịch thuật chuyên nghiệp, chuyên ngành Quản trị Dự án.";
-                string goal = isVi 
+                string context = "Bạn là một chuyên gia dịch thuật chuyên nghiệp, chuyên ngành Quản trị Dự án và Mục tiêu cá nhân.";
+                string promptGoal = isVi 
                     ? "Dịch bản kế hoạch chiến lược sau đây sang tiếng Việt. Giữ nguyên định dạng Markdown và các emoji. ĐẶC BIỆT: Trong khối mã json-tasks (nếu có), PHẢI giữ nguyên giá trị trường \"key\", chỉ dịch \"title\" và \"description\". KHÔNG thêm bất kỳ lời giải thích hay lưu ý nào về việc thiếu dữ liệu hoặc không thể thực hiện quy tắc."
                     : "Translate the following strategy plan into English. Maintain Markdown formatting and emojis. SPECIAL: In the json-tasks block (if any), MUST keep \"key\" values unchanged, only translate \"title\" and \"description\". DO NOT add any explanations or notes about missing data or inability to follow rules.";
                 
-                string prompt = _geminiService.BuildAdvancedPrompt(context, goal, sourceText);
+                string prompt = _geminiService.BuildAdvancedPrompt(context, promptGoal, sourceText);
                 string translatedText = await _geminiService.GenerateContent(prompt, 0.2, CancellationToken.None);
 
-                if (request.TargetLang == "vi") project.AIStrategyVi = translatedText;
-                else project.AIStrategyEn = translatedText;
+                if (project != null)
+                {
+                    if (isVi) project.AIStrategyVi = translatedText;
+                    else project.AIStrategyEn = translatedText;
+                }
+                else if (goal != null)
+                {
+                    if (isVi) goal.AIActionPlanVi = translatedText;
+                    else goal.AIActionPlanEn = translatedText;
+                    goal.UpdatedAt = DateTime.UtcNow;
+                }
 
                 await _db.SaveChangesAsync();
                 return Ok(new { result = translatedText });
@@ -403,7 +435,8 @@ Format: Use professional Markdown. Answer in English.";
 
     public class TranslateRequestDTO
     {
-        public int ProjectId { get; set; }
+        public int? ProjectId { get; set; }
+        public int? GoalId { get; set; }
         public string TargetLang { get; set; }
     }
 

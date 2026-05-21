@@ -462,7 +462,8 @@ namespace DACS_TimeManagement.Services
                 }
 
                 var profile = await _db.Set<UserProfile>().AsNoTracking().FirstOrDefaultAsync(up => up.UserId == userId);
-                var lang = profile?.Language ?? System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName ?? "en";
+                var currentUiCulture = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
+                var lang = currentUiCulture == "vi" || currentUiCulture == "en" ? currentUiCulture : (profile?.Language ?? "en");
                 bool isVi = lang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
 
                 string context = isVi ? "Bạn là một cố vấn chiến lược và chuyên gia hiệu suất." : "You are a strategic advisor and performance expert.";
@@ -553,7 +554,16 @@ Thông tin Dự án liên kết:
                         aiResponse = aiResponse.Substring(0, maxStoredLength - 1) + "…";
                 }
 
-                goal.AIActionPlan = aiResponse;
+                if (isVi)
+                {
+                    goal.AIActionPlanVi = aiResponse;
+                    goal.AIActionPlanEn = null;
+                }
+                else
+                {
+                    goal.AIActionPlanEn = aiResponse;
+                    goal.AIActionPlanVi = null;
+                }
                 goal.UpdatedAt = DateTime.UtcNow;
                 _db.PersonalGoals.Update(goal);
                 await _db.SaveChangesAsync();
@@ -564,7 +574,7 @@ Thông tin Dự án liên kết:
                     actionPlan = aiResponse
                 });
 
-                return goal.AIActionPlan;
+                return aiResponse;
             }
             catch (Exception ex)
             {

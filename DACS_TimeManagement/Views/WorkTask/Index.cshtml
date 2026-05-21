@@ -324,7 +324,7 @@
                 cancelButtonColor: '#64748b',
                 confirmButtonText: '<i class="fas fa-trash-alt me-1"></i> @Localizer["YesDelete"]',
                 cancelButtonText: '@Localizer["Cancel"]',
-                background: document.body.classList.contains('theme-dark') ? '#1e293b' : '#ffffff',
+                background: document.body.classList.contains('theme-dark') ? '#161b30' : '#ffffff',
                 color: document.body.classList.contains('theme-dark') ? '#f8fafc' : '#334155',
                 customClass: {
                     popup: 'rounded-4 shadow-xl border-0',
@@ -726,7 +726,7 @@
     /* ---------- PASTEL COLOR SYSTEM (giữ nguyên từ bản cũ + bổ sung) ---------- */
     :root {
         --pastel-primary: #a5b4fc;
-        --pastel-primary-dark: #818cf8;
+        --pastel-primary-dark: #7980ff;
         --pastel-primary-soft: #e0e7ff;
         --pastel-secondary: #c4b5fd;
         --pastel-secondary-soft: #ede9fe;
@@ -742,9 +742,9 @@
     }
 
     body.theme-dark {
-        --pastel-primary: #818cf8;
+        --pastel-primary: #7980ff;
         --pastel-primary-dark: #6366f1;
-        --pastel-primary-soft: #1e293b;
+        --pastel-primary-soft: #161b30;
         --pastel-secondary: #5b21b6;
         --pastel-secondary-soft: #2d2a4a;
         --pastel-success: #065f46;
@@ -753,9 +753,9 @@
         --pastel-info: #1e3a8a;
         --pastel-dark: #e2e8f0;
         --pastel-muted: #94a3b8;
-        --pastel-border: #334155;
-        --pastel-card-bg: #1e293b;
-        --pastel-column-bg: #0f172a;
+        --pastel-border: rgba(255, 255, 255, 0.06);
+        --pastel-card-bg: #161b30;
+        --pastel-column-bg: #0d1224;
     }
 
     .kanban-page {
@@ -792,7 +792,7 @@
     /* Buttons pastel */
     .btn-pastel-primary {
         background: var(--pastel-primary);
-        color: #1e293b;
+        color: #161b30;
         border: none;
         transition: all 0.2s;
         font-weight: 500;
@@ -846,7 +846,7 @@
     /* Badge pastel */
     .bg-pastel-secondary {
         background: var(--pastel-secondary);
-        color: #1e293b;
+        color: #161b30;
     }
     .pastel-danger {
         background: linear-gradient(135deg, var(--pastel-danger) 0%, #fecaca 100%);

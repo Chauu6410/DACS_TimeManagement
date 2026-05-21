@@ -31,8 +31,8 @@
         --fc-button-bg-color: #f1f5f9;
         --fc-button-border-color: #e2e8f0;
         --fc-button-hover-bg-color: #e2e8f0;
-        --fc-button-active-bg-color: #818cf8;
-        --fc-button-active-border-color: #818cf8;
+        --fc-button-active-bg-color: #7980ff;
+        --fc-button-active-border-color: #7980ff;
         --fc-today-bg-color: rgba(129, 140, 248, 0.08);
     }
     
@@ -110,7 +110,7 @@
     /* Tooltip tùy chỉnh đẹp */
     .custom-tooltip {
         position: fixed;
-        background: #1e293b;
+        background: #161b30;
         color: white;
         padding: 10px 14px;
         border-radius: 16px;
@@ -216,7 +216,7 @@
         border: none;
         color: white;
     }
-    .btn-set-task { background: linear-gradient(135deg, #818cf8, #a855f7); }
+    .btn-set-task { background: linear-gradient(135deg, #7980ff, #a855f7); }
     .btn-auto-plan { background: linear-gradient(135deg, #f59e0b, #ea580c); }
     .btn-set-task:hover, .btn-auto-plan:hover { transform: translateY(-2px); filter: brightness(1.05); }
     
@@ -244,13 +244,13 @@
     }
     .scheduled-item:hover { transform: translateX(-3px); background: #f8fafc; }
     .scheduled-time { font-size: 0.7rem; color: #64748b; margin-bottom: 4px; }
-    .scheduled-title { font-weight: 600; font-size: 0.85rem; color: #1e293b; }
+    .scheduled-title { font-weight: 600; font-size: 0.85rem; color: #161b30; }
     .delete-scheduled-btn { opacity: 0; transition: 0.2s; background: none; border: none; color: #ef4444; cursor: pointer; }
     .scheduled-item:hover .delete-scheduled-btn { opacity: 1; }
     
     /* Modal giữ nguyên */
     .modal-content { border-radius: 24px !important; border: none !important; }
-    .modal-header { background: linear-gradient(135deg, #818cf8, #a855f7); border-radius: 24px 24px 0 0 !important; padding: 16px 24px; }
+    .modal-header { background: linear-gradient(135deg, #7980ff, #a855f7); border-radius: 24px 24px 0 0 !important; padding: 16px 24px; }
     .modal-header .modal-title { color: white; font-weight: 600; }
     
     @@media (max-width: 768px) {
@@ -269,7 +269,7 @@
     }
     
     .color-swatch.selected {
-        border-color: #1e293b !important;
+        border-color: #161b30 !important;
         transform: scale(1.2);
         box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.4);
     }
@@ -309,9 +309,9 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">@Localizer["Color"]</label>
-                    <input type="hidden" id="eventColorSelect" value="#818cf8" />
+                    <input type="hidden" id="eventColorSelect" value="#7980ff" />
                     <div class="color-swatches d-flex gap-2 align-items-center">
-                        <button type="button" class="color-swatch" data-color="#818cf8" title="@Localizer["Purple"]" style="background:#818cf8"></button>
+                        <button type="button" class="color-swatch" data-color="#7980ff" title="@Localizer["Purple"]" style="background:#7980ff"></button>
                         <button type="button" class="color-swatch" data-color="#f472b6" title="@Localizer["Pink"]" style="background:#f472b6"></button>
                         <button type="button" class="color-swatch" data-color="#fb923c" title="@Localizer["Orange"]" style="background:#fb923c"></button>
                         <button type="button" class="color-swatch" data-color="#fbbf24" title="@Localizer["Yellow"]" style="background:#fbbf24"></button>
@@ -515,7 +515,7 @@
     <script>
         let calendar, currentUserId = '@currentUserId';
         let selectedTaskId = null, selectedTaskTitle = null, selectedTasks = [];
-        const pastelColors = ["#818cf8", "#c084fc", "#f472b6", "#fb923c", "#fbbf24", "#4ade80", "#2dd4bf", "#60a5fa"];
+        const pastelColors = ["#7980ff", "#c084fc", "#f472b6", "#fb923c", "#fbbf24", "#4ade80", "#2dd4bf", "#60a5fa"];
         
         function getRandomPastelColor() { 
             return pastelColors[Math.floor(Math.random() * pastelColors.length)]; 
@@ -662,7 +662,7 @@
         // Hiển thị chọn màu cho event (gọi từ eventClick)
         window.showColorPicker = async function(eventId, currentColor) {
             const colors = [
-                { val: '#818cf8', name: '@Localizer["Purple"]' }, { val: '#f472b6', name: '@Localizer["Pink"]' },
+                { val: '#7980ff', name: '@Localizer["Purple"]' }, { val: '#f472b6', name: '@Localizer["Pink"]' },
                 { val: '#fb923c', name: '@Localizer["Orange"]' }, { val: '#fbbf24', name: '@Localizer["Yellow"]' },
                 { val: '#4ade80', name: '@Localizer["Green"]' }, { val: '#2dd4bf', name: '@Localizer["Teal"]' },
                 { val: '#60a5fa', name: '@Localizer["Blue"]' }
