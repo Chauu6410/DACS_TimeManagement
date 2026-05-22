@@ -19,7 +19,7 @@
                 <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-primary"></i>
                 <input type="text" id="goalSearch" class="form-control search-input-premium ps-5 border-0" placeholder="@Localizer["SearchGoals"]">
             </div>
-            <button class="btn btn-light rounded-pill px-3 shadow-sm hover-lift text-primary" id="refreshBtn" title="@Localizer["RefreshData"]">
+            <button class="btn rounded-pill px-3 shadow-sm hover-lift btn-refresh-custom" id="refreshBtn" title="@Localizer["RefreshData"]">
                 <i class="fas fa-sync-alt"></i>
             </button>
             <button type="button" class="btn btn-gradient-primary rounded-pill px-4 shadow-sm fw-semibold hover-lift" data-bs-toggle="modal" data-bs-target="#createGoalModal">
@@ -772,6 +772,22 @@
         background: linear-gradient(145deg, #ffffff, #f8fafc);
         border: none;
         position: relative;
+    }
+    
+    .btn-refresh-custom {
+        background-color: #f8fafc;
+        color: #6366f1;
+        border: 1px solid #e2e8f0;
+    }
+    
+    body.theme-dark .toolbar-premium {
+        background: var(--card-bg, #1a1d2d);
+    }
+    
+    body.theme-dark .btn-refresh-custom {
+        background-color: rgba(99, 102, 241, 0.1);
+        color: #818cf8;
+        border: 1px solid rgba(99, 102, 241, 0.2);
     }
     .search-input-premium {
         border-radius: 50px;

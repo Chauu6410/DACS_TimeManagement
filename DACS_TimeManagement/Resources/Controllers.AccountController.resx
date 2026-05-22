@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="ProfileUpdated" xml:space="preserve"><value>Profile updated!</value></data>
+  <data name="PreferencesSaved" xml:space="preserve"><value>Preferences saved!</value></data>
+  <data name="InvalidImageFile" xml:space="preserve"><value>Please select a valid image file.</value></data>
+  <data name="AvatarUpdated" xml:space="preserve"><value>Avatar updated successfully!</value></data>
+</root>

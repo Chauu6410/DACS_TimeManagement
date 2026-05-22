@@ -69,7 +69,8 @@ namespace DACS_TimeManagement.Controllers
                     Title = t.Title,
                     IsCompleted = false,
                     Priority = t.Priority.ToString(),
-                    DueDate = t.EndDate
+                    DueDate = t.EndDate,
+                    ProjectId = t.ProjectId
                 }).ToList();
 
             // 2. Schedule Data

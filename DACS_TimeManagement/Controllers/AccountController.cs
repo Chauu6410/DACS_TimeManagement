@@ -4,6 +4,7 @@ using System.Security.Claims;
 using DACS_TimeManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using DACS_TimeManagement.Repositories;
+using Microsoft.Extensions.Localization;
 
 namespace DACS_TimeManagement.Controllers
 {
@@ -13,12 +14,14 @@ namespace DACS_TimeManagement.Controllers
         private readonly ApplicationDbContext _context;
         private readonly INotificationRepository _notifRepo;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IStringLocalizer<AccountController> _localizer;
 
-        public AccountController(ApplicationDbContext context, INotificationRepository notifRepo, IWebHostEnvironment webHostEnvironment)
+        public AccountController(ApplicationDbContext context, INotificationRepository notifRepo, IWebHostEnvironment webHostEnvironment, IStringLocalizer<AccountController> localizer)
         {
             _context = context;
             _notifRepo = notifRepo;
             _webHostEnvironment = webHostEnvironment;
+            _localizer = localizer;
         }
 
         // --- Settings Page ---
@@ -101,7 +104,7 @@ namespace DACS_TimeManagement.Controllers
                 existingProfile.Position = model.Position;
                 
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Profile updated!";
+                TempData["SuccessMessage"] = _localizer["ProfileUpdated"].Value;
             }
 
             return RedirectToAction(nameof(Profile));
@@ -134,7 +137,7 @@ namespace DACS_TimeManagement.Controllers
                     new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
                 );
 
-                TempData["SuccessMessage"] = "Preferences saved!";
+                TempData["SuccessMessage"] = _localizer["PreferencesSaved"].Value;
             }
 
             return RedirectToAction(nameof(Profile));
@@ -146,7 +149,7 @@ namespace DACS_TimeManagement.Controllers
         {
             if (avatarFile == null || avatarFile.Length == 0)
             {
-                TempData["ErrorMessage"] = "Please select a valid image file.";
+                TempData["ErrorMessage"] = _localizer["InvalidImageFile"].Value;
                 return RedirectToAction(nameof(Profile));
             }
 
@@ -169,7 +172,7 @@ namespace DACS_TimeManagement.Controllers
             profile.AvatarUrl = $"/uploads/avatars/{fileName}";
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Avatar updated successfully!";
+            TempData["SuccessMessage"] = _localizer["AvatarUpdated"].Value;
             return RedirectToAction(nameof(Profile));
         }
     }

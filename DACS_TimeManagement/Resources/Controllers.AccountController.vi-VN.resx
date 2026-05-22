@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="ProfileUpdated" xml:space="preserve"><value>Hồ sơ đã được cập nhật!</value></data>
+  <data name="PreferencesSaved" xml:space="preserve"><value>Tùy chọn đã được lưu!</value></data>
+  <data name="InvalidImageFile" xml:space="preserve"><value>Vui lòng chọn một tập tin hình ảnh hợp lệ.</value></data>
+  <data name="AvatarUpdated" xml:space="preserve"><value>Đã cập nhật ảnh đại diện!</value></data>
+</root>

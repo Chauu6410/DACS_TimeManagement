@@ -285,5 +285,76 @@ namespace DACS_TimeManagement.Controllers
                 .FirstOrDefaultAsync(p => p.Id == id);
             return View(project);
         }
+
+        // GET: Project/Focus/5
+        public async Task<IActionResult> Focus(int id)
+        {
+            var project = await _context.Projects
+                .Include(p => p.Tasks)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (project == null) return NotFound();
+            return View(project);
+        }
+
+        // POST: Project/RecordFocusSession
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RecordFocusSession(int projectId, int? taskId, int durationSeconds, string? note = null)
+        {
+            var project = await _context.Projects
+                .Include(p => p.Tasks)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
+            
+            if (project == null) 
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = false, message = "Project not found." });
+                return NotFound();
+            }
+
+            int hours = durationSeconds / 3600;
+            int minutes = (durationSeconds % 3600) / 60;
+            int seconds = durationSeconds % 60;
+            string durationStr = hours > 0 
+                ? $"{hours}h {minutes}m {seconds}s" 
+                : minutes > 0 
+                    ? $"{minutes}m {seconds}s" 
+                    : $"{seconds}s";
+            
+            string focusNote = $"🌊 Nox Ocean Focus [{durationStr}]" + (string.IsNullOrEmpty(note) ? "" : $" - {note}");
+
+            if (taskId.HasValue && taskId.Value > 0)
+            {
+                var task = await _context.WorkTasks.FirstOrDefaultAsync(t => t.Id == taskId.Value);
+                if (task == null)
+                {
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        return Json(new { success = false, message = "Task not found." });
+                    return NotFound();
+                }
+
+                var timeLog = new TimeLog
+                {
+                    WorkTaskId = task.Id,
+                    LogDate = DateTime.UtcNow,
+                    DurationHours = durationSeconds / 3600.0,
+                    Note = focusNote,
+                    IsFocusSession = true
+                };
+                _context.TimeLogs.Add(timeLog);
+                await _context.SaveChangesAsync();
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = true, isGoalUpdate = false });
+                
+                return RedirectToAction(nameof(Focus), new { id = projectId });
+            }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = false, message = "Please select a task to focus on." });
+                
+            return RedirectToAction(nameof(Focus), new { id = projectId });
+        }
     }
 }
