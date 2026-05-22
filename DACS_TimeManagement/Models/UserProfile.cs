@@ -34,5 +34,8 @@ namespace DACS_TimeManagement.Models
         public int HighestStreak { get; set; } = 0;
         public int Level { get; set; } = 1;
         public DateTime? LastTaskCompletedDate { get; set; }
+
+        // Two-Factor Authentication
+        public bool TwoFactorEnabled { get; set; } = false;
     }
 }

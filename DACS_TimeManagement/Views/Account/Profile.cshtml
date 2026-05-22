@@ -239,9 +239,34 @@
                                 <h5 class="fw-bold mb-1" style="color: var(--dark);">@Localizer["Two-Factor Authentication"]</h5>
                                 <p class="text-muted small mb-0">@Localizer["Two-Factor Description"]</p>
                             </div>
-                            <button class="btn btn-outline-modern px-4 py-2 rounded-pill" onclick="enable2FA()">
-                                <i class="fas fa-shield-alt me-2"></i>@Localizer["Enable 2FA"]
-                            </button>
+                            @if (Model.TwoFactorEnabled)
+                            {
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(34,197,94,0.15);color:#16a34a;font-size:0.8rem;">
+                                        <i class="fas fa-check-circle me-1"></i> Đang bật
+                                    </span>
+                                    <form asp-controller="Account" asp-action="Toggle2FA" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-modern px-4 py-2 rounded-pill">
+                                            <i class="fas fa-toggle-on me-2" style="color:#22c55e;"></i>Tắt 2FA
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(100,116,139,0.12);color:#64748b;font-size:0.8rem;">
+                                        <i class="fas fa-times-circle me-1"></i> Đang tắt
+                                    </span>
+                                    <form asp-controller="Account" asp-action="Toggle2FA" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-modern px-4 py-2 rounded-pill">
+                                            <i class="fas fa-shield-alt me-2"></i>Bật 2FA
+                                        </button>
+                                    </form>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -251,11 +276,6 @@
 </div>
 
 @section Scripts {
-    <script>
-        function enable2FA() {
-            alert('2FA setup feature coming soon!');
-        }
-    </script>
 }
 
 <style>

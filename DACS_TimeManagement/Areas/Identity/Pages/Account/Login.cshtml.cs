@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
@@ -14,17 +14,31 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using DACS_TimeManagement.Services.Interfaces;
+using DACS_TimeManagement.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace DACS_TimeManagement.Areas.Identity.Pages.Account
 {
     public class LoginModel : PageModel
     {
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly IOtpService _otpService;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<LoginModel> _logger;
 
-        public LoginModel(SignInManager<IdentityUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(
+            SignInManager<IdentityUser> signInManager,
+            UserManager<IdentityUser> userManager,
+            IOtpService otpService,
+            ApplicationDbContext context,
+            ILogger<LoginModel> logger)
         {
             _signInManager = signInManager;
+            _userManager = userManager;
+            _otpService = otpService;
+            _context = context;
             _logger = logger;
         }
 
@@ -114,6 +128,41 @@ namespace DACS_TimeManagement.Areas.Identity.Pages.Account
                 var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
+                    // Kiểm tra xem user có bật 2FA không
+                    var user = await _userManager.FindByEmailAsync(Input.Email);
+                    var profile = user != null
+                        ? await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id)
+                        : null;
+
+                    if (profile != null && profile.TwoFactorEnabled)
+                    {
+                        // Đăng xuất session vừa tạo, chờ xác thực OTP
+                        await _signInManager.SignOutAsync();
+
+                        // Lưu thông tin vào Session để dùng sau khi nhập OTP
+                        HttpContext.Session.SetString("2fa_userId", user.Id);
+                        HttpContext.Session.SetString("2fa_email", Input.Email);
+                        HttpContext.Session.SetString("2fa_returnUrl", returnUrl);
+                        HttpContext.Session.SetString("2fa_rememberMe", Input.RememberMe.ToString());
+
+                        // Gửi OTP qua email
+                        try
+                        {
+                            await _otpService.GenerateAndSendOtpAsync(user.Id, Input.Email);
+                            _logger.LogInformation("2FA OTP sent to {Email}", Input.Email);
+                            return RedirectToAction("VerifyOtp", "Otp");
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to send OTP to {Email}", Input.Email);
+                            // Đăng nhập luôn nếu không gửi được email (tránh bị khóa)
+                            await _signInManager.SignInAsync(user, Input.RememberMe);
+                            ModelState.AddModelError(string.Empty,
+                                "Không thể gửi mã OTP qua email. Vui lòng kiểm tra cấu hình SMTP hoặc tắt 2FA trong phần Hồ sơ.");
+                            return Page();
+                        }
+                    }
+
                     _logger.LogInformation("User logged in.");
                     return LocalRedirect(returnUrl);
                 }

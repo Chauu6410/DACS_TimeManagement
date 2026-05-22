@@ -175,5 +175,24 @@ namespace DACS_TimeManagement.Controllers
             TempData["SuccessMessage"] = _localizer["AvatarUpdated"].Value;
             return RedirectToAction(nameof(Profile));
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Toggle2FA()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var profile = await _context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (profile == null) return NotFound();
+
+            profile.TwoFactorEnabled = !profile.TwoFactorEnabled;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = profile.TwoFactorEnabled
+                ? _localizer["TwoFactorEnabled"].Value
+                : _localizer["TwoFactorDisabled"].Value;
+
+            // Redirect về tab Security
+            return RedirectToAction(nameof(Profile), null, "security");
+        }
     }
 }

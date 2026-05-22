@@ -1,8 +1,7 @@
-using System.Net;
-using System.Net.Mail;
 using DACS_TimeManagement.Services.Interfaces;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 
 namespace DACS_TimeManagement.Services
 {
@@ -19,42 +18,43 @@ namespace DACS_TimeManagement.Services
 
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            var smtpServer = _config["EmailSettings:SmtpServer"];
+            var smtpServer = _config["EmailSettings:SmtpServer"] ?? "smtp.gmail.com";
             var smtpPort = int.Parse(_config["EmailSettings:SmtpPort"] ?? "587");
             var smtpUser = _config["EmailSettings:SmtpUser"];
             var smtpPass = _config["EmailSettings:SmtpPass"];
-            var senderEmail = _config["EmailSettings:SenderEmail"];
-            var senderName = _config["EmailSettings:SenderName"];
+            var senderEmail = _config["EmailSettings:SenderEmail"] ?? smtpUser;
+            var senderName = _config["EmailSettings:SenderName"] ?? "Time Master";
 
             if (string.IsNullOrEmpty(smtpUser) || string.IsNullOrEmpty(smtpPass))
             {
-                _logger.LogWarning("SMTP credentials not configured. Email to {Email} skipped. Content: {Subject}", email, subject);
+                _logger.LogWarning("SMTP credentials not configured. Email to {Email} skipped.", email);
                 return;
             }
 
             try
             {
-                var client = new SmtpClient(smtpServer, smtpPort)
-                {
-                    Credentials = new NetworkCredential(smtpUser, smtpPass),
-                    EnableSsl = true
-                };
+                var message = new MimeMessage();
+                message.From.Add(new MailboxAddress(senderName, senderEmail));
+                message.To.Add(MailboxAddress.Parse(email));
+                message.Subject = subject;
 
-                var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(senderEmail, senderName),
-                    Subject = subject,
-                    Body = htmlMessage,
-                    IsBodyHtml = true
-                };
-                mailMessage.To.Add(email);
+                var bodyBuilder = new BodyBuilder { HtmlBody = htmlMessage };
+                message.Body = bodyBuilder.ToMessageBody();
 
-                await client.SendMailAsync(mailMessage);
+                using var client = new SmtpClient();
+
+                // Kết nối với STARTTLS (port 587) — tương thích tốt với Gmail
+                await client.ConnectAsync(smtpServer, smtpPort, SecureSocketOptions.StartTls);
+                await client.AuthenticateAsync(smtpUser, smtpPass);
+                await client.SendAsync(message);
+                await client.DisconnectAsync(true);
+
                 _logger.LogInformation("Email sent to {Email} successfully.", email);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send email to {Email}", email);
+                throw; // Re-throw để caller biết có lỗi
             }
         }
     }

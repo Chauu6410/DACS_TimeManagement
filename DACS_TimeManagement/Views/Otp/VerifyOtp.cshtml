@@ -1,0 +1,401 @@
+@{
+    ViewData["Title"] = "Xác thực hai yếu tố";
+    Layout = null; // Full-page layout riêng
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xác thực OTP - Time Master</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            padding: 20px;
+        }
+
+        .otp-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 48px 44px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.5s ease;
+        }
+
+        @@keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .shield-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 24px;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 1.6rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.55);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .subtitle strong { color: rgba(255,255,255,0.85); }
+
+        /* 6 ô nhập OTP */
+        .otp-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 8px;
+        }
+
+        .otp-input {
+            width: 52px;
+            height: 60px;
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.07);
+            color: #fff;
+            font-size: 1.6rem;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+            transition: all 0.2s;
+            caret-color: #818cf8;
+        }
+
+        .otp-input:focus {
+            border-color: #818cf8;
+            background: rgba(129, 140, 248, 0.15);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
+        }
+
+        .otp-input.filled {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.18);
+        }
+
+        /* Hidden full input for form submission */
+        #otpHidden { display: none; }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 10px;
+            color: #fca5a5;
+            font-size: 0.85rem;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .success-msg {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 10px;
+            color: #86efac;
+            font-size: 0.85rem;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-verify {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
+        }
+
+        .btn-verify:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-verify:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 16px;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+        }
+        .divider span { color: rgba(255,255,255,0.35); font-size: 0.78rem; white-space: nowrap; }
+
+        .timer-bar {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .timer-text {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
+        }
+
+        .timer-text .countdown {
+            color: #a5b4fc;
+            font-weight: 600;
+        }
+
+        .timer-track {
+            height: 4px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #a78bfa);
+            border-radius: 99px;
+            transition: width 1s linear;
+        }
+
+        .resend-row {
+            text-align: center;
+        }
+
+        .btn-resend {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.875rem;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .btn-resend:hover {
+            border-color: rgba(129, 140, 248, 0.5);
+            color: #a5b4fc;
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.82rem;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.7); }
+    </style>
+</head>
+<body>
+    <div class="otp-card">
+        <div class="shield-icon">🔐</div>
+        <h1>Xác thực hai yếu tố</h1>
+        <p class="subtitle">
+            Chúng tôi đã gửi mã OTP 6 số đến<br>
+            <strong>@ViewBag.MaskedEmail</strong>
+        </p>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="error-msg">
+                <i class="fas fa-exclamation-circle"></i>
+                @ViewBag.Error
+            </div>
+        }
+
+        @if (TempData["ResendSuccess"] != null)
+        {
+            <div class="success-msg">
+                <i class="fas fa-check-circle"></i>
+                @TempData["ResendSuccess"]
+            </div>
+        }
+
+        <!-- Đếm ngược -->
+        <div class="timer-bar">
+            <div class="timer-text">Mã có hiệu lực trong <span class="countdown" id="countdown">10:00</span></div>
+            <div class="timer-track">
+                <div class="timer-fill" id="timerFill" style="width:100%"></div>
+            </div>
+        </div>
+
+        <!-- Form OTP -->
+        <form id="otpForm" asp-controller="Otp" asp-action="VerifyOtp" method="post">
+            @Html.AntiForgeryToken()
+            <div class="otp-inputs">
+                <input class="otp-input" id="d1" type="text" maxlength="1" inputmode="numeric" autocomplete="off" />
+                <input class="otp-input" id="d2" type="text" maxlength="1" inputmode="numeric" autocomplete="off" />
+                <input class="otp-input" id="d3" type="text" maxlength="1" inputmode="numeric" autocomplete="off" />
+                <input class="otp-input" id="d4" type="text" maxlength="1" inputmode="numeric" autocomplete="off" />
+                <input class="otp-input" id="d5" type="text" maxlength="1" inputmode="numeric" autocomplete="off" />
+                <input class="otp-input" id="d6" type="text" maxlength="1" inputmode="numeric" autocomplete="off" />
+            </div>
+            <input type="hidden" name="otp" id="otpHidden" />
+
+            <button type="submit" class="btn-verify" id="btnVerify" disabled>
+                <i class="fas fa-shield-check me-2"></i> Xác nhận đăng nhập
+            </button>
+        </form>
+
+        <div class="divider"><span>hoặc</span></div>
+
+        <div class="resend-row">
+            <form asp-controller="Otp" asp-action="ResendOtp" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-resend">
+                    <i class="fas fa-redo me-1"></i> Gửi lại mã OTP
+                </button>
+            </form>
+        </div>
+
+        <a href="/Identity/Account/Login" class="back-link">
+            <i class="fas fa-arrow-left me-1"></i> Quay lại đăng nhập
+        </a>
+    </div>
+
+    <script>
+        // ── OTP Input Logic ──────────────────────────────────────────
+        const inputs = ['d1','d2','d3','d4','d5','d6'].map(id => document.getElementById(id));
+        const btnVerify = document.getElementById('btnVerify');
+        const otpHidden = document.getElementById('otpHidden');
+
+        inputs.forEach((input, idx) => {
+            input.addEventListener('input', e => {
+                const val = e.target.value.replace(/\D/g, '');
+                e.target.value = val;
+                if (val) {
+                    input.classList.add('filled');
+                    if (idx < 5) inputs[idx + 1].focus();
+                } else {
+                    input.classList.remove('filled');
+                }
+                updateSubmitBtn();
+            });
+
+            input.addEventListener('keydown', e => {
+                if (e.key === 'Backspace' && !input.value && idx > 0) {
+                    inputs[idx - 1].focus();
+                    inputs[idx - 1].value = '';
+                    inputs[idx - 1].classList.remove('filled');
+                    updateSubmitBtn();
+                }
+            });
+
+            // Paste support
+            input.addEventListener('paste', e => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData)
+                    .getData('text').replace(/\D/g, '').slice(0, 6);
+                pasted.split('').forEach((ch, i) => {
+                    if (inputs[i]) {
+                        inputs[i].value = ch;
+                        inputs[i].classList.add('filled');
+                    }
+                });
+                if (inputs[Math.min(pasted.length, 5)]) inputs[Math.min(pasted.length, 5)].focus();
+                updateSubmitBtn();
+            });
+        });
+
+        function updateSubmitBtn() {
+            const code = inputs.map(i => i.value).join('');
+            otpHidden.value = code;
+            btnVerify.disabled = code.length !== 6;
+        }
+
+        inputs[0].focus();
+
+        // Auto-submit when all 6 digits entered
+        document.getElementById('otpForm').addEventListener('input', () => {
+            const code = inputs.map(i => i.value).join('');
+            if (code.length === 6) {
+                setTimeout(() => document.getElementById('otpForm').submit(), 300);
+            }
+        });
+
+        // ── Countdown Timer (10 minutes) ─────────────────────────────
+        const totalSeconds = 10 * 60;
+        let remaining = totalSeconds;
+        const countdownEl = document.getElementById('countdown');
+        const timerFill = document.getElementById('timerFill');
+
+        function updateTimer() {
+            if (remaining <= 0) {
+                countdownEl.textContent = 'Hết hạn';
+                countdownEl.style.color = '#f87171';
+                timerFill.style.width = '0%';
+                timerFill.style.background = '#ef4444';
+                btnVerify.disabled = true;
+                return;
+            }
+            const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+            const s = (remaining % 60).toString().padStart(2, '0');
+            countdownEl.textContent = `${m}:${s}`;
+            timerFill.style.width = `${(remaining / totalSeconds) * 100}%`;
+
+            if (remaining <= 60) {
+                countdownEl.style.color = '#f87171';
+                timerFill.style.background = 'linear-gradient(90deg,#ef4444,#f87171)';
+            }
+            remaining--;
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    </script>
+</body>
+</html>

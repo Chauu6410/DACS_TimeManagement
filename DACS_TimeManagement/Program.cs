@@ -75,7 +75,17 @@ builder.Services.AddScoped<IGeminiService, GeminiService>();
 builder.Services.AddScoped<IUserWorkScheduleService, UserWorkScheduleService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGamificationService, GamificationService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddHostedService<EmailNotificationWorker>();
+
+// Session để tạm lưu userId trong luồng 2FA
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(15);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 
@@ -99,6 +109,7 @@ var apiKey = builder.Configuration["AiSettings:ApiKey"];
 app.UseRequestLocalization(localizationOptions.Value);
 
 // Thứ tự quan trọng: Authentication TRƯỚC Authorization
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
