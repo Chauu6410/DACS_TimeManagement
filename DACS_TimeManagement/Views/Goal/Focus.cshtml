@@ -8,6 +8,7 @@
 }
 
 <div id="focusApp" class="focus-app nox-ocean-theme">
+    @Html.AntiForgeryToken()
     <!-- Ambient Ocean Background Effects -->
     <div class="ocean-background">
         <div class="light-beams"></div>
@@ -28,45 +29,37 @@
     </div>
 
     <!-- Top Navigation Bar -->
-    <div class="top-nav-bar d-flex justify-content-between align-items-center px-4 py-3">
+    <div class="top-nav-bar d-flex justify-content-between align-items-center px-4 py-2">
         <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-link text-white text-decoration-none d-flex align-items-center gap-2">
             <i class="fas fa-chevron-left"></i> @Localizer["BackToDetails"]
         </a>
-        <button id="btnOpenAquarium" class="btn btn-outline-info rounded-pill px-4">
+        
+        <!-- Elegant Central Title -->
+        <div class="d-flex align-items-center gap-3">
+            <i class="fas fa-water text-info pulse-icon fs-4"></i>
+            <h4 class="fw-bold text-white mb-0 font-monospace" style="letter-spacing: 1.5px;">@(isVi ? "Nox Ocean Focus" : "Nox Ocean Focus Mode")</h4>
+        </div>
+
+        <button id="btnOpenAquarium" class="btn btn-outline-info rounded-pill px-4 py-2">
             🐠 @(isVi ? "Bể cá đại dương" : "My Ocean Aquarium")
         </button>
     </div>
 
     <!-- Step 1: Selection and Config Screen -->
-    <div id="selectionScreen" class="container py-4 selection-screen">
+    <div id="selectionScreen" class="container-fluid px-xl-5 py-3 selection-screen" style="max-width: 1400px; margin: 0 auto;">
         <div class="row justify-content-center">
-            <div class="col-xl-8 col-lg-10">
-                <div class="glass-premium p-4 p-md-5 rounded-5 shadow-lg text-center animate-fade-in">
-                    <div class="mb-4">
-                        <div class="logo-container mb-3">
-                            <i class="fas fa-water fa-3x text-info pulse-icon"></i>
-                        </div>
-                        <h2 class="fw-bold text-white mb-2">@(isVi ? "Nox Ocean Focus" : "Nox Ocean Focus Mode")</h2>
-                        <p class="text-white-50">@(isVi ? "Hãy lựa chọn sinh vật biển bạn muốn nuôi dưỡng bằng cách tập trung." : "Choose the sea creature you want to grow by staying focused.")</p>
-                    </div>
-
-                    <!-- Mode Toggle -->
-                    <div class="d-flex justify-content-center mb-4">
-                        <div class="mode-tabs-container p-1 rounded-pill bg-dark bg-opacity-50">
-                            <button id="modeCountdown" class="btn mode-tab active rounded-pill px-4 py-2">
-                                <i class="fas fa-hourglass-half me-1"></i> @(isVi ? "Đếm ngược" : "Countdown")
-                            </button>
-                            <button id="modeStopwatch" class="btn mode-tab rounded-pill px-4 py-2">
-                                <i class="fas fa-stopwatch me-1"></i> @(isVi ? "Đếm xuôi (Zen)" : "Stopwatch (Zen)")
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Step 1.1: Choose Sea Creature Grid -->
-                    <div class="mb-4 text-start">
-                        <h5 class="text-white mb-3 fw-bold"><i class="fas fa-fish me-2 text-info"></i>@(isVi ? "1. Chọn sinh vật biển để nuôi dưỡng" : "1. Choose Sea Creature to Grow")</h5>
-                        <div class="row g-3 creature-grid">
-                            <div class="col-6 col-md-4">
+            <div class="col-12">
+                <div class="glass-premium p-4 rounded-5 shadow-lg animate-fade-in">
+                    <div class="row g-4">
+                        <!-- COLUMN 1: Sea Creature Selection -->
+                        <div class="col-lg-4 d-flex flex-column border-end border-white border-opacity-10 pe-lg-4">
+                            <div class="mb-3">
+                                <h5 class="text-white mb-2 fw-bold fs-5"><i class="fas fa-fish me-2 text-info"></i>@(isVi ? "1. Chọn sinh vật biển" : "1. Choose Sea Creature")</h5>
+                                <p class="text-white-50 small mb-0">@(isVi ? "Nuôi dưỡng sinh vật biển bằng cách tập trung." : "Grow a sea creature by staying focused.")</p>
+                            </div>
+                            
+                            <!-- Creature Grid -->
+                            <div class="creature-grid mb-3">
                                 <div class="creature-card selected animate-hover-scale" data-type="coral" data-min-time="10">
                                     <div class="creature-preview" id="preview-coral"></div>
                                     <div class="creature-info">
@@ -74,8 +67,6 @@
                                         <span class="creature-time">≥ 10 @(isVi ? "phút" : "mins")</span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-6 col-md-4">
                                 <div class="creature-card animate-hover-scale" data-type="clownfish" data-min-time="25">
                                     <div class="creature-preview" id="preview-clownfish"></div>
                                     <div class="creature-info">
@@ -83,17 +74,13 @@
                                         <span class="creature-time">≥ 25 @(isVi ? "phút" : "mins")</span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-6 col-md-4">
                                 <div class="creature-card animate-hover-scale" data-type="octopus" data-min-time="45">
                                     <div class="creature-preview" id="preview-octopus"></div>
                                     <div class="creature-info">
-                                        <span class="creature-name">@(isVi ? "Bạch tuộc tím" : "Purple Octopus")</span>
+                                        <span class="creature-name">@(isVi ? "Bạch tuộc" : "Octopus")</span>
                                         <span class="creature-time">≥ 45 @(isVi ? "phút" : "mins")</span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-6 col-md-4">
                                 <div class="creature-card animate-hover-scale" data-type="turtle" data-min-time="60">
                                     <div class="creature-preview" id="preview-turtle"></div>
                                     <div class="creature-info">
@@ -101,8 +88,6 @@
                                         <span class="creature-time">≥ 60 @(isVi ? "phút" : "mins")</span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-6 col-md-4">
                                 <div class="creature-card animate-hover-scale" data-type="whale" data-min-time="90">
                                     <div class="creature-preview" id="preview-whale"></div>
                                     <div class="creature-info">
@@ -110,8 +95,6 @@
                                         <span class="creature-time">≥ 90 @(isVi ? "phút" : "mins")</span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-6 col-md-4">
                                 <div class="creature-card animate-hover-scale" data-type="ship" data-min-time="120">
                                     <div class="creature-preview" id="preview-ship"></div>
                                     <div class="creature-info">
@@ -121,66 +104,114 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Step 1.2: Duration control (Countdown Mode only) -->
-                    <div id="durationControllerSection" class="mb-4 text-start">
-                        <h5 class="text-white mb-3 fw-bold"><i class="fas fa-clock me-2 text-info"></i>@(isVi ? "2. Thiết lập thời gian tập trung" : "2. Set Focus Duration")</h5>
-                        <div class="duration-controls-box p-3 rounded-4 bg-dark bg-opacity-25 border border-white border-opacity-10 d-flex justify-content-center align-items-center gap-4">
-                            <button id="btnTimeMinus" class="btn btn-outline-light rounded-circle time-adjust-btn"><i class="fas fa-minus"></i></button>
-                            <div class="text-center">
-                                <div id="selectedTimeDisplay" class="fw-bold text-info fs-1 font-monospace">10:00</div>
-                                <div class="small text-white-50">@(isVi ? "Phút : Giây" : "Minutes : Seconds")</div>
+                        <!-- COLUMN 2: Setup Focus Session -->
+                        <div class="col-lg-4 d-flex flex-column border-end border-white border-opacity-10 px-lg-4">
+                            <div class="mb-3">
+                                <h5 class="text-white mb-2 fw-bold fs-5"><i class="fas fa-clock me-2 text-info"></i>@(isVi ? "2. Thiết lập tập trung" : "2. Focus Settings")</h5>
+                                <p class="text-white-50 small mb-0">@(isVi ? "Chọn phương thức và đặt mục tiêu thời gian." : "Choose focus method and set target time.")</p>
                             </div>
-                            <button id="btnTimePlus" class="btn btn-outline-light rounded-circle time-adjust-btn"><i class="fas fa-plus"></i></button>
-                        </div>
-                        <div id="durationMatchWarning" class="text-info mt-2 text-center small fw-semibold">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
 
-                    <!-- Step 1.3: Task Selection (Only for TaskBased goals) -->
-                    <div class="mb-5 text-start @(Model.Type == DACS_TimeManagement.Models.GoalType.TimeBased ? "d-none" : "")">
-                        <h5 class="text-white mb-3 fw-bold"><i class="fas fa-tasks me-2 text-info"></i>@(isVi ? "3. Chọn nhiệm vụ cần hoàn thành" : "3. Choose Linked Task")</h5>
-                        <div class="task-list-selection" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
-                            @if (Model.GoalTasks != null && Model.GoalTasks.Any())
-                            {
-                                @foreach (var gt in Model.GoalTasks.Where(x => x.WorkTask != null))
-                                {
-                                    <div class="task-option p-3 mb-2 rounded-4 border border-white border-opacity-10 d-flex align-items-center gap-3 bg-dark bg-opacity-25 text-white" 
-                                         data-task-id="@gt.WorkTaskId" data-title="@gt.WorkTask.Title">
-                                        <div class="task-icon-circle bg-info bg-opacity-25 text-info">
-                                            <i class="fas fa-tasks"></i>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="fw-bold">@gt.WorkTask.Title</div>
-                                            <div class="small text-white-50">
-                                                @Localizer["Status"]: <span class="badge bg-light text-dark fw-normal border">@gt.WorkTask.Status</span>
-                                                • @Localizer["Progress"]: @gt.WorkTask.Progress%
-                                            </div>
-                                        </div>
-                                        <div class="selection-indicator text-info">
-                                            <i class="far fa-circle select-empty"></i>
-                                            <i class="fas fa-check-circle select-checked"></i>
-                                        </div>
+                            <!-- Mode Toggle -->
+                            <div class="d-flex justify-content-center mb-3">
+                                <div class="mode-tabs-container p-1 rounded-pill bg-dark bg-opacity-50 border border-white border-opacity-10 d-flex w-100">
+                                    <button id="modeCountdown" class="btn mode-tab active rounded-pill px-3 py-2 flex-grow-1 text-center text-nowrap">
+                                        <i class="fas fa-hourglass-half me-1"></i> @(isVi ? "Đếm ngược" : "Countdown")
+                                    </button>
+                                    <button id="modeStopwatch" class="btn mode-tab rounded-pill px-3 py-2 flex-grow-1 text-center text-nowrap">
+                                        <i class="fas fa-stopwatch me-1"></i> @(isVi ? "Đếm xuôi" : "Stopwatch")
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Duration control -->
+                            <div id="durationControllerSection" class="mb-3">
+                                <div class="duration-controls-box p-3 rounded-4 bg-dark bg-opacity-25 border border-white border-opacity-10 d-flex justify-content-center align-items-center gap-3">
+                                    <button id="btnTimeMinus" class="btn btn-outline-light rounded-circle time-adjust-btn d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;"><i class="fas fa-minus"></i></button>
+                                    <div class="text-center flex-grow-1">
+                                        <div id="selectedTimeDisplay" class="fw-bold text-info fs-2 font-monospace" style="text-shadow: 0 0 10px rgba(13,202,240,0.5);">10:00</div>
+                                        <div class="small text-white-50" style="font-size: 0.75rem;">@(isVi ? "Phút : Giây" : "Min : Sec")</div>
                                     </div>
-                                }
+                                    <button id="btnTimePlus" class="btn btn-outline-light rounded-circle time-adjust-btn d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;"><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div id="durationMatchWarning" class="text-info mt-2 text-center small fw-semibold" style="min-height: 24px; font-size: 0.8rem;">
+                                    <!-- Populated by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- COLUMN 3: Task & Start -->
+                        <div class="col-lg-4 d-flex flex-column ps-lg-4">
+                            <div class="mb-3">
+                                <h5 class="text-white mb-2 fw-bold fs-5"><i class="fas fa-tasks me-2 text-info"></i>@(isVi ? "3. Nhiệm vụ & Bắt đầu" : "3. Task & Start")</h5>
+                                <p class="text-white-50 small mb-0">@(isVi ? "Chọn nhiệm vụ liên kết và bắt đầu phiên lặn." : "Choose linked task and start focus.")</p>
+                            </div>
+
+                            @if (Model.Type == DACS_TimeManagement.Models.GoalType.TaskBased)
+                            {
+                                <!-- Task Selection List -->
+                                <div class="task-list-selection mb-3" style="max-height: 160px; overflow-y: auto; padding-right: 4px;">
+                                    @if (Model.GoalTasks != null && Model.GoalTasks.Any(x => x.WorkTask != null))
+                                    {
+                                        @foreach (var gt in Model.GoalTasks.Where(x => x.WorkTask != null))
+                                        {
+                                            <div class="task-option p-2 mb-2 rounded-4 border border-white border-opacity-10 d-flex align-items-center gap-3 bg-dark bg-opacity-25 text-white" 
+                                                 data-task-id="@gt.WorkTaskId" data-title="@gt.WorkTask.Title" style="cursor: pointer;">
+                                                <div class="task-icon-circle bg-info bg-opacity-25 text-info d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;">
+                                                    <i class="fas fa-tasks small"></i>
+                                                </div>
+                                                <div class="flex-grow-1 overflow-hidden">
+                                                    <div class="fw-bold text-truncate" style="font-size: 0.85rem;" title="@gt.WorkTask.Title">@gt.WorkTask.Title</div>
+                                                    <div class="small text-white-50 text-truncate" style="font-size: 0.75rem;">
+                                                        @gt.WorkTask.Progress% • @gt.WorkTask.Status
+                                                    </div>
+                                                </div>
+                                                <div class="selection-indicator text-info fs-5 flex-shrink-0">
+                                                    <i class="far fa-circle select-empty"></i>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <div class="text-center py-4 bg-dark bg-opacity-25 rounded-4 border border-dashed border-white border-opacity-25">
+                                            <i class="fas fa-clipboard-list fa-2x text-white-50 mb-2"></i>
+                                            <p class="text-white-50 mb-0 small">@Localizer["NoLinkedTasksFound"]</p>
+                                        </div>
+                                    }
+                                </div>
                             }
                             else
                             {
-                                <div class="text-center py-4 bg-dark bg-opacity-25 rounded-4 border border-dashed border-white border-opacity-25">
-                                    <i class="fas fa-clipboard-list fa-2x text-white-50 mb-2"></i>
-                                    <p class="text-white-50 mb-0">@Localizer["NoLinkedTasksFound"]</p>
-                                    <p class="small text-white-50">@Localizer["PleaseAddTasks"]</p>
+                                <!-- Time Based Goal Premium Display -->
+                                <div class="p-3 mb-3 rounded-4 bg-dark bg-opacity-30 border border-white border-opacity-10 flex-grow-1 d-flex flex-column justify-content-center text-center">
+                                    <div class="mb-2">
+                                        <i class="fas fa-hourglass-start text-info fa-2x animate-pulse"></i>
+                                    </div>
+                                    <h6 class="fw-bold text-white mb-1">@(isVi ? "Tập trung theo thời gian" : "Time-Based Goal Tracker")</h6>
+                                    <p class="text-white-50 mb-2" style="font-size: 0.75rem;">@(isVi ? "Thời gian tập trung sẽ tự động tích lũy vào mục tiêu lớn." : "Focus session duration will automatically credit to this goal.")</p>
+                                    <div class="d-flex justify-content-around align-items-center mt-2 bg-dark bg-opacity-20 p-2 rounded-3 border border-white border-opacity-5">
+                                        <div>
+                                            <div class="small text-white-50 text-uppercase" style="font-size: 0.65rem;">@(isVi ? "Đã đạt" : "Completed")</div>
+                                            <div class="fw-bold text-info font-monospace" style="font-size: 0.95rem;">@Model.CompletedHours.ToString("0.##")h</div>
+                                        </div>
+                                        <div class="vr bg-white opacity-20" style="height: 20px;"></div>
+                                        <div>
+                                            <div class="small text-white-50 text-uppercase" style="font-size: 0.65rem;">@(isVi ? "Mục tiêu" : "Target")</div>
+                                            <div class="fw-bold text-white font-monospace" style="font-size: 0.95rem;">@(Model.TargetHours?.ToString("0.##") ?? "-")h</div>
+                                        </div>
+                                    </div>
                                 </div>
                             }
+
+                            <!-- Start button -->
+                            <div class="mt-auto">
+                                <button id="btnStartDive" class="btn btn-info btn-lg rounded-pill px-5 py-3 shadow w-100 fw-bold fs-5 text-white btn-glow">
+                                    <i class="fas fa-water me-2"></i> @(isVi ? "Bắt đầu lặn" : "Start Diving")
+                                </button>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Start diving Button -->
-                    <button id="btnStartDive" class="btn btn-info btn-lg rounded-pill px-5 py-3 shadow w-100 fw-bold fs-5 text-white btn-glow">
-                        <i class="fas fa-water me-2"></i> @(isVi ? "Bắt đầu lặn" : "Start Diving")
-                    </button>
                 </div>
             </div>
         </div>
@@ -188,77 +219,81 @@
 
     <!-- Step 2: Zen Focus Screen (The Deep Dive) -->
     <div id="zenOverlay" class="zen-overlay d-none">
-        <div class="zen-container text-center text-white">
-            <div class="mb-4">
-                <h1 class="zen-goal-title mb-1 text-info fw-bold">@Model.Title</h1>
-                <p id="focusTaskName" class="text-white-50 fs-5 mb-0">
-                    <!-- Updated dynamically -->
-                </p>
-            </div>
-
-            <!-- Timer Circle Display -->
-            <div class="timer-circle-container mb-4">
-                <!-- Paused Overlay Badge -->
-                <div class="paused-watermark d-none" id="pausedWatermark">
-                    @(isVi ? "ĐANG TẠM DỪNG" : "PAUSED")
-                </div>
-                <svg class="timer-ring-svg" width="280" height="280" viewBox="0 0 280 280">
-                    <circle class="timer-ring-bg" cx="140" cy="140" r="125" stroke="rgba(255, 255, 255, 0.08)" stroke-width="8" fill="transparent" />
-                    <circle class="timer-ring-progress" id="timerProgressCircle" cx="140" cy="140" r="125" stroke="#0dcaf0" stroke-width="8" stroke-linecap="round" fill="transparent" />
-                </svg>
-                <div class="timer-inner-content">
-                    <div class="creature-zen-display" id="creatureZenDisplay">
-                        <!-- Loaded dynamically -->
-                    </div>
-                    <div class="timer-display font-monospace mt-2" id="focusTimerDisplay">00:00:00</div>
-                </div>
-            </div>
-
-            <!-- Ambient Sound Controller -->
-            <div class="ambient-sound-widget mb-4 mx-auto p-2 rounded-pill bg-dark bg-opacity-50 border border-white border-opacity-10" style="max-width: 320px;">
-                <div class="d-flex justify-content-between align-items-center px-2">
-                    <span class="small text-white-50"><i class="fas fa-volume-up me-1"></i> @(isVi ? "Âm thanh" : "Ambient")</span>
-                    <div class="btn-group sound-btn-group" role="group">
-                        <button type="button" class="btn btn-sm btn-outline-info active" data-sound="mute">🤫</button>
-                        <button type="button" class="btn btn-sm btn-outline-info" data-sound="waves" title="@(isVi ? "Sóng ngầm đại dương" : "Ocean Waves")">🌊</button>
-                        <button type="button" class="btn btn-sm btn-outline-info" data-sound="bubbles" title="@(isVi ? "Bong bóng nước" : "Water Bubbles")">🫧</button>
-                        <button type="button" class="btn btn-sm btn-outline-info" data-sound="both" title="@(isVi ? "Tất cả" : "Combined")">🔊</button>
+        <div class="zen-container text-white px-4">
+            <div class="row align-items-center g-5 justify-content-center w-100 mx-auto" style="max-width: 1100px;">
+                <!-- Column 1 (Left): Immersive Timer Progress Ring -->
+                <div class="col-lg-6 d-flex justify-content-center">
+                    <div class="timer-circle-container m-0">
+                        <div class="paused-watermark d-none" id="pausedWatermark">
+                            @(isVi ? "ĐANG TẠM DỪNG" : "PAUSED")
+                        </div>
+                        <svg class="timer-ring-svg" width="100%" height="100%" viewBox="0 0 280 280">
+                            <circle class="timer-ring-bg" cx="140" cy="140" r="125" stroke="rgba(255, 255, 255, 0.08)" stroke-width="8" fill="transparent" />
+                            <circle class="timer-ring-progress" id="timerProgressCircle" cx="140" cy="140" r="125" stroke="#0dcaf0" stroke-width="8" stroke-linecap="round" fill="transparent" />
+                        </svg>
+                        <div class="timer-inner-content">
+                            <div class="creature-zen-display" id="creatureZenDisplay">
+                                <!-- Loaded dynamically -->
+                            </div>
+                            <div class="timer-display font-monospace mt-2" id="focusTimerDisplay">00:00:00</div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Motivational Quotes -->
-            <div class="quote-display-container mb-4">
-                <p id="motivationalQuote" class="text-white-50 italic fs-6 px-4">
-                    @(isVi ? "Hãy tập trung như đại dương sâu thẳm." : "Stay focused like the deep blue ocean.")
-                </p>
-            </div>
-
-            <!-- Controls Panel -->
-            <div class="timer-controls d-flex justify-content-center align-items-center gap-3 mb-4">
-                <!-- Play/Pause toggle -->
-                <button id="playPauseBtn" class="btn btn-info btn-lg rounded-pill px-4 shadow btn-control text-white">
-                    <i class="fas fa-pause me-2"></i> @(isVi ? "Tạm dừng" : "Pause")
-                </button>
-                <!-- Give up / Stop button -->
-                <button id="stopTimerBtn" class="btn btn-danger btn-lg rounded-pill px-4 shadow btn-control">
-                    <i class="fas fa-chevron-circle-up me-2"></i> @(isVi ? "Trồi lên (Huỷ)" : "Give Up")
-                </button>
-            </div>
-
-            <!-- Switches Card -->
-            <div class="d-flex justify-content-center gap-3">
-                <div class="distraction-blocker-card px-3 py-2 rounded-pill d-flex align-items-center gap-3 shadow bg-dark bg-opacity-50 border border-white border-opacity-10">
-                    <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
-                        <input class="form-check-input custom-switch" type="checkbox" role="switch" id="strictModeToggle">
-                        <label class="form-check-label text-white small fw-semibold" for="strictModeToggle">
-                            <i class="fas fa-shield-alt text-info me-1"></i> @Localizer["DistractionBlocker"]
-                        </label>
+                <!-- Column 2 (Right): Title, Task, Sound, Quotes, and Controls -->
+                <div class="col-lg-6 d-flex flex-column text-start align-items-lg-start align-items-center">
+                    <div class="mb-4 text-lg-start text-center">
+                        <h1 class="zen-goal-title mb-2 text-info fw-bold display-5">@Model.Title</h1>
+                        <p id="focusTaskName" class="text-white-50 fs-5 mb-0">
+                            <!-- Updated dynamically -->
+                        </p>
                     </div>
-                    <div class="vr bg-white bg-opacity-25"></div>
-                    <button id="fullScreenBtn" class="btn btn-sm btn-link text-white text-decoration-none p-0">
-                        <i class="fas fa-expand me-1"></i> <span class="small">@(isVi ? "Toàn màn hình" : "Fullscreen")</span>
-                    </button>
+
+                    <!-- Ambient Sound Controller -->
+                    <div class="ambient-sound-widget mb-4 p-2 rounded-pill bg-dark bg-opacity-50 border border-white border-opacity-10 w-100 mx-lg-0" style="max-width: 400px;">
+                        <div class="d-flex justify-content-between align-items-center px-3">
+                            <span class="small text-white-50"><i class="fas fa-volume-up me-1"></i> @(isVi ? "Âm thanh" : "Ambient")</span>
+                            <div class="btn-group sound-btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-info active" data-sound="mute">🤫</button>
+                                <button type="button" class="btn btn-sm btn-outline-info" data-sound="waves" title="@(isVi ? "Sóng ngầm đại dương" : "Ocean Waves")">🌊</button>
+                                <button type="button" class="btn btn-sm btn-outline-info" data-sound="bubbles" title="@(isVi ? "Bong bóng nước" : "Water Bubbles")">🫧</button>
+                                <button type="button" class="btn btn-sm btn-outline-info" data-sound="both" title="@(isVi ? "Tất cả" : "Combined")">🔊</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Motivational Quotes -->
+                    <div class="quote-display-container mb-4 w-100" style="max-width: 400px; min-height: 48px;">
+                        <p id="motivationalQuote" class="text-white-50 italic fs-6 text-lg-start text-center">
+                            @(isVi ? "Hãy tập trung như đại dương sâu thẳm." : "Stay focused like the deep blue ocean.")
+                        </p>
+                    </div>
+
+                    <!-- Controls Panel -->
+                    <div class="timer-controls d-flex justify-content-lg-start justify-content-center align-items-center gap-3 mb-4 w-100" style="max-width: 400px;">
+                        <button id="playPauseBtn" class="btn btn-info btn-lg rounded-pill px-4 shadow btn-control text-white">
+                            <i class="fas fa-pause me-2"></i> @(isVi ? "Tạm dừng" : "Pause")
+                        </button>
+                        <button id="stopTimerBtn" class="btn btn-danger btn-lg rounded-pill px-4 shadow btn-control">
+                            <i class="fas fa-chevron-circle-up me-2"></i> @(isVi ? "Trồi lên (Huỷ)" : "Give Up")
+                        </button>
+                    </div>
+
+                    <!-- Switches Card -->
+                    <div class="d-flex justify-content-lg-start justify-content-center w-100" style="max-width: 400px;">
+                        <div class="distraction-blocker-card px-3 py-2 rounded-pill d-flex align-items-center gap-3 shadow bg-dark bg-opacity-50 border border-white border-opacity-10">
+                            <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                                <input class="form-check-input custom-switch" type="checkbox" role="switch" id="strictModeToggle">
+                                <label class="form-check-label text-white small fw-semibold" for="strictModeToggle">
+                                    <i class="fas fa-shield-alt text-info me-1"></i> @Localizer["DistractionBlocker"]
+                                </label>
+                            </div>
+                            <div class="vr bg-white bg-opacity-25"></div>
+                            <button id="fullScreenBtn" class="btn btn-sm btn-link text-white text-decoration-none p-0">
+                                <i class="fas fa-expand me-1"></i> <span class="small">@(isVi ? "Toàn màn hình" : "Fullscreen")</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1168,13 +1203,15 @@
                         customClass: { popup: 'rounded-5 glass-premium shadow-lg' }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            const actualMins = Math.floor(elapsedSeconds / 60);
-                            if (actualMins >= 1) {
+                            if (elapsedSeconds >= 5) {
+                                const displayTimeStr = elapsedSeconds >= 60 
+                                    ? (isVi ? `${Math.floor(elapsedSeconds / 60)} phút` : `${Math.floor(elapsedSeconds / 60)} minutes`) 
+                                    : (isVi ? `${elapsedSeconds} giây` : `${elapsedSeconds} seconds`);
                                 Swal.fire({
                                     title: isVi ? 'Lưu thời gian tập trung?' : 'Save Focus Time?',
                                     text: isVi 
-                                        ? `Bạn đã tập trung được ${actualMins} phút. Bạn có muốn lưu nhật ký công việc này mà không nhận được sinh vật biển?`
-                                        : `You focused for ${actualMins} minutes. Would you like to log this time without receiving a creature?`,
+                                        ? `Bạn đã tập trung được ${displayTimeStr}. Bạn có muốn lưu nhật ký công việc này mà không nhận được sinh vật biển?`
+                                        : `You focused for ${displayTimeStr}. Would you like to log this time without receiving a creature?`,
                                     icon: 'question',
                                     showCancelButton: true,
                                     confirmButtonText: isVi ? 'Lưu' : 'Save',
@@ -1361,7 +1398,10 @@
                 try {
                     const response = await fetch('/Goal/RecordFocusSession', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        headers: { 
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
                         body: body
                     });
                     const data = await response.json();
@@ -1380,8 +1420,15 @@
                     }
                 } catch (err) {
                     console.error("AJAX Error:", err);
-                    Swal.fire('@Localizer["Error"]', '@Localizer["ErrorSavingSession"]', 'error');
+                    Swal.fire('@Localizer["Error"]', err.message || '@Localizer["ErrorSavingSession"]', 'error');
                 }
+            }
+
+            function formatTime(secs) {
+                const h = Math.floor(secs / 3600);
+                const m = Math.floor((secs % 3600) / 60);
+                const s = secs % 60;
+                return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             }
 
             // --- STRICT MODE & VISIBILITY CHANGE ---
@@ -1692,44 +1739,68 @@
     }
 
     /* Creature Card Grid */
+    .selection-screen {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 1.5rem 2rem !important;
+    }
+
+    .creature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.6rem;
+    }
+
     .creature-card {
         cursor: pointer;
-        padding: 15px 10px;
+        padding: 0.5rem 0.3rem;
         border-radius: 20px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+        border: 1px solid rgba(255,255,255,0.06);
+        transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         text-align: center;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 8px;
+        gap: 4px;
+        width: 100%;
+        max-width: 130px;
+        margin: 0 auto;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+        backdrop-filter: blur(8px);
     }
 
     .creature-card:hover {
-        transform: translateY(-5px);
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(13, 202, 240, 0.3);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        transform: translateY(-4px) scale(1.02);
+        background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(13,202,240,0.04) 100%);
+        border-color: rgba(13,202,240,0.5);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15), 0 0 10px rgba(13,202,240,0.2);
     }
 
     .creature-card.selected {
-        background: rgba(13, 202, 240, 0.1);
+        background: linear-gradient(180deg, rgba(13,202,240,0.12) 0%, rgba(13,202,240,0.04) 100%);
         border-color: var(--neon-cyan);
-        box-shadow: var(--neon-cyan-glow);
+        box-shadow: 0 0 15px rgba(13, 202, 240, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        transform: scale(1.04) translateY(-2px);
+        animation: floatCard 3s ease-in-out infinite alternate;
+    }
+
+    @@keyframes floatCard {
+        0% { transform: scale(1.04) translateY(-2px); }
+        100% { transform: scale(1.04) translateY(-5px); }
     }
 
     .creature-preview {
-        width: 65px;
-        height: 65px;
+        width: 56px;
+        height: 56px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.3s;
+        transition: transform 0.2s;
     }
 
     .creature-card.selected .creature-preview {
-        transform: scale(1.1);
+        transform: scale(1.08);
     }
 
     .creature-svg {
@@ -1741,53 +1812,76 @@
         display: block;
         color: white;
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
     }
 
     .creature-time {
         display: block;
         color: rgba(13, 202, 240, 0.8);
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         font-weight: 600;
     }
 
     /* Adjust Buttons and Slider */
+    .duration-controls-box {
+        background: rgba(0,0,0,0.4);
+        border-radius: 60px;
+        padding: 0.5rem 1rem;
+        gap: 1rem;
+    }
+
     .time-adjust-btn {
-        width: 48px;
-        height: 48px;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-color: rgba(255, 255, 255, 0.2);
         transition: all 0.2s;
+        border-radius: 60px;
+        background: rgba(255,255,255,0.08);
+        font-size: 1.1rem;
     }
 
     .time-adjust-btn:hover {
-        background: white;
-        color: black;
-        transform: scale(1.1);
+        background: var(--neon-cyan);
+        color: #000;
+        transform: scale(1.05);
+    }
+
+    #selectedTimeDisplay {
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-shadow: 0 0 8px rgba(13,202,240,0.5);
     }
 
     /* Task option selection */
     .task-option {
         cursor: pointer;
-        transition: all 0.25s;
+        padding: 0.6rem !important;
+        border-radius: 20px;
+        transition: all 0.25s ease;
+        background: linear-gradient(90deg, rgba(0,0,0,0.3) 0%, rgba(255,255,255,0.02) 100%);
+        border-left: 4px solid transparent !important;
     }
 
     .task-option:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: rgba(13, 202, 240, 0.3) !important;
+        background: linear-gradient(90deg, rgba(13,202,240,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        border-left: 4px solid rgba(13,202,240,0.4) !important;
+        transform: translateX(3px);
     }
 
     .task-option.active {
-        background: rgba(13, 202, 240, 0.08);
+        background: linear-gradient(90deg, rgba(13,202,240,0.18) 0%, rgba(13,202,240,0.04) 100%);
         border-color: var(--neon-cyan) !important;
-        box-shadow: 0 4px 15px rgba(13, 202, 240, 0.1);
+        border-left: 4px solid var(--neon-cyan) !important;
+        box-shadow: 0 4px 12px rgba(13,202,240,0.12);
     }
 
     .task-icon-circle {
-        width: 42px;
-        height: 42px;
+        width: 38px;
+        height: 38px;
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -1815,22 +1909,50 @@
     .btn-glow {
         position: relative;
         overflow: hidden;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: linear-gradient(45deg, #0dcaf0, #3b82f6);
+        border: none;
+        z-index: 1;
+        transition: all 0.3s ease;
+    }
+
+    .btn-glow::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(45deg, #3b82f6, #0dcaf0);
+        opacity: 0;
+        z-index: -1;
+        transition: opacity 0.3s ease;
+    }
+
+    .btn-glow:hover::before {
+        opacity: 1;
     }
 
     .btn-glow::after {
         content: '';
         position: absolute;
-        inset: 0;
-        border-radius: 50px;
-        box-shadow: var(--neon-cyan-glow);
-        opacity: 0.8;
-        transition: all 0.3s;
+        inset: -5px;
+        border-radius: 60px;
+        background: linear-gradient(45deg, #0dcaf0, #3b82f6);
+        filter: blur(12px);
+        opacity: 0.4;
+        z-index: -2;
+        transition: all 0.3s ease;
     }
 
     .btn-glow:hover::after {
-        box-shadow: 0 0 25px rgba(13, 202, 240, 1);
+        opacity: 0.7;
+        filter: blur(15px);
     }
 
+    .btn-glow:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(13,202,240,0.3);
+    }
     .fade-out {
         opacity: 0;
         transform: scale(0.95) translateY(15px);
@@ -1859,9 +1981,9 @@
     }
 
     .zen-container {
-        width: 90%;
-        max-width: 600px;
-        padding: 30px;
+        width: 95%;
+        max-width: 1050px;
+        padding: 2.5rem;
         border-radius: 40px;
         background: rgba(10, 20, 38, 0.35);
         backdrop-filter: blur(15px);
@@ -2284,7 +2406,67 @@
     }
 
     /* Responsive scaling */
+    @@media (max-width: 1366px) {
+        .selection-screen { padding: 1rem 1.5rem !important; }
+        .glass-premium { padding: 1.25rem !important; }
+        .timer-circle-container { width: 250px; height: 250px; }
+        .timer-display { font-size: 2.4rem; }
+    }
+
+    @@media (max-width: 1280px) {
+        .timer-circle-container { width: 230px; height: 230px; margin-bottom: 0.8rem; }
+        .creature-zen-display { width: 85px; height: 85px; }
+        .btn-control { min-width: 120px; padding: 6px 14px; font-size: 0.85rem; }
+    }
+
     @@media (max-width: 991px) {
+        .selection-screen { overflow-y: auto !important; height: auto !important; }
+        .selection-screen .row { display: flex; flex-direction: column; }
+        .selection-screen [class*="col-lg-4"] { 
+            width: 100% !important; 
+            border-end: none !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            padding-bottom: 1.5rem !important;
+            margin-bottom: 1.5rem !important;
+        }
+        .selection-screen [class*="col-lg-4"]:last-child {
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+            margin-bottom: 0 !important;
+        }
+        .creature-grid { max-width: 500px; margin: 0 auto; }
+
+        /* Stack Zen Focus Screen vertically on smaller viewports */
+        .zen-overlay {
+            overflow-y: auto !important;
+            padding: 1.5rem 0;
+        }
+        .zen-container {
+            max-width: 550px !important;
+            padding: 1.5rem !important;
+            border-radius: 30px !important;
+            margin: auto;
+        }
+        .zen-container .row {
+            flex-direction: column !important;
+            gap: 2rem !important;
+        }
+        .zen-container .col-lg-6 {
+            width: 100% !important;
+            text-align: center !important;
+            align-items: center !important;
+        }
+        .zen-container h1, .zen-container p, .zen-container .quote-display-container p {
+            text-align: center !important;
+        }
+        .zen-container .timer-controls, .zen-container .distraction-blocker-card {
+            justify-content: center !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+        
         .aquarium-sidebar {
             position: relative;
             top: 0;

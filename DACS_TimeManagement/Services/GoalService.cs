@@ -115,6 +115,40 @@ namespace DACS_TimeManagement.Services
                     if (goal.Type == GoalType.TimeBased)
                     {
                         // Time-based goal: Progress is based on CompletedHours (which are synced from TimeLogs or manual entries)
+                        var hasLinkedTasks = await _db.GoalTasks.AnyAsync(gt => gt.GoalId == goalId);
+                        if (hasLinkedTasks || goal.ProjectId.HasValue)
+                        {
+                            var taskIds = await _db.GoalTasks
+                                .Where(gt => gt.GoalId == goalId)
+                                .Select(gt => gt.WorkTaskId)
+                                .ToListAsync();
+                            
+                            double loggedHours = 0;
+                            if (taskIds.Any())
+                            {
+                                loggedHours = await _db.TimeLogs
+                                    .Where(tl => tl.GoalId == goalId || taskIds.Contains(tl.WorkTaskId))
+                                    .SumAsync(tl => tl.DurationHours);
+                            }
+                            else
+                            {
+                                loggedHours = await _db.TimeLogs
+                                    .Where(tl => tl.GoalId == goalId)
+                                    .SumAsync(tl => tl.DurationHours);
+                            }
+
+                            if (goal.ProjectId.HasValue)
+                            {
+                                double projectLoggedHours = await _db.TimeLogs
+                                    .Where(tl => tl.WorkTask.ProjectId == goal.ProjectId.Value)
+                                    .SumAsync(tl => tl.DurationHours);
+                                
+                                loggedHours = Math.Max(loggedHours, projectLoggedHours);
+                            }
+
+                            goal.CompletedHours = loggedHours;
+                        }
+
                         goal.TargetValue = goal.TargetHours ?? 0;
                         goal.CurrentValue = goal.CompletedHours;
                     }
@@ -202,11 +236,39 @@ namespace DACS_TimeManagement.Services
                 throw new InvalidOperationException("Thời lượng làm việc không hợp lệ.");
             }
 
-            // When a timelog is created for a task, find related goals and recalc
+            // 1. Find goals linked via GoalTasks
             var relatedGoals = await _db.GoalTasks
                 .Where(gt => gt.WorkTaskId == timeLog.WorkTaskId)
                 .Select(gt => gt.Goal)
                 .ToListAsync();
+
+            // 2. Find goals linked via Project (since project-based goals won't necessarily have all tasks in GoalTasks)
+            var task = await _db.WorkTasks.AsNoTracking().FirstOrDefaultAsync(t => t.Id == timeLog.WorkTaskId);
+            if (task != null && task.ProjectId.HasValue)
+            {
+                var projectGoals = await _db.PersonalGoals
+                    .Where(g => g.ProjectId == task.ProjectId.Value)
+                    .ToListAsync();
+                
+                // Add unique goals that are not already in relatedGoals
+                foreach (var pg in projectGoals)
+                {
+                    if (!relatedGoals.Any(rg => rg.Id == pg.Id))
+                    {
+                        relatedGoals.Add(pg);
+                    }
+                }
+            }
+
+            // 3. If the TimeLog explicitly has a GoalId, make sure that goal is included
+            if (timeLog.GoalId.HasValue && !relatedGoals.Any(g => g.Id == timeLog.GoalId.Value))
+            {
+                var explicitGoal = await _db.PersonalGoals.FirstOrDefaultAsync(g => g.Id == timeLog.GoalId.Value);
+                if (explicitGoal != null)
+                {
+                    relatedGoals.Add(explicitGoal);
+                }
+            }
 
             foreach (var goal in relatedGoals)
             {

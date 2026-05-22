@@ -16,19 +16,22 @@ namespace DACS_TimeManagement.Controllers
         private readonly Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> _userManager;
         private readonly ApplicationDbContext _context;
         private readonly Microsoft.AspNetCore.SignalR.IHubContext<DACS_TimeManagement.Hubs.NotificationHub> _hubContext;
+        private readonly DACS_TimeManagement.Services.Interfaces.IGoalService _goalService;
 
         public ProjectController(
             IProjectRepository projectRepo, 
             DACS_TimeManagement.Services.ICryptoService crypto,
             Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> userManager,
             ApplicationDbContext context,
-            Microsoft.AspNetCore.SignalR.IHubContext<DACS_TimeManagement.Hubs.NotificationHub> hubContext)
+            Microsoft.AspNetCore.SignalR.IHubContext<DACS_TimeManagement.Hubs.NotificationHub> hubContext,
+            DACS_TimeManagement.Services.Interfaces.IGoalService goalService)
         {
             _projectRepo = projectRepo;
             _crypto = crypto;
             _userManager = userManager;
             _context = context;
             _hubContext = hubContext;
+            _goalService = goalService;
         }
 
         public async Task<IActionResult> Index()
@@ -334,19 +337,28 @@ namespace DACS_TimeManagement.Controllers
                     return NotFound();
                 }
 
+                // Check if there is an active goal for the user and this project
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var goal = await _context.PersonalGoals
+                    .FirstOrDefaultAsync(g => g.ProjectId == projectId && g.UserId == userId);
+
                 var timeLog = new TimeLog
                 {
                     WorkTaskId = task.Id,
                     LogDate = DateTime.UtcNow,
                     DurationHours = durationSeconds / 3600.0,
                     Note = focusNote,
-                    IsFocusSession = true
+                    IsFocusSession = true,
+                    GoalId = goal?.Id
                 };
                 _context.TimeLogs.Add(timeLog);
                 await _context.SaveChangesAsync();
+
+                // Trigger goal progress recalculation via GoalService
+                await _goalService.HandleTimeLogAsync(timeLog);
                 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                    return Json(new { success = true, isGoalUpdate = false });
+                    return Json(new { success = true, isGoalUpdate = goal != null });
                 
                 return RedirectToAction(nameof(Focus), new { id = projectId });
             }
