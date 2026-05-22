@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using DACS_TimeManagement.Services.Interfaces;
+using Microsoft.Extensions.Localization;
 
 namespace DACS_TimeManagement.Controllers
 {
@@ -10,17 +11,20 @@ namespace DACS_TimeManagement.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly ILogger<OtpController> _logger;
+        private readonly IStringLocalizer<OtpController> _localizer;
 
         public OtpController(
             IOtpService otpService,
             SignInManager<IdentityUser> signInManager,
             UserManager<IdentityUser> userManager,
-            ILogger<OtpController> logger)
+            ILogger<OtpController> logger,
+            IStringLocalizer<OtpController> localizer)
         {
             _otpService = otpService;
             _signInManager = signInManager;
             _userManager = userManager;
             _logger = logger;
+            _localizer = localizer;
         }
 
         // GET: /Otp/VerifyOtp
@@ -61,7 +65,7 @@ namespace DACS_TimeManagement.Controllers
 
             if (string.IsNullOrWhiteSpace(otp) || otp.Length != 6)
             {
-                ViewBag.Error = "Vui lòng nhập đủ 6 chữ số.";
+                ViewBag.Error = _localizer["EnterAll6Digits"].Value;
                 return View();
             }
 
@@ -69,7 +73,7 @@ namespace DACS_TimeManagement.Controllers
 
             if (!isValid)
             {
-                ViewBag.Error = "Mã OTP không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.";
+                ViewBag.Error = _localizer["InvalidOrExpiredOtp"].Value;
                 return View();
             }
 
@@ -77,7 +81,7 @@ namespace DACS_TimeManagement.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                ViewBag.Error = "Không tìm thấy tài khoản. Vui lòng đăng nhập lại.";
+                ViewBag.Error = _localizer["AccountNotFound"].Value;
                 return View();
             }
 
@@ -108,7 +112,7 @@ namespace DACS_TimeManagement.Controllers
 
             await _otpService.GenerateAndSendOtpAsync(userId, email);
 
-            TempData["ResendSuccess"] = "Mã OTP mới đã được gửi đến email của bạn.";
+            TempData["ResendSuccess"] = _localizer["OtpResentSuccess"].Value;
             return RedirectToAction(nameof(VerifyOtp));
         }
 

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Two-Factor Verification" xml:space="preserve">
+    <value>Xác thực hai yếu tố</value>
+  </data>
+  <data name="OTP Verification" xml:space="preserve">
+    <value>Xác thực OTP</value>
+  </data>
+  <data name="We have sent a 6-digit OTP code to" xml:space="preserve">
+    <value>Chúng tôi đã gửi mã OTP 6 số đến</value>
+  </data>
+  <data name="Code expires in" xml:space="preserve">
+    <value>Mã có hiệu lực trong</value>
+  </data>
+  <data name="Verify Login" xml:space="preserve">
+    <value>Xác nhận đăng nhập</value>
+  </data>
+  <data name="or" xml:space="preserve">
+    <value>hoặc</value>
+  </data>
+  <data name="Resend OTP" xml:space="preserve">
+    <value>Gửi lại mã OTP</value>
+  </data>
+  <data name="Back to Login" xml:space="preserve">
+    <value>Quay lại đăng nhập</value>
+  </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Hết hạn</value>
+  </data>
+</root>

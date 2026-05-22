@@ -11,4 +11,7 @@
   <data name="Resend Confirmation" xml:space="preserve"><value>Gửi lại email xác nhận</value></data>
   <data name="Or Continue With" xml:space="preserve"><value>Hoặc tiếp tục với</value></data>
   <data name="External Login Title" xml:space="preserve"><value>Đăng nhập bằng tài khoản {0}</value></data>
+  <data name="Enter your password" xml:space="preserve"><value>Nhập mật khẩu của bạn</value></data>
+  <data name="Otp Send Failed Message" xml:space="preserve"><value>Không thể gửi mã OTP qua email. Vui lòng kiểm tra cấu hình SMTP hoặc tắt 2FA trong phần Hồ sơ.</value></data>
+  <data name="Invalid login attempt." xml:space="preserve"><value>Tên đăng nhập hoặc mật khẩu không chính xác.</value></data>
 </root>

@@ -1,13 +1,14 @@
+@inject Microsoft.AspNetCore.Mvc.Localization.IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Xác thực hai yếu tố";
+    ViewData["Title"] = Localizer["Two-Factor Verification"];
     Layout = null; // Full-page layout riêng
 }
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Xác thực OTP - Time Master</title>
+    <title>@Localizer["OTP Verification"] - Time Master</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -243,9 +244,9 @@
 <body>
     <div class="otp-card">
         <div class="shield-icon">🔐</div>
-        <h1>Xác thực hai yếu tố</h1>
+        <h1>@Localizer["Two-Factor Verification"]</h1>
         <p class="subtitle">
-            Chúng tôi đã gửi mã OTP 6 số đến<br>
+            @Localizer["We have sent a 6-digit OTP code to"]<br>
             <strong>@ViewBag.MaskedEmail</strong>
         </p>
 
@@ -267,7 +268,7 @@
 
         <!-- Đếm ngược -->
         <div class="timer-bar">
-            <div class="timer-text">Mã có hiệu lực trong <span class="countdown" id="countdown">10:00</span></div>
+            <div class="timer-text">@Localizer["Code expires in"] <span class="countdown" id="countdown">10:00</span></div>
             <div class="timer-track">
                 <div class="timer-fill" id="timerFill" style="width:100%"></div>
             </div>
@@ -287,23 +288,23 @@
             <input type="hidden" name="otp" id="otpHidden" />
 
             <button type="submit" class="btn-verify" id="btnVerify" disabled>
-                <i class="fas fa-shield-check me-2"></i> Xác nhận đăng nhập
+                <i class="fas fa-shield-check me-2"></i> @Localizer["Verify Login"]
             </button>
         </form>
 
-        <div class="divider"><span>hoặc</span></div>
+        <div class="divider"><span>@Localizer["or"]</span></div>
 
         <div class="resend-row">
             <form asp-controller="Otp" asp-action="ResendOtp" method="post">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn-resend">
-                    <i class="fas fa-redo me-1"></i> Gửi lại mã OTP
+                    <i class="fas fa-redo me-1"></i> @Localizer["Resend OTP"]
                 </button>
             </form>
         </div>
 
         <a href="/Identity/Account/Login" class="back-link">
-            <i class="fas fa-arrow-left me-1"></i> Quay lại đăng nhập
+            <i class="fas fa-arrow-left me-1"></i> @Localizer["Back to Login"]
         </a>
     </div>
 
@@ -372,10 +373,11 @@
         let remaining = totalSeconds;
         const countdownEl = document.getElementById('countdown');
         const timerFill = document.getElementById('timerFill');
+        const expiredText = '@Html.Raw(Localizer["Expired"])';
 
         function updateTimer() {
             if (remaining <= 0) {
-                countdownEl.textContent = 'Hết hạn';
+                countdownEl.textContent = expiredText;
                 countdownEl.style.color = '#f87171';
                 timerFill.style.width = '0%';
                 timerFill.style.background = '#ef4444';

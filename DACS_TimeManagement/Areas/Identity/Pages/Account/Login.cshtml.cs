@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using DACS_TimeManagement.Services.Interfaces;
 using DACS_TimeManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 
 namespace DACS_TimeManagement.Areas.Identity.Pages.Account
 {
@@ -27,19 +28,22 @@ namespace DACS_TimeManagement.Areas.Identity.Pages.Account
         private readonly IOtpService _otpService;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<LoginModel> _logger;
+        private readonly IStringLocalizer _localizer;
 
         public LoginModel(
             SignInManager<IdentityUser> signInManager,
             UserManager<IdentityUser> userManager,
             IOtpService otpService,
             ApplicationDbContext context,
-            ILogger<LoginModel> logger)
+            ILogger<LoginModel> logger,
+            IStringLocalizerFactory localizerFactory)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _otpService = otpService;
             _context = context;
             _logger = logger;
+            _localizer = localizerFactory.Create("Areas.Identity.Pages.Account.Login", typeof(LoginModel).Assembly.GetName().Name);
         }
 
         /// <summary>
@@ -158,7 +162,7 @@ namespace DACS_TimeManagement.Areas.Identity.Pages.Account
                             // Đăng nhập luôn nếu không gửi được email (tránh bị khóa)
                             await _signInManager.SignInAsync(user, Input.RememberMe);
                             ModelState.AddModelError(string.Empty,
-                                "Không thể gửi mã OTP qua email. Vui lòng kiểm tra cấu hình SMTP hoặc tắt 2FA trong phần Hồ sơ.");
+                                _localizer["Otp Send Failed Message"].Value);
                             return Page();
                         }
                     }
@@ -177,7 +181,7 @@ namespace DACS_TimeManagement.Areas.Identity.Pages.Account
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(string.Empty, _localizer["Invalid login attempt."].Value);
                     return Page();
                 }
             }

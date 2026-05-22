@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="EnterAll6Digits" xml:space="preserve">
+    <value>Please enter all 6 digits.</value>
+  </data>
+  <data name="InvalidOrExpiredOtp" xml:space="preserve">
+    <value>Invalid or expired OTP. Please try again.</value>
+  </data>
+  <data name="AccountNotFound" xml:space="preserve">
+    <value>Account not found. Please log in again.</value>
+  </data>
+  <data name="OtpResentSuccess" xml:space="preserve">
+    <value>A new OTP has been sent to your email.</value>
+  </data>
+</root>

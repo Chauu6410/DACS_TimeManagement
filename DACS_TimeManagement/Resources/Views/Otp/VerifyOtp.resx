@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Two-Factor Verification" xml:space="preserve">
+    <value>Two-Factor Verification</value>
+  </data>
+  <data name="OTP Verification" xml:space="preserve">
+    <value>OTP Verification</value>
+  </data>
+  <data name="We have sent a 6-digit OTP code to" xml:space="preserve">
+    <value>We have sent a 6-digit OTP code to</value>
+  </data>
+  <data name="Code expires in" xml:space="preserve">
+    <value>Code expires in</value>
+  </data>
+  <data name="Verify Login" xml:space="preserve">
+    <value>Verify Login</value>
+  </data>
+  <data name="or" xml:space="preserve">
+    <value>or</value>
+  </data>
+  <data name="Resend OTP" xml:space="preserve">
+    <value>Resend OTP</value>
+  </data>
+  <data name="Back to Login" xml:space="preserve">
+    <value>Back to Login</value>
+  </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Expired</value>
+  </data>
+</root>

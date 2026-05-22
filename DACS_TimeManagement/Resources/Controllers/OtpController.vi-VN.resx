@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="EnterAll6Digits" xml:space="preserve">
+    <value>Vui lòng nhập đủ 6 chữ số.</value>
+  </data>
+  <data name="InvalidOrExpiredOtp" xml:space="preserve">
+    <value>Mã OTP không hợp lệ hoặc đã hết hạn. Vui lòng thử lại.</value>
+  </data>
+  <data name="AccountNotFound" xml:space="preserve">
+    <value>Không tìm thấy tài khoản. Vui lòng đăng nhập lại.</value>
+  </data>
+  <data name="OtpResentSuccess" xml:space="preserve">
+    <value>Mã OTP mới đã được gửi đến email của bạn.</value>
+  </data>
+</root>
