@@ -193,6 +193,18 @@
   <data name="WorkSchedule" xml:space="preserve">
     <value>Work Schedule</value>
   </data>
+  <data name="WorkingHours" xml:space="preserve">
+    <value>Working Hours</value>
+  </data>
+  <data name="LunchBreak" xml:space="preserve">
+    <value>Lunch Break</value>
+  </data>
+  <data name="WorkingDays" xml:space="preserve">
+    <value>Working Days</value>
+  </data>
+  <data name="SaveConfig" xml:space="preserve">
+    <value>Save Config</value>
+  </data>
   <data name="MonthView" xml:space="preserve">
     <value>Month</value>
   </data>
@@ -327,5 +339,20 @@
   </data>
   <data name="CannotUpdateColor" xml:space="preserve">
     <value>Cannot update color</value>
+  </data>
+  <data name="AIPlanStartDate" xml:space="preserve">
+    <value>AI Plan Start Date</value>
+  </data>
+  <data name="SelectTasksByProject" xml:space="preserve">
+    <value>Select Tasks by Project</value>
+  </data>
+  <data name="ChooseEventColor" xml:space="preserve">
+    <value>Choose Event Color</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="ColorUpdatedSuccess" xml:space="preserve">
+    <value>Color updated successfully!</value>
   </data>
 </root>

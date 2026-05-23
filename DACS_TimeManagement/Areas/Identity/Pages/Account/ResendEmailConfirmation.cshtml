@@ -1,0 +1,153 @@
+@page
+@model ResendEmailConfirmationModel
+@{
+    ViewData["Title"] = Localizer["Resend email confirmation"];
+}
+
+<div class="login-container" data-aos="fade-up">
+    <div class="row justify-content-center w-100 m-0">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-7 col-xl-6">
+            <div class="card border-0 shadow-xl rounded-4 overflow-hidden">
+                <!-- Header Gradient -->
+                <div class="card-header bg-gradient-pastel-primary text-white border-0 py-4 text-center">
+                    <div class="icon-circle bg-white bg-opacity-20 mx-auto mb-3">
+                        <i class="fas fa-envelope-open-text fa-2x"></i>
+                    </div>
+                    <h3 class="fw-bold mb-0">@Localizer["Resend email confirmation"]</h3>
+                    <p class="opacity-75 small mb-0">@Localizer["Enter your email."]</p>
+                </div>
+
+                <!-- Form Body -->
+                <div class="card-body p-4 p-lg-5">
+                    <form method="post">
+                        <div asp-validation-summary="All" class="alert alert-pastel-danger rounded-3 border-0" role="alert"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="Input.Email" class="form-label fw-semibold">
+                                <i class="fas fa-envelope text-pastel-primary me-1"></i> @Localizer["Email Address"]
+                            </label>
+                            <input asp-for="Input.Email" class="form-control form-control-lg rounded-3" 
+                                   autocomplete="username" aria-required="true" 
+                                   placeholder="name@example.com" />
+                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-pastel-primary w-100 rounded-pill py-2 fw-semibold shadow-sm">
+                            <i class="fas fa-paper-plane me-2"></i>@Localizer["Resend"]
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+<style>
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+        padding: 1rem;
+    }
+
+    body.theme-dark .login-container {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    }
+
+    .bg-gradient-pastel-primary {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+    }
+
+    .icon-circle {
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 60px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+    }
+
+    .form-control {
+        border: 1px solid #cbd5e1;
+        background-color: #ffffff;
+        color: #1e293b;
+        transition: all 0.2s ease;
+        padding: 0.7rem 1rem;
+    }
+    .form-control:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2);
+        outline: none;
+    }
+    .form-label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #475569;
+        font-weight: 600;
+    }
+
+    .btn-pastel-primary {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+    .btn-pastel-primary:hover {
+        background: #4338ca;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+    }
+
+    .alert-pastel-danger {
+        background: #fee2e2;
+        border-left: 4px solid #ef4444;
+        color: #991b1b;
+    }
+    body.theme-dark .alert-pastel-danger {
+        background: #7f1d1d;
+        color: #fecaca;
+        border-left-color: #f87171;
+    }
+
+    .text-pastel-primary {
+        color: #4f46e5;
+    }
+    .text-pastel-muted {
+        color: #64748b;
+    }
+
+    body.theme-dark .form-control {
+        background-color: #1e293b;
+        border-color: #334155;
+        color: #f1f5f9;
+    }
+    body.theme-dark .form-label {
+        color: #94a3b8;
+    }
+    body.theme-dark .text-pastel-muted {
+        color: #94a3b8;
+    }
+
+    @@media (max-width: 768px) {
+        .card-body {
+            padding: 1.5rem !important;
+        }
+        .icon-circle {
+            width: 50px;
+            height: 50px;
+        }
+        .btn {
+            font-size: 0.9rem;
+        }
+    }
+</style>

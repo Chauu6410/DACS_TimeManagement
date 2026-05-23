@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="Resend email confirmation" xml:space="preserve"><value>Gửi lại email xác nhận</value></data>
+  <data name="Enter your email." xml:space="preserve"><value>Nhập email của bạn để nhận liên kết xác nhận.</value></data>
+  <data name="Email Address" xml:space="preserve"><value>Địa chỉ Email</value></data>
+  <data name="Resend" xml:space="preserve"><value>Gửi lại</value></data>
+</root>

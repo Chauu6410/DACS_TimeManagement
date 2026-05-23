@@ -825,15 +825,38 @@
         let currentAISuggestions = [];
         function renderAISuggestions(suggestions) {
             currentAISuggestions = suggestions;
-            const container = document.getElementById('aiSuggestionsContainer');
+            const container = document.getElementById('aiPlanResults');
             if(!container) return;
             container.innerHTML = suggestions.map((s, index) => `
-                <div class="card border-0 shadow-sm rounded-3">
-                    <div class="card-body">
-                        <h6 class="card-title fw-bold text-dark">${escapeHtml(s.title)}</h6>
-                        <div class="row g-2">
-                            <div class="col-6"><input type="datetime-local" class="form-control ai-start-time" data-index="${index}" value="${s.startTime}" /></div>
-                            <div class="col-6"><input type="datetime-local" class="form-control ai-end-time" data-index="${index}" value="${s.endTime}" /></div>
+                <div class="col-12 mb-3">
+                    <div class="card border-0 shadow-sm rounded-4 hover-lift">
+                        <div class="card-body p-3">
+                            <div class="row align-items-center g-3">
+                                <!-- Tên sự kiện & Indicator màu sắc -->
+                                <div class="col-12 col-md-6 col-lg-7">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span style="background-color: ${s.color || '#6366f1'}; width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; box-shadow: 0 0 8px ${s.color || '#6366f1'};"></span>
+                                        <h6 class="mb-0 fw-bold text-dark lh-base text-wrap" style="word-break: break-word;">${escapeHtml(s.title)}</h6>
+                                    </div>
+                                </div>
+                                <!-- Chọn thời gian -->
+                                <div class="col-12 col-md-6 col-lg-5">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="d-flex flex-column">
+                                                <label class="fw-bold text-muted mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">@Localizer["Start"]</label>
+                                                <input type="datetime-local" class="form-control form-control-sm ai-start-time rounded-3" style="padding: 8px 10px;" data-index="${index}" value="${s.startTime}" />
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="d-flex flex-column">
+                                                <label class="fw-bold text-muted mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">@Localizer["End"]</label>
+                                                <input type="datetime-local" class="form-control form-control-sm ai-end-time rounded-3" style="padding: 8px 10px;" data-index="${index}" value="${s.endTime}" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -972,8 +995,16 @@
                         right: 'dayGridMonth,timeGridWeek,timeGridDay' 
                     },
                     customButtons: { 
-                        todoToggle: { html: '<i class="fas fa-list-ul"></i>', click: () => toggleSidebar('todoSidebar') },
-                        workSchedule: { html: '<i class="fas fa-user-clock"></i>', click: () => toggleSidebar('workScheduleSidebar') }
+                        todoToggle: { 
+                            html: '<i class="fas fa-list-ul"></i>', 
+                            click: () => toggleSidebar('todoSidebar'),
+                            hint: '@Localizer["TodoList"]'
+                        },
+                        workSchedule: { 
+                            html: '<i class="fas fa-user-clock"></i>', 
+                            click: () => toggleSidebar('workScheduleSidebar'),
+                            hint: '@Localizer["WorkSchedule"]'
+                        }
                     },
                     eventSources: [
                         { url: '/Calendar/GetScheduledEvents', id: 'scheduled' },
