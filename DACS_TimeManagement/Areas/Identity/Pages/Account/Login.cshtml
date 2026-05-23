@@ -58,7 +58,7 @@
                             <a id="forgot-password" asp-page="./ForgotPassword" class="text-pastel-primary small">
                                 @Localizer["Forgot Password"]
                             </a>
-                            <span class="text-pastel-muted mx-2">â€¢</span>
+                            <span class="text-pastel-muted mx-2" aria-hidden="true">&bull;</span>
                             <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-pastel-primary small">
                                 @Localizer["Create Account"]
                             </a>

@@ -76,6 +76,8 @@ builder.Services.AddScoped<IUserWorkScheduleService, UserWorkScheduleService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGamificationService, GamificationService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
+// Kết nối IEmailSender (Identity) với IEmailService của dự án
+builder.Services.AddTransient<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, IdentityEmailSender>();
 builder.Services.AddHostedService<EmailNotificationWorker>();
 
 // Session để tạm lưu userId trong luồng 2FA
