@@ -9,17 +9,22 @@ namespace DACS_TimeManagement.Controllers
     public class NotificationController : Controller
     {
         private readonly INotificationRepository _notifRepo;
-        private readonly Microsoft.Extensions.Localization.IStringLocalizer<NotificationController> _localizer;
+        private readonly Microsoft.Extensions.Localization.IStringLocalizer _localizer;
 
-        public NotificationController(INotificationRepository notifRepo, Microsoft.Extensions.Localization.IStringLocalizer<NotificationController> localizer)
+        public NotificationController(INotificationRepository notifRepo, Microsoft.Extensions.Localization.IStringLocalizerFactory factory)
         {
             _notifRepo = notifRepo;
-            _localizer = localizer;
+            _localizer = factory.Create("Views.Account.Notifications", typeof(NotificationController).Assembly.GetName().Name);
         }
 
         private string TranslateMessage(string msg)
         {
             if (string.IsNullOrEmpty(msg)) return msg;
+
+            // Direct exact lookup first
+            var localized = _localizer[msg];
+            if (localized != null && !localized.ResourceNotFound)
+                return localized.Value;
 
             // Simple pattern matching for common messages
             // Task added in project: "{creatorName} added a new task in project {projectName}."

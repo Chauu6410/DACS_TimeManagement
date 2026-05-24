@@ -188,9 +188,10 @@ Details: {request.Project?.Detail ?? "N/A"}
 
             try
             {
+                var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
                 var project = await _db.Set<Project>()
                     .Include(p => p.Tasks)
-                    .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
+                    .FirstOrDefaultAsync(p => p.Id == projectId && (p.UserId == userId || p.Members.Any(pm => pm.UserId == userId)), cancellationToken);
 
                 if (project == null)
                 {
@@ -198,7 +199,6 @@ Details: {request.Project?.Detail ?? "N/A"}
                     return;
                 }
 
-                var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 var lang = System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName;
                 var isVi = lang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
 
@@ -304,6 +304,7 @@ Format: Use professional Markdown. Answer in English.";
         {
             try
             {
+                var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
                 var isVi = request.TargetLang == "vi";
                 string sourceText = null;
                 Project project = null;
@@ -311,13 +312,13 @@ Format: Use professional Markdown. Answer in English.";
 
                 if (request.ProjectId.HasValue)
                 {
-                    project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId);
+                    project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId && (p.UserId == userId || p.Members.Any(pm => pm.UserId == userId)));
                     if (project == null) return NotFound();
                     sourceText = isVi ? project.AIStrategyEn : project.AIStrategyVi;
                 }
                 else if (request.GoalId.HasValue)
                 {
-                    goal = await _db.Set<PersonalGoal>().FirstOrDefaultAsync(g => g.Id == request.GoalId);
+                    goal = await _db.Set<PersonalGoal>().FirstOrDefaultAsync(g => g.Id == request.GoalId && g.UserId == userId);
                     if (goal == null) return NotFound();
                     sourceText = isVi ? goal.AIActionPlanEn : goal.AIActionPlanVi;
                 }
@@ -362,10 +363,9 @@ Format: Use professional Markdown. Answer in English.";
         {
             try
             {
-                var project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId);
+                var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+                var project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId && (p.UserId == userId || p.Members.Any(pm => pm.UserId == userId)));
                 if (project == null) return NotFound();
-
-                var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                 
                 // Find or create a default BoardList (column) for tasks
                 var boardList = await _db.Set<BoardList>()

@@ -25,35 +25,56 @@ namespace DACS_TimeManagement.Data
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
+            // ─── OPTIMIZATION: FAST-PATH GUARD ──────────────────────────────────────────
+            // If the database is already fully initialized and seeded, we return immediately.
+            // This bypasses context.Database.EnsureCreatedAsync(), UserManager, and RoleManager checks,
+            // which saves several seconds on application startup.
+            try
+            {
+                // We check if the database and the UserProfiles table exist and contain the admin's profile.
+                if (await context.UserProfiles.AnyAsync(p => p.Email == "huongphanngocquynh@gmail.com"))
+                {
+                    Console.WriteLine(">>> Seed Data already exists. Skipping database seeding for ultra-fast startup.");
+                    return;
+                }
+            }
+            catch (Exception)
+            {
+                // If the database or tables do not exist yet, EF Core will throw an exception.
+                // In this case, we proceed with database creation and seeding.
+            }
+
             await context.Database.EnsureCreatedAsync();
 
             // ─── 1. Roles ───────────────────────────────────────────────────────────────
             if (!await roleManager.RoleExistsAsync("Admin")) await roleManager.CreateAsync(new IdentityRole("Admin"));
             if (!await roleManager.RoleExistsAsync("User"))  await roleManager.CreateAsync(new IdentityRole("User"));
 
-            // ─── 2. Ensure Admin Exists ─────────────────────────────────────────────────
-            var admin = await CreateUserIfNotExists(userManager, "admin@gmail.com",       "Admin@123", "Admin");
+            // ─── 2. Admin Users ─────────────────────────────────────────────────────────
+            var admin1 = await CreateUserIfNotExists(userManager, "huongphanngocquynh@gmail.com", "Admin@123", "Admin");
+            var admin2 = await CreateUserIfNotExists(userManager, "duongvobaochau.11a8@gmail.com", "Admin@123", "Admin");
 
             // ─── 3. Guard: skip if already seeded ───────────────────────────────────────
             // If the admin profile exists, we assume the seed data has already run.
-            if (await context.UserProfiles.AnyAsync(p => p.UserId == admin.Id)) return;
+            if (await context.UserProfiles.AnyAsync(p => p.UserId == admin1.Id)) return;
 
-            // ─── 4. Sample Users ────────────────────────────────────────────────────────
-            var u1    = await CreateUserIfNotExists(userManager, "huong@gmail.com",   "Huong@123",   "User");
-            var u2    = await CreateUserIfNotExists(userManager, "quynh@gmail.com",   "Quynh@123",   "User");
-            var u3    = await CreateUserIfNotExists(userManager, "ngoc@gmail.com",   "Ngoc@123",   "User");
-            var u4    = await CreateUserIfNotExists(userManager, "minh@gmail.com",     "Minh@123",   "User");
+            // ─── 4. Member Users ────────────────────────────────────────────────────────
+            var u1 = await CreateUserIfNotExists(userManager, "huongphan061005@gmail.com", "Member@123", "User");
+            var u2 = await CreateUserIfNotExists(userManager, "member2@example.com", "Member@123", "User");
+            var u3 = await CreateUserIfNotExists(userManager, "member3@example.com", "Member@123", "User");
+            var u4 = await CreateUserIfNotExists(userManager, "member4@example.com", "Member@123", "User");
 
-            var allUsers = new List<IdentityUser> { admin, u1, u2, u3, u4 };
+            var allUsers = new List<IdentityUser> { admin1, admin2, u1, u2, u3, u4 };
 
-            // ─── 4. UserProfiles ────────────────────────────────────────────────────────
+            // ─── 5. UserProfiles ────────────────────────────────────────────────────────
             var profileDefs = new[]
             {
-                (admin, "System Administrator", "IT",          "Admin",            "dark",    "Dashboard"),
-                (u1,    "Trần Thị Hương",        "Engineering", "Senior Developer", "light",   "Kanban"),
-                (u2,    "Lê Thị Quỳnh",          "Marketing",   "Content Strategist","primary","Dashboard"),
-                (u3,    "Nguyễn Thị Ngọc",       "QA",          "QA Engineer",      "light",   "Dashboard"),
-                (u4,    "Phạm Văn Minh",          "Management",  "Project Manager",  "dark",    "Dashboard"),
+                (admin1, "Phan Ngọc Quỳnh Hương", "IT",          "System Administrator", "dark",    "Dashboard"),
+                (admin2, "Võ Bảo Châu Dương",     "IT",          "System Administrator", "dark",    "Dashboard"),
+                (u1,     "Phan Hương",            "Engineering", "Senior Developer",     "light",   "Kanban"),
+                (u2,     "Nguyễn Văn An",         "Marketing",   "Content Strategist",   "primary", "Dashboard"),
+                (u3,     "Trần Thị Bình",         "QA",          "QA Engineer",          "light",   "Dashboard"),
+                (u4,     "Lê Minh Tuấn",          "Management",  "Project Manager",      "dark",    "Dashboard"),
             };
 
             foreach (var (user, name, dept, pos, theme, view) in profileDefs)
@@ -79,25 +100,31 @@ namespace DACS_TimeManagement.Data
             }
             await context.SaveChangesAsync();
 
-            // ─── 5. Projects ────────────────────────────────────────────────────────────
+            // ─── 6. Projects ────────────────────────────────────────────────────────────
             var projectDefs = new[]
             {
-                // Admin projects
-                ("TimeMaster Management System",  "Enterprise time-management platform with AES-256 encryption.",               -30, admin.Id),
-                ("Cloud & AI Research Lab",        "Infrastructure deployment, MLOps pipelines and LLM experiments.",           -20, admin.Id),
-                ("Marketing Campaign Q3",          "Multi-channel product launch campaign for Q3 2025.",                        -10, admin.Id),
-                // Huong
-                ("Personal .NET Learning Plan",    "Structured upskilling in ASP.NET Core 8, EF Core and React.",               -25, u1.Id),
-                ("Fitness Tracker App",            "Cross-platform mobile app for daily workouts and nutrition logging.",        -15, u1.Id),
-                // Quynh
-                ("Freelance Portfolio v2",         "Redesigned personal portfolio with Next.js and Framer Motion.",             -18, u2.Id),
-                ("SEO & Content Strategy",         "Six-month SEO roadmap and blog content calendar.",                          -8,  u2.Id),
-                // Ngoc
-                ("Reading Challenge 2025",         "Track 52 books this year with reviews and rating scores.",                  -12, u3.Id),
-                ("Daily Mindfulness Practice",     "Build a sustainable meditation habit with journaling.",                     -5,  u3.Id),
-                // Minh
-                ("Team Onboarding Playbook",       "Document and automate the onboarding process for new engineers.",           -22, u4.Id),
-                ("Q2 Sprint Planning Dashboard",   "Centralised sprint planning and velocity tracking for three scrum teams.",  -14, u4.Id),
+                // Admin1 projects (huongphanngocquynh@gmail.com) - Reduced to 3 projects
+                ("TimeMaster Management System",     "Enterprise time-management platform with AES-256 encryption.",               -30, admin1.Id),
+                ("Cloud & AI Research Lab",          "Infrastructure deployment, MLOps pipelines and LLM experiments.",           -20, admin1.Id),
+                ("Marketing Campaign Q3",            "Multi-channel product launch campaign for Q3 2025.",                        -10, admin1.Id),
+                
+                // Admin2 projects (duongvobaochau.11a8@gmail.com) - Reduced to 3 projects
+                ("System Security Audit",            "Comprehensive security review and penetration testing.",                    -25, admin2.Id),
+                ("Database Optimization Project",    "Performance tuning and query optimization for production databases.",       -15, admin2.Id),
+                ("DevOps Pipeline Automation",       "Automated CI/CD pipeline with Docker and Kubernetes.",                      -20, admin2.Id),
+                
+                // Member u1 projects (huongphan061005@gmail.com) - Reduced to 3 projects
+                ("Personal .NET Learning Plan",      "Structured upskilling in ASP.NET Core 8, EF Core and React.",               -25, u1.Id),
+                ("Fitness Tracker App",              "Cross-platform mobile app for daily workouts and nutrition logging.",        -15, u1.Id),
+                ("Blog Platform Development",        "Personal blog platform with CMS and comment system.",                       -21, u1.Id),
+                
+                // Other members - Reduced to 2 projects each
+                ("Freelance Portfolio v2",           "Redesigned personal portfolio with Next.js and Framer Motion.",             -18, u2.Id),
+                ("SEO & Content Strategy",           "Six-month SEO roadmap and blog content calendar.",                          -8,  u2.Id),
+                ("Reading Challenge 2025",           "Track 52 books this year with reviews and rating scores.",                  -12, u3.Id),
+                ("Daily Mindfulness Practice",       "Build a sustainable meditation habit with journaling.",                     -5,  u3.Id),
+                ("Team Onboarding Playbook",         "Document and automate the onboarding process for new engineers.",           -22, u4.Id),
+                ("Q2 Sprint Planning Dashboard",     "Centralised sprint planning and velocity tracking for three scrum teams.",  -14, u4.Id),
             };
 
             var projects = new List<Project>();
@@ -115,17 +142,28 @@ namespace DACS_TimeManagement.Data
             // Realistic task titles per project index
             var taskTitles = new Dictionary<int, string[]>
             {
+                // Admin1 projects (0-2)
                 [0]  = new[]{"Design system architecture","Set up CI/CD pipeline","Implement AES-256 encryption module","Write unit tests for auth service","Deploy to staging environment","Conduct security audit","Fix JWT refresh-token bug","Optimise database query performance"},
                 [1]  = new[]{"Provision AWS EKS cluster","Configure Terraform IaC","Train baseline NLP model","Integrate MLflow tracking","Build model serving API","Write GPU cost-optimisation report","Review LLM fine-tuning results","Deploy monitoring stack"},
                 [2]  = new[]{"Craft brand messaging","Design social-media assets","Schedule LinkedIn posts","Run A/B test on landing page","Analyse campaign metrics","Coordinate with influencers","Produce promotional video","Publish Q3 retrospective"},
-                [3]  = new[]{"Study ASP.NET Core fundamentals","Build sample CRUD app","Learn EF Core migrations","Integrate SignalR real-time","Deploy app to Azure","Practice unit testing patterns","Read Clean Architecture book","Implement repository pattern"},
-                [4]  = new[]{"Define app wireframes","Set up React Native project","Build workout logging screen","Implement nutrition API","Add progress chart component","Write integration tests","Publish to TestFlight","Collect beta feedback"},
-                [5]  = new[]{"Create design system tokens","Build hero section","Add portfolio case studies","Implement dark mode","Optimise for Core Web Vitals","Add contact form backend","Write blog posts","Deploy to Vercel"},
-                [6]  = new[]{"Keyword research phase 1","Optimise existing pages","Create content calendar","Write 4 pillar articles","Build backlink outreach list","Analyse competitor gaps","Submit sitemap to GSC","Track monthly rankings"},
-                [7]  = new[]{"Set reading goal targets","Log January books","Log February books","Write mid-year review","Create Goodreads shelf","Design reading tracker UI","Share top-5 recommendations","Log Q3 reads"},
-                [8]  = new[]{"Install meditation app","Complete 7-day beginner course","Write daily journal entry","Try body-scan technique","Join mindfulness community","Log 30-day streak","Read 'The Miracle Morning'","Practice gratitude journaling"},
-                [9]  = new[]{"Draft onboarding checklist","Record tool walkthroughs","Set up Notion workspace","Automate account provisioning","Collect feedback from new hires","Review first-week survey results","Update handbook docs","Present playbook to HR"},
-                [10] = new[]{"Set up Jira board","Define sprint ceremonies","Create velocity chart","Retrospective template","Backlog grooming guide","Integrate with Slack","Build burndown report","Train team leads"},
+                
+                // Admin2 projects (3-5)
+                [3]  = new[]{"Conduct vulnerability assessment","Review access control policies","Implement security patches","Perform penetration testing","Document security findings","Update security protocols","Train staff on security","Generate audit report"},
+                [4]  = new[]{"Analyse slow queries","Implement database indexing","Optimize table structures","Set up query caching","Monitor database performance","Review backup strategies","Implement partitioning","Document optimization results"},
+                [5]  = new[]{"Set up Jenkins pipeline","Configure Docker containers","Deploy Kubernetes cluster","Implement automated testing","Add deployment rollback","Set up monitoring alerts","Document deployment process","Train development team"},
+                
+                // Member u1 projects (6-8)
+                [6]  = new[]{"Study ASP.NET Core fundamentals","Build sample CRUD app","Learn EF Core migrations","Integrate SignalR real-time","Deploy app to Azure","Practice unit testing patterns","Read Clean Architecture book","Implement repository pattern"},
+                [7]  = new[]{"Define app wireframes","Set up React Native project","Build workout logging screen","Implement nutrition API","Add progress chart component","Write integration tests","Publish to TestFlight","Collect beta feedback"},
+                [8]  = new[]{"Design blog schema","Build article editor","Implement comment system","Add user authentication","Create admin dashboard","Optimize SEO","Deploy to hosting","Write first blog post"},
+                
+                // Other members (9-14)
+                [9]  = new[]{"Create design system tokens","Build hero section","Add portfolio case studies","Implement dark mode","Optimise for Core Web Vitals","Add contact form backend","Write blog posts","Deploy to Vercel"},
+                [10] = new[]{"Keyword research phase 1","Optimise existing pages","Create content calendar","Write 4 pillar articles","Build backlink outreach list","Analyse competitor gaps","Submit sitemap to GSC","Track monthly rankings"},
+                [11] = new[]{"Set reading goal targets","Log January books","Log February books","Write mid-year review","Create Goodreads shelf","Design reading tracker UI","Share top-5 recommendations","Log Q3 reads"},
+                [12] = new[]{"Install meditation app","Complete 7-day beginner course","Write daily journal entry","Try body-scan technique","Join mindfulness community","Log 30-day streak","Read 'The Miracle Morning'","Practice gratitude journaling"},
+                [13] = new[]{"Draft onboarding checklist","Record tool walkthroughs","Set up Notion workspace","Automate account provisioning","Collect feedback from new hires","Review first-week survey results","Update handbook docs","Present playbook to HR"},
+                [14] = new[]{"Set up Jira board","Define sprint ceremonies","Create velocity chart","Retrospective template","Backlog grooming guide","Integrate with Slack","Build burndown report","Train team leads"},
             };
 
             var colors = new[] { "#4f46e5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#14b8a6" };
@@ -305,18 +343,55 @@ namespace DACS_TimeManagement.Data
             // ─── 7. CalendarEvents ──────────────────────────────────────────────────────
             var calendarDefs = new[]
             {
-                (admin.Id, "Sprint Planning – Q3",          "Plan tasks for the upcoming sprint.",          DateTime.Now.AddDays(2).Date.AddHours(9),  DateTime.Now.AddDays(2).Date.AddHours(11),  false, "#4f46e5"),
-                (admin.Id, "Security Review Meeting",       "Monthly security posture review.",             DateTime.Now.AddDays(5).Date.AddHours(14), DateTime.Now.AddDays(5).Date.AddHours(15),  false, "#ef4444"),
-                (u1.Id,    "ASP.NET Core Workshop",         "Hands-on workshop with mentor.",               DateTime.Now.AddDays(3).Date.AddHours(10), DateTime.Now.AddDays(3).Date.AddHours(13),  false, "#0ea5e9"),
-                (u1.Id,    "Team Standup",                  "Daily sync with the engineering team.",        DateTime.Now.Date.AddHours(9, 30, 0),      DateTime.Now.Date.AddHours(9, 45, 0),       false, "#10b981"),
-                (u2.Id,    "Content Calendar Review",       "Review and schedule blog posts.",              DateTime.Now.AddDays(1).Date.AddHours(11), DateTime.Now.AddDays(1).Date.AddHours(12),  false, "#f59e0b"),
-                (u2.Id,    "SEO Audit Presentation",        "Present findings to the stakeholders.",        DateTime.Now.AddDays(7).Date.AddHours(15), DateTime.Now.AddDays(7).Date.AddHours(16),  false, "#8b5cf6"),
-                (u3.Id,    "QA Regression Testing",         "Full regression run before release.",          DateTime.Now.AddDays(4).Date.AddHours(9),  DateTime.Now.AddDays(4).Date.AddHours(17),  false, "#14b8a6"),
-                (u3.Id,    "Book Club Meeting",             "Discuss this month's reading selection.",      DateTime.Now.AddDays(6).Date.AddHours(19), DateTime.Now.AddDays(6).Date.AddHours(20),  false, "#ec4899"),
-                (u4.Id,    "Q3 Roadmap Planning",           "Define product roadmap for Q3 2025.",          DateTime.Now.AddDays(1).Date.AddHours(14), DateTime.Now.AddDays(1).Date.AddHours(16),  false, "#4f46e5"),
-                (u4.Id,    "Team Building Day",             "Annual team outing and activities.",           DateTime.Now.AddDays(14).Date,             DateTime.Now.AddDays(14).Date.AddHours(23, 59, 0), true, "#10b981"),
-                (admin.Id, "Company All-Hands",             "Quarterly all-hands meeting for all staff.",   DateTime.Now.AddDays(10).Date.AddHours(10),DateTime.Now.AddDays(10).Date.AddHours(12),  false, "#f59e0b"),
-                (u1.Id,    "React Native Hackathon",        "48-hour hackathon to build MVP features.",     DateTime.Now.AddDays(20).Date,             DateTime.Now.AddDays(21).Date.AddHours(23, 59, 0), true, "#ef4444"),
+                // Admin1 events (huongphanngocquynh@gmail.com)
+                (admin1.Id, "Sprint Planning – Q3",              "Plan tasks for the upcoming sprint.",                  DateTime.Now.AddDays(2).Date.AddHours(9),   DateTime.Now.AddDays(2).Date.AddHours(11),   false, "#4f46e5"),
+                (admin1.Id, "Security Review Meeting",           "Monthly security posture review.",                     DateTime.Now.AddDays(5).Date.AddHours(14),  DateTime.Now.AddDays(5).Date.AddHours(15),   false, "#ef4444"),
+                (admin1.Id, "Mobile App Design Review",          "Review mobile app UI/UX designs with team.",           DateTime.Now.AddDays(3).Date.AddHours(10),  DateTime.Now.AddDays(3).Date.AddHours(12),   false, "#0ea5e9"),
+                (admin1.Id, "E-commerce Platform Demo",          "Demo new e-commerce features to stakeholders.",        DateTime.Now.AddDays(7).Date.AddHours(15),  DateTime.Now.AddDays(7).Date.AddHours(16),   false, "#10b981"),
+                (admin1.Id, "API Gateway Architecture Meeting",  "Discuss API gateway implementation strategy.",         DateTime.Now.AddDays(4).Date.AddHours(13),  DateTime.Now.AddDays(4).Date.AddHours(14),   false, "#8b5cf6"),
+                (admin1.Id, "Customer Analytics Workshop",       "Workshop on analytics dashboard requirements.",        DateTime.Now.AddDays(6).Date.AddHours(9),   DateTime.Now.AddDays(6).Date.AddHours(12),   false, "#f59e0b"),
+                (admin1.Id, "Team Standup - Morning",            "Daily standup with development team.",                 DateTime.Now.Date.AddHours(9, 0, 0),        DateTime.Now.Date.AddHours(9, 15, 0),        false, "#10b981"),
+                (admin1.Id, "Marketing Campaign Review",         "Review Q3 marketing campaign progress.",               DateTime.Now.AddDays(8).Date.AddHours(14),  DateTime.Now.AddDays(8).Date.AddHours(15),   false, "#ec4899"),
+                (admin1.Id, "Company All-Hands Meeting",         "Quarterly all-hands meeting for all staff.",           DateTime.Now.AddDays(10).Date.AddHours(10), DateTime.Now.AddDays(10).Date.AddHours(12),  false, "#f59e0b"),
+                (admin1.Id, "Technical Leadership Summit",       "Annual technical leadership conference.",              DateTime.Now.AddDays(30).Date,              DateTime.Now.AddDays(32).Date.AddHours(23, 59, 0), true, "#4f46e5"),
+                (admin1.Id, "Code Review Session",               "Weekly code review with senior developers.",           DateTime.Now.AddDays(1).Date.AddHours(16),  DateTime.Now.AddDays(1).Date.AddHours(17),   false, "#0ea5e9"),
+                (admin1.Id, "Product Roadmap Planning",          "Plan product roadmap for next quarter.",               DateTime.Now.AddDays(12).Date.AddHours(9),  DateTime.Now.AddDays(12).Date.AddHours(11),  false, "#8b5cf6"),
+                
+                // Admin2 events (duongvobaochau.11a8@gmail.com)
+                (admin2.Id, "Database Performance Review",       "Review database optimization progress.",               DateTime.Now.AddDays(3).Date.AddHours(10),  DateTime.Now.AddDays(3).Date.AddHours(11),   false, "#0ea5e9"),
+                (admin2.Id, "Security Audit Kickoff",            "Initial meeting for security audit project.",          DateTime.Now.AddDays(1).Date.AddHours(14),  DateTime.Now.AddDays(1).Date.AddHours(15),   false, "#ef4444"),
+                (admin2.Id, "DevOps Pipeline Demo",              "Demonstrate new CI/CD pipeline features.",             DateTime.Now.AddDays(4).Date.AddHours(11),  DateTime.Now.AddDays(4).Date.AddHours(12),   false, "#10b981"),
+                (admin2.Id, "Disaster Recovery Drill",           "Quarterly disaster recovery testing exercise.",        DateTime.Now.AddDays(15).Date.AddHours(8),  DateTime.Now.AddDays(15).Date.AddHours(17),  false, "#ef4444"),
+                (admin2.Id, "Network Infrastructure Planning",   "Plan network upgrade implementation.",                 DateTime.Now.AddDays(5).Date.AddHours(13),  DateTime.Now.AddDays(5).Date.AddHours(15),   false, "#8b5cf6"),
+                (admin2.Id, "Cloud Migration Workshop",          "Workshop on AWS cloud migration strategy.",            DateTime.Now.AddDays(7).Date.AddHours(9),   DateTime.Now.AddDays(7).Date.AddHours(12),   false, "#0ea5e9"),
+                (admin2.Id, "Monitoring System Review",          "Review Prometheus and Grafana setup.",                 DateTime.Now.AddDays(6).Date.AddHours(14),  DateTime.Now.AddDays(6).Date.AddHours(15),   false, "#f59e0b"),
+                (admin2.Id, "IT Team Standup",                   "Daily IT operations standup meeting.",                 DateTime.Now.Date.AddHours(9, 30, 0),       DateTime.Now.Date.AddHours(9, 45, 0),        false, "#10b981"),
+                (admin2.Id, "Security Training Session",         "Security awareness training for IT staff.",            DateTime.Now.AddDays(9).Date.AddHours(10),  DateTime.Now.AddDays(9).Date.AddHours(12),   false, "#ef4444"),
+                (admin2.Id, "Infrastructure Review Meeting",     "Monthly infrastructure health review.",                DateTime.Now.AddDays(11).Date.AddHours(15), DateTime.Now.AddDays(11).Date.AddHours(16),  false, "#8b5cf6"),
+                (admin2.Id, "Backup System Maintenance",         "Scheduled maintenance for backup systems.",            DateTime.Now.AddDays(20).Date.AddHours(22), DateTime.Now.AddDays(21).Date.AddHours(2),   false, "#ef4444"),
+                
+                // Member u1 events (huongphan061005@gmail.com)
+                (u1.Id,    "ASP.NET Core Workshop",             "Hands-on workshop with mentor.",                       DateTime.Now.AddDays(3).Date.AddHours(10),  DateTime.Now.AddDays(3).Date.AddHours(13),   false, "#0ea5e9"),
+                (u1.Id,    "Team Standup",                      "Daily sync with the engineering team.",                DateTime.Now.Date.AddHours(9, 30, 0),       DateTime.Now.Date.AddHours(9, 45, 0),        false, "#10b981"),
+                (u1.Id,    "Fitness App User Testing",          "Conduct user testing for fitness tracker app.",        DateTime.Now.AddDays(5).Date.AddHours(14),  DateTime.Now.AddDays(5).Date.AddHours(16),   false, "#ec4899"),
+                (u1.Id,    "React Native Study Group",          "Weekly study group for React Native learning.",        DateTime.Now.AddDays(2).Date.AddHours(19),  DateTime.Now.AddDays(2).Date.AddHours(21),   false, "#8b5cf6"),
+                (u1.Id,    "Blog Platform Design Review",       "Review blog platform design with peers.",              DateTime.Now.AddDays(4).Date.AddHours(15),  DateTime.Now.AddDays(4).Date.AddHours(16),   false, "#f59e0b"),
+                (u1.Id,    "Task Management Demo",              "Demo task management tool to team.",                   DateTime.Now.AddDays(8).Date.AddHours(11),  DateTime.Now.AddDays(8).Date.AddHours(12),   false, "#10b981"),
+                (u1.Id,    "Code Review Session",               "Peer code review for recent projects.",                DateTime.Now.AddDays(1).Date.AddHours(16),  DateTime.Now.AddDays(1).Date.AddHours(17),   false, "#0ea5e9"),
+                (u1.Id,    "Weather App API Integration",       "Work session for weather API integration.",            DateTime.Now.AddDays(6).Date.AddHours(10),  DateTime.Now.AddDays(6).Date.AddHours(12),   false, "#14b8a6"),
+                (u1.Id,    "Recipe Platform Launch Meeting",    "Planning meeting for recipe platform launch.",         DateTime.Now.AddDays(9).Date.AddHours(13),  DateTime.Now.AddDays(9).Date.AddHours(14),   false, "#ec4899"),
+                (u1.Id,    "Budget Tracker Development",        "Development session for budget tracker.",              DateTime.Now.AddDays(7).Date.AddHours(14),  DateTime.Now.AddDays(7).Date.AddHours(17),   false, "#f59e0b"),
+                (u1.Id,    "Tech Meetup - .NET Community",      "Local .NET developer community meetup.",               DateTime.Now.AddDays(12).Date.AddHours(18), DateTime.Now.AddDays(12).Date.AddHours(21),  false, "#4f46e5"),
+                (u1.Id,    "Personal Project Review",           "Monthly review of personal project progress.",         DateTime.Now.AddDays(14).Date.AddHours(10), DateTime.Now.AddDays(14).Date.AddHours(11),  false, "#8b5cf6"),
+                (u1.Id,    "Hackathon Weekend",                 "48-hour hackathon to build MVP features.",             DateTime.Now.AddDays(20).Date,              DateTime.Now.AddDays(21).Date.AddHours(23, 59, 0), true, "#ef4444"),
+                
+                // Other members
+                (u2.Id,    "Content Calendar Review",           "Review and schedule blog posts.",                      DateTime.Now.AddDays(1).Date.AddHours(11),  DateTime.Now.AddDays(1).Date.AddHours(12),   false, "#f59e0b"),
+                (u2.Id,    "SEO Audit Presentation",            "Present findings to the stakeholders.",                DateTime.Now.AddDays(7).Date.AddHours(15),  DateTime.Now.AddDays(7).Date.AddHours(16),   false, "#8b5cf6"),
+                (u3.Id,    "QA Regression Testing",             "Full regression run before release.",                  DateTime.Now.AddDays(4).Date.AddHours(9),   DateTime.Now.AddDays(4).Date.AddHours(17),   false, "#14b8a6"),
+                (u3.Id,    "Book Club Meeting",                 "Discuss this month's reading selection.",              DateTime.Now.AddDays(6).Date.AddHours(19),  DateTime.Now.AddDays(6).Date.AddHours(20),   false, "#ec4899"),
+                (u4.Id,    "Q3 Roadmap Planning",               "Define product roadmap for Q3 2025.",                  DateTime.Now.AddDays(1).Date.AddHours(14),  DateTime.Now.AddDays(1).Date.AddHours(16),   false, "#4f46e5"),
+                (u4.Id,    "Team Building Day",                 "Annual team outing and activities.",                   DateTime.Now.AddDays(14).Date,              DateTime.Now.AddDays(14).Date.AddHours(23, 59, 0), true, "#10b981"),
             };
 
             foreach (var (uid, subj, desc, start, end, fullDay, color) in calendarDefs)
@@ -337,18 +412,52 @@ namespace DACS_TimeManagement.Data
             // ─── 8. Notifications ────────────────────────────────────────────────────────
             var notifDefs = new[]
             {
-                (admin.Id, "System Ready",         "Welcome to TimeMaster! The platform is fully configured.",       false),
-                (admin.Id, "Security Alert",       "New login detected from an unrecognised device. Please verify.", true),
-                (u1.Id,    "Welcome!",             "Welcome to TimeMaster, Hương! Start with your first project.",   false),
-                (u1.Id,    "Task Due Soon",        "'Setup CI/CD pipeline' is due in 2 days.",                       false),
-                (u2.Id,    "Welcome!",             "Welcome to TimeMaster, Quỳnh! Your portfolio project is ready.", false),
-                (u2.Id,    "Milestone Reached",    "Your SEO project has reached 50% progress. Great work!",         false),
-                (u3.Id,    "Welcome!",             "Welcome to TimeMaster, Ngọc! Start tracking your goals today.",  false),
-                (u3.Id,    "Goal Reminder",        "You haven't logged any progress on 'Reading Challenge' today.",   false),
-                (u4.Id,    "Welcome!",             "Welcome to TimeMaster, Minh! Your team projects are ready.",     false),
-                (u4.Id,    "Sprint Review Due",    "Sprint review for 'Q2 Sprint Planning' is due tomorrow.",        false),
-                (u1.Id,    "New Member Joined",    "Minh Phạm joined your 'Fitness Tracker App' project.",           true),
-                (u2.Id,    "Comment on Task",      "Admin left a comment on 'Optimise existing pages'.",             true),
+                // Admin1 notifications (huongphanngocquynh@gmail.com)
+                (admin1.Id, "System Ready",                "Welcome to TimeMaster! The platform is fully configured.",       false),
+                (admin1.Id, "Security Alert",              "New login detected from an unrecognised device. Please verify.", true),
+                (admin1.Id, "Project Milestone",           "TimeMaster Management System reached 75% completion!",           false),
+                (admin1.Id, "Task Due Soon",               "'Deploy to staging environment' is due in 2 days.",              false),
+                (admin1.Id, "Team Update",                 "3 new tasks assigned to you in Mobile App Development.",         false),
+                (admin1.Id, "Meeting Reminder",            "Sprint Planning meeting starts in 1 hour.",                      false),
+                (admin1.Id, "Code Review Request",         "New pull request requires your review.",                         true),
+                (admin1.Id, "API Gateway Update",          "API Gateway Implementation project updated by team member.",     false),
+                (admin1.Id, "Performance Alert",           "Customer Analytics Dashboard showing high load.",                true),
+                (admin1.Id, "Deployment Success",          "E-commerce Platform successfully deployed to production.",       false),
+                
+                // Admin2 notifications (duongvobaochau.11a8@gmail.com)
+                (admin2.Id, "Welcome Admin",               "Welcome to TimeMaster! Your admin account is ready.",            false),
+                (admin2.Id, "Database Alert",              "Database performance metrics require attention.",                false),
+                (admin2.Id, "Security Scan Complete",      "Security audit scan completed. 3 issues found.",                 true),
+                (admin2.Id, "Backup Status",               "Daily backup completed successfully.",                           false),
+                (admin2.Id, "Network Upgrade",             "Network Infrastructure Upgrade project at 60% completion.",      false),
+                (admin2.Id, "Cloud Migration",             "AWS migration for 2 applications completed.",                    false),
+                (admin2.Id, "Monitoring Alert",            "CPU usage exceeded 80% on production server.",                   true),
+                (admin2.Id, "DevOps Pipeline",             "CI/CD pipeline deployed successfully.",                          false),
+                (admin2.Id, "Disaster Recovery Test",      "DR drill scheduled for next week. Please review procedures.",    false),
+                (admin2.Id, "System Maintenance",          "Scheduled maintenance window approved for this weekend.",        false),
+                
+                // Member u1 notifications (huongphan061005@gmail.com)
+                (u1.Id,    "Welcome!",                     "Welcome to TimeMaster, Hương! Start with your first project.",   false),
+                (u1.Id,    "Task Due Soon",                "'Build workout logging screen' is due in 2 days.",               false),
+                (u1.Id,    "Learning Progress",            "You've completed 5 out of 8 tasks in .NET Learning Plan!",       false),
+                (u1.Id,    "New Member Joined",            "A team member joined your 'Fitness Tracker App' project.",       true),
+                (u1.Id,    "Goal Achievement",             "Congratulations! You've reached your weekly coding goal.",       false),
+                (u1.Id,    "Workshop Reminder",            "ASP.NET Core Workshop starts tomorrow at 10 AM.",                false),
+                (u1.Id,    "Code Review Feedback",         "Your code review received positive feedback from mentor.",       true),
+                (u1.Id,    "Blog Post Published",          "Your first blog post is now live on the platform!",              false),
+                (u1.Id,    "App Store Submission",         "Fitness Tracker App submitted to TestFlight successfully.",      false),
+                (u1.Id,    "Hackathon Registration",       "You're registered for the React Native Hackathon!",              false),
+                (u1.Id,    "Task Completed",               "Great job! 'Implement nutrition API' marked as complete.",       false),
+                (u1.Id,    "Project Update",               "Weather Forecast App project updated with new features.",        false),
+                
+                // Other members
+                (u2.Id,    "Welcome!",                     "Welcome to TimeMaster! Your portfolio project is ready.",        false),
+                (u2.Id,    "Milestone Reached",            "Your SEO project has reached 50% progress. Great work!",         false),
+                (u3.Id,    "Welcome!",                     "Welcome to TimeMaster! Start tracking your goals today.",        false),
+                (u3.Id,    "Goal Reminder",                "You haven't logged any progress on 'Reading Challenge' today.",   false),
+                (u4.Id,    "Welcome!",                     "Welcome to TimeMaster! Your team projects are ready.",           false),
+                (u4.Id,    "Sprint Review Due",            "Sprint review for 'Q2 Sprint Planning' is due tomorrow.",        false),
+                (u2.Id,    "Comment on Task",              "Admin left a comment on 'Optimise existing pages'.",             true),
             };
 
             foreach (var (uid, title, msg, isRead) in notifDefs)
@@ -399,14 +508,14 @@ namespace DACS_TimeManagement.Data
                 });
             }
 
-            // Share an event from admin to u1
-            var adminEvent = await context.CalendarEvents.FirstOrDefaultAsync(e => e.UserId == admin.Id);
-            if (adminEvent != null)
+            // Share an event from admin1 to u1
+            var admin1Event = await context.CalendarEvents.FirstOrDefaultAsync(e => e.UserId == admin1.Id);
+            if (admin1Event != null)
             {
                 context.SharedEvents.Add(new SharedEvent
                 {
-                    EventId          = adminEvent.Id,
-                    OwnerId          = admin.Id,
+                    EventId          = admin1Event.Id,
+                    OwnerId          = admin1.Id,
                     SharedWithUserId = u1.Id,
                     PermissionLevel  = "View"
                 });
@@ -414,15 +523,15 @@ namespace DACS_TimeManagement.Data
             await context.SaveChangesAsync();
 
             // ─── 11. TaskChangeRequests ─────────────────────────────────────────────────
-            // A request from u2 to edit a task owned by admin
-            var adminTask = await context.WorkTasks.FirstOrDefaultAsync(t => t.UserId == admin.Id);
-            if (adminTask != null)
+            // A request from u2 to edit a task owned by admin1
+            var admin1Task = await context.WorkTasks.FirstOrDefaultAsync(t => t.UserId == admin1.Id);
+            if (admin1Task != null)
             {
                 context.TaskChangeRequests.Add(new TaskChangeRequest
                 {
-                    TaskId      = adminTask.Id,
+                    TaskId      = admin1Task.Id,
                     RequesterId = u2.Id,
-                    OwnerId     = admin.Id,
+                    OwnerId     = admin1.Id,
                     Action      = TaskChangeAction.Edit,
                     Payload     = "{\"Title\": \"Updated Title by Seeder\", \"Description\": \"Collaborative edit request example.\"}",
                     Status      = TaskChangeStatus.Pending,

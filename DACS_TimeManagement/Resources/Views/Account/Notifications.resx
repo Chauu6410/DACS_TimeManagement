@@ -139,7 +139,220 @@
   <data name="Task Creation Request" xml:space="preserve">
     <value>Task Creation Request</value>
   </data>
-  <data name="Task Change Request" xml:space="preserve">
-    <value>Task Change Request</value>
+  <data name="System Ready" xml:space="preserve">
+    <value>System Ready</value>
+  </data>
+  <data name="Security Alert" xml:space="preserve">
+    <value>Security Alert</value>
+  </data>
+  <data name="Project Milestone" xml:space="preserve">
+    <value>Project Milestone</value>
+  </data>
+  <data name="Task Due Soon" xml:space="preserve">
+    <value>Task Due Soon</value>
+  </data>
+  <data name="Team Update" xml:space="preserve">
+    <value>Team Update</value>
+  </data>
+  <data name="Meeting Reminder" xml:space="preserve">
+    <value>Meeting Reminder</value>
+  </data>
+  <data name="Code Review Request" xml:space="preserve">
+    <value>Code Review Request</value>
+  </data>
+  <data name="API Gateway Update" xml:space="preserve">
+    <value>API Gateway Update</value>
+  </data>
+  <data name="Performance Alert" xml:space="preserve">
+    <value>Performance Alert</value>
+  </data>
+  <data name="Deployment Success" xml:space="preserve">
+    <value>Deployment Success</value>
+  </data>
+  <data name="Welcome Admin" xml:space="preserve">
+    <value>Welcome Admin</value>
+  </data>
+  <data name="Database Alert" xml:space="preserve">
+    <value>Database Alert</value>
+  </data>
+  <data name="Security Scan Complete" xml:space="preserve">
+    <value>Security Scan Complete</value>
+  </data>
+  <data name="Backup Status" xml:space="preserve">
+    <value>Backup Status</value>
+  </data>
+  <data name="Network Upgrade" xml:space="preserve">
+    <value>Network Upgrade</value>
+  </data>
+  <data name="Cloud Migration" xml:space="preserve">
+    <value>Cloud Migration</value>
+  </data>
+  <data name="Monitoring Alert" xml:space="preserve">
+    <value>Monitoring Alert</value>
+  </data>
+  <data name="DevOps Pipeline" xml:space="preserve">
+    <value>DevOps Pipeline</value>
+  </data>
+  <data name="Disaster Recovery Test" xml:space="preserve">
+    <value>Disaster Recovery Test</value>
+  </data>
+  <data name="System Maintenance" xml:space="preserve">
+    <value>System Maintenance</value>
+  </data>
+  <data name="Welcome!" xml:space="preserve">
+    <value>Welcome!</value>
+  </data>
+  <data name="Learning Progress" xml:space="preserve">
+    <value>Learning Progress</value>
+  </data>
+  <data name="New Member Joined" xml:space="preserve">
+    <value>New Member Joined</value>
+  </data>
+  <data name="Goal Achievement" xml:space="preserve">
+    <value>Goal Achievement</value>
+  </data>
+  <data name="Workshop Reminder" xml:space="preserve">
+    <value>Workshop Reminder</value>
+  </data>
+  <data name="Code Review Feedback" xml:space="preserve">
+    <value>Code Review Feedback</value>
+  </data>
+  <data name="Blog Post Published" xml:space="preserve">
+    <value>Blog Post Published</value>
+  </data>
+  <data name="App Store Submission" xml:space="preserve">
+    <value>App Store Submission</value>
+  </data>
+  <data name="Hackathon Registration" xml:space="preserve">
+    <value>Hackathon Registration</value>
+  </data>
+  <data name="Task Completed" xml:space="preserve">
+    <value>Task Completed</value>
+  </data>
+  <data name="Milestone Reached" xml:space="preserve">
+    <value>Milestone Reached</value>
+  </data>
+  <data name="Goal Reminder" xml:space="preserve">
+    <value>Goal Reminder</value>
+  </data>
+  <data name="Comment on Task" xml:space="preserve">
+    <value>Comment on Task</value>
+  </data>
+  <data name="Welcome to TimeMaster! The platform is fully configured." xml:space="preserve">
+    <value>Welcome to TimeMaster! The platform is fully configured.</value>
+  </data>
+  <data name="New login detected from an unrecognised device. Please verify." xml:space="preserve">
+    <value>New login detected from an unrecognised device. Please verify.</value>
+  </data>
+  <data name="TimeMaster Management System reached 75% completion!" xml:space="preserve">
+    <value>TimeMaster Management System reached 75% completion!</value>
+  </data>
+  <data name="'Deploy to staging environment' is due in 2 days." xml:space="preserve">
+    <value>'Deploy to staging environment' is due in 2 days.</value>
+  </data>
+  <data name="3 new tasks assigned to you in Mobile App Development." xml:space="preserve">
+    <value>3 new tasks assigned to you in Mobile App Development.</value>
+  </data>
+  <data name="Sprint Planning meeting starts in 1 hour." xml:space="preserve">
+    <value>Sprint Planning meeting starts in 1 hour.</value>
+  </data>
+  <data name="New pull request requires your review." xml:space="preserve">
+    <value>New pull request requires your review.</value>
+  </data>
+  <data name="API Gateway Implementation project updated by team member." xml:space="preserve">
+    <value>API Gateway Implementation project updated by team member.</value>
+  </data>
+  <data name="Customer Analytics Dashboard showing high load." xml:space="preserve">
+    <value>Customer Analytics Dashboard showing high load.</value>
+  </data>
+  <data name="E-commerce Platform successfully deployed to production." xml:space="preserve">
+    <value>E-commerce Platform successfully deployed to production.</value>
+  </data>
+  <data name="Welcome to TimeMaster! Your admin account is ready." xml:space="preserve">
+    <value>Welcome to TimeMaster! Your admin account is ready.</value>
+  </data>
+  <data name="Database performance metrics require attention." xml:space="preserve">
+    <value>Database performance metrics require attention.</value>
+  </data>
+  <data name="Security audit scan completed. 3 issues found." xml:space="preserve">
+    <value>Security audit scan completed. 3 issues found.</value>
+  </data>
+  <data name="Daily backup completed successfully." xml:space="preserve">
+    <value>Daily backup completed successfully.</value>
+  </data>
+  <data name="Network Infrastructure Upgrade project at 60% completion." xml:space="preserve">
+    <value>Network Infrastructure Upgrade project at 60% completion.</value>
+  </data>
+  <data name="AWS migration for 2 applications completed." xml:space="preserve">
+    <value>AWS migration for 2 applications completed.</value>
+  </data>
+  <data name="CPU usage exceeded 80% on production server." xml:space="preserve">
+    <value>CPU usage exceeded 80% on production server.</value>
+  </data>
+  <data name="CI/CD pipeline deployed successfully." xml:space="preserve">
+    <value>CI/CD pipeline deployed successfully.</value>
+  </data>
+  <data name="DR drill scheduled for next week. Please review procedures." xml:space="preserve">
+    <value>DR drill scheduled for next week. Please review procedures.</value>
+  </data>
+  <data name="Scheduled maintenance window approved for this weekend." xml:space="preserve">
+    <value>Scheduled maintenance window approved for this weekend.</value>
+  </data>
+  <data name="Welcome to TimeMaster, Hương! Start with your first project." xml:space="preserve">
+    <value>Welcome to TimeMaster, Hương! Start with your first project.</value>
+  </data>
+  <data name="'Build workout logging screen' is due in 2 days." xml:space="preserve">
+    <value>'Build workout logging screen' is due in 2 days.</value>
+  </data>
+  <data name="You've completed 5 out of 8 tasks in .NET Learning Plan!" xml:space="preserve">
+    <value>You've completed 5 out of 8 tasks in .NET Learning Plan!</value>
+  </data>
+  <data name="A team member joined your 'Fitness Tracker App' project." xml:space="preserve">
+    <value>A team member joined your 'Fitness Tracker App' project.</value>
+  </data>
+  <data name="Congratulations! You've reached your weekly coding goal." xml:space="preserve">
+    <value>Congratulations! You've reached your weekly coding goal.</value>
+  </data>
+  <data name="ASP.NET Core Workshop starts tomorrow at 10 AM." xml:space="preserve">
+    <value>ASP.NET Core Workshop starts tomorrow at 10 AM.</value>
+  </data>
+  <data name="Your code review received positive feedback from mentor." xml:space="preserve">
+    <value>Your code review received positive feedback from mentor.</value>
+  </data>
+  <data name="Your first blog post is now live on the platform!" xml:space="preserve">
+    <value>Your first blog post is now live on the platform!</value>
+  </data>
+  <data name="Fitness Tracker App submitted to TestFlight successfully." xml:space="preserve">
+    <value>Fitness Tracker App submitted to TestFlight successfully.</value>
+  </data>
+  <data name="You're registered for the React Native Hackathon!" xml:space="preserve">
+    <value>You're registered for the React Native Hackathon!</value>
+  </data>
+  <data name="Great job! 'Implement nutrition API' marked as complete." xml:space="preserve">
+    <value>Great job! 'Implement nutrition API' marked as complete.</value>
+  </data>
+  <data name="Weather Forecast App project updated with new features." xml:space="preserve">
+    <value>Weather Forecast App project updated with new features.</value>
+  </data>
+  <data name="Welcome to TimeMaster! Your portfolio project is ready." xml:space="preserve">
+    <value>Welcome to TimeMaster! Your portfolio project is ready.</value>
+  </data>
+  <data name="Your SEO project has reached 50% progress. Great work!" xml:space="preserve">
+    <value>Your SEO project has reached 50% progress. Great work!</value>
+  </data>
+  <data name="Welcome to TimeMaster! Start tracking your goals today." xml:space="preserve">
+    <value>Welcome to TimeMaster! Start tracking your goals today.</value>
+  </data>
+  <data name="You haven't logged any progress on 'Reading Challenge' today." xml:space="preserve">
+    <value>You haven't logged any progress on 'Reading Challenge' today.</value>
+  </data>
+  <data name="Welcome to TimeMaster! Your team projects are ready." xml:space="preserve">
+    <value>Welcome to TimeMaster! Your team projects are ready.</value>
+  </data>
+  <data name="Sprint review for 'Q2 Sprint Planning' is due tomorrow." xml:space="preserve">
+    <value>Sprint review for 'Q2 Sprint Planning' is due tomorrow.</value>
+  </data>
+  <data name="Admin left a comment on 'Optimise existing pages'." xml:space="preserve">
+    <value>Admin left a comment on 'Optimise existing pages'.</value>
   </data>
 </root>

@@ -43,7 +43,7 @@ namespace DACS_TimeManagement.Controllers
 
             var projects = await _db.Projects
                 .AsNoTracking()
-                .Where(p => p.UserId == userId)
+                .Where(p => p.UserId == userId || p.Members.Any(m => m.UserId == userId))
                 .Select(p => new { p.Id, p.Name, p.EndDate })
                 .ToListAsync();
 
@@ -57,7 +57,7 @@ namespace DACS_TimeManagement.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var projects = _db.Projects
                 .AsNoTracking()
-                .Where(p => p.UserId == userId)
+                .Where(p => p.UserId == userId || p.Members.Any(m => m.UserId == userId))
                 .Select(p => new { p.Id, p.Name, p.EndDate })
                 .ToList();
 
@@ -76,7 +76,7 @@ namespace DACS_TimeManagement.Controllers
             {
                 var project = await _db.Projects
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.UserId == userId);
+                    .FirstOrDefaultAsync(p => p.Id == dto.ProjectId && (p.UserId == userId || p.Members.Any(m => m.UserId == userId)));
 
                 if (project == null)
                 {
@@ -107,7 +107,7 @@ namespace DACS_TimeManagement.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Projects = _db.Projects.AsNoTracking().Where(p => p.UserId == userId).Select(p => new { p.Id, p.Name, p.EndDate }).ToList();
+                ViewBag.Projects = _db.Projects.AsNoTracking().Where(p => p.UserId == userId || p.Members.Any(m => m.UserId == userId)).Select(p => new { p.Id, p.Name, p.EndDate }).ToList();
                 return View(dto);
             }
 
@@ -127,7 +127,7 @@ namespace DACS_TimeManagement.Controllers
 
             if (dto.Type == GoalType.TaskBased)
             {
-                var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == dto.ProjectId && p.UserId == userId);
+                var project = await _db.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Id == dto.ProjectId && (p.UserId == userId || p.Members.Any(m => m.UserId == userId)));
                 goal.Title = project?.Name + " - Commitment";
                 var totalTasks = await _db.WorkTasks.Where(t => t.ProjectId == dto.ProjectId && t.AssigneeId == userId).CountAsync();
                 goal.TargetValue = totalTasks;

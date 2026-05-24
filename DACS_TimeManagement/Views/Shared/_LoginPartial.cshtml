@@ -15,15 +15,19 @@
             <div class="user-avatar overflow-hidden border border-white border-1">
                 @{
                     var userId = UserManager.GetUserId(User);
-                    var user = await UserManager.FindByIdAsync(userId);
-                    var profile = await Context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+                    var user = userId != null ? await UserManager.FindByIdAsync(userId) : null;
+                    var profile = userId != null ? await Context.UserProfiles.FirstOrDefaultAsync(p => p.UserId == userId) : null;
                     
                     // Priority: FullName -> UserName (Email)
-                    var displayName = !string.IsNullOrEmpty(profile?.FullName) ? profile.FullName : user.UserName;
+                    var displayName = !string.IsNullOrEmpty(profile?.FullName) ? profile.FullName : (user != null ? user.UserName : "User");
                     
                     // Role Logic
-                    var roles = await UserManager.GetRolesAsync(user);
-                    var userRole = roles.FirstOrDefault() ?? "User";
+                    var userRole = "User";
+                    if (user != null)
+                    {
+                        var roles = await UserManager.GetRolesAsync(user);
+                        userRole = roles.FirstOrDefault() ?? "User";
+                    }
                     
                     var userInitial = !string.IsNullOrEmpty(displayName) ? displayName.Substring(0, 1).ToUpper() : "U";
                 }
@@ -58,7 +62,7 @@
                     </div>
                     <div class="user-details">
                         <h6 class="mb-0">@displayName</h6>
-                        <small class="text-muted">@user.Email</small>
+                        <small class="text-muted">@(user?.Email ?? "")</small>
                     </div>
                 </div>
             </li>

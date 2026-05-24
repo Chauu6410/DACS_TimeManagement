@@ -138,21 +138,34 @@
                                                     <!-- Footer: Assignee + Due Date + Progress + Private -->
                                                     <div class="task-footer mt-2 pt-2 border-top border-pastel">
                                                         <div class="d-flex justify-content-between align-items-center">
-                                                            <!-- Assignee với avatar tròn -->
-                                                            <div class="d-flex align-items-center gap-2">
+                                                            <div class="d-flex align-items-center gap-2 overflow-hidden" style="min-width: 0;">
                                                                 @if (t.Assignee != null)
                                                                 {
-                                                                    <div class="avatar-xs rounded-circle bg-pastel-primary-soft d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                                                                        <span class="fw-bold text-pastel-primary fs-6">@(t.Assignee.UserName?.Substring(0, 1).ToUpper() ?? "U")</span>
-                                                                    </div>
-                                                                    <span class="small fw-medium text-pastel-dark">@t.Assignee.UserName</span>
+                                                                    var userProfiles = (ViewBag.UserProfiles as Dictionary<string, DACS_TimeManagement.Models.UserProfile>) ?? new Dictionary<string, DACS_TimeManagement.Models.UserProfile>();
+                                                                    DACS_TimeManagement.Models.UserProfile? assigneeProfile = null;
+                                                                    userProfiles.TryGetValue(t.AssigneeId ?? "", out assigneeProfile);
+                                                                    
+                                                                    var displayName = !string.IsNullOrEmpty(assigneeProfile?.FullName) ? assigneeProfile.FullName : (t.Assignee.UserName ?? "User");
+                                                                    var userInitial = !string.IsNullOrEmpty(displayName) ? displayName.Substring(0, 1).ToUpper() : "U";
+
+                                                                    @if (assigneeProfile != null && !string.IsNullOrEmpty(assigneeProfile.AvatarUrl))
+                                                                    {
+                                                                        <img src="@assigneeProfile.AvatarUrl" alt="@displayName" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; flex-shrink: 0;" />
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <div class="avatar-xs rounded-circle bg-pastel-primary-soft d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">
+                                                                            <span class="fw-bold text-pastel-primary fs-6">@userInitial</span>
+                                                                        </div>
+                                                                    }
+                                                                    <span class="small fw-medium text-pastel-dark text-truncate" style="max-width: 120px;" title="@displayName">@displayName</span>
                                                                 }
                                                                 else
                                                                 {
-                                                                    <div class="avatar-xs rounded-circle bg-pastel-secondary-soft d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
+                                                                    <div class="avatar-xs rounded-circle bg-pastel-secondary-soft d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">
                                                                         <i class="fas fa-user-slash text-pastel-muted fs-6"></i>
                                                                     </div>
-                                                                    <span class="small text-pastel-muted">@Localizer["Unassigned"]</span>
+                                                                    <span class="small text-pastel-muted text-truncate">@Localizer["Unassigned"]</span>
                                                                 }
                                                             </div>
                                                             <!-- Private lock -->
@@ -593,11 +606,15 @@
 
                                         <div class="task-footer mt-2 pt-2 border-top border-pastel">
                                             <div class="d-flex justify-content-between align-items-center">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <div class="avatar-xs rounded-circle bg-pastel-primary-soft d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                                                        <span class="fw-bold text-pastel-primary fs-6">${t.assigneeInitial}</span>
-                                                    </div>
-                                                    <span class="small fw-medium text-pastel-dark">${escapeHtml(t.assigneeName)}</span>
+                                                <div class="d-flex align-items-center gap-2 overflow-hidden" style="min-width: 0;">
+                                                    ${t.assigneeAvatar ? `
+                                                        <img src="${t.assigneeAvatar}" alt="${escapeHtml(t.assigneeName)}" class="rounded-circle" style="width: 28px; height: 28px; object-fit: cover; flex-shrink: 0;" />
+                                                    ` : `
+                                                        <div class="avatar-xs rounded-circle bg-pastel-primary-soft d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; flex-shrink: 0;">
+                                                            <span class="fw-bold text-pastel-primary fs-6">${t.assigneeInitial}</span>
+                                                        </div>
+                                                    `}
+                                                    <span class="small fw-medium text-pastel-dark text-truncate" style="max-width: 120px;" title="${escapeHtml(t.assigneeName)}">${escapeHtml(t.assigneeName)}</span>
                                                 </div>
                                             </div>
                                             <div class="d-flex justify-content-between align-items-center mt-2">

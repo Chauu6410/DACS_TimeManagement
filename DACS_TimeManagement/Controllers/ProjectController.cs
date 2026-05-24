@@ -281,20 +281,23 @@ namespace DACS_TimeManagement.Controllers
         }
         public async Task<IActionResult> Kanban(int id)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
             var project = await _context.Projects
                 .Include(p => p.BoardLists)
                 .Include(p => p.Tasks)
                     .ThenInclude(t => t.Assignee)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id && (p.UserId == userId || p.Members.Any(m => m.UserId == userId)));
+            if (project == null) return NotFound();
             return View(project);
         }
 
         // GET: Project/Focus/5
         public async Task<IActionResult> Focus(int id)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
             var project = await _context.Projects
                 .Include(p => p.Tasks)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id && (p.UserId == userId || p.Members.Any(m => m.UserId == userId)));
 
             if (project == null) return NotFound();
             return View(project);
@@ -305,9 +308,10 @@ namespace DACS_TimeManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RecordFocusSession(int projectId, int? taskId, int durationSeconds, string? note = null)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
             var project = await _context.Projects
                 .Include(p => p.Tasks)
-                .FirstOrDefaultAsync(p => p.Id == projectId);
+                .FirstOrDefaultAsync(p => p.Id == projectId && (p.UserId == userId || p.Members.Any(m => m.UserId == userId)));
             
             if (project == null) 
             {
@@ -338,7 +342,6 @@ namespace DACS_TimeManagement.Controllers
                 }
 
                 // Check if there is an active goal for the user and this project
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var goal = await _context.PersonalGoals
                     .FirstOrDefaultAsync(g => g.ProjectId == projectId && g.UserId == userId);
 

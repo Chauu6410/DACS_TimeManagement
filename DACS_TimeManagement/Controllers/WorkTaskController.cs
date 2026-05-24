@@ -184,6 +184,14 @@ namespace DACS_TimeManagement.Controllers
                 ViewBag.PendingRequests = pendingRequests; // List<TaskChangeRequest>
                 ViewBag.IsProjectOwner = isProjectOwner;
 
+                // Load UserProfiles for all assignees to display custom avatars and full names
+                var assigneeIds = tasks.Select(t => t.AssigneeId).Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+                var userProfiles = await _context.UserProfiles
+                    .AsNoTracking()
+                    .Where(p => assigneeIds.Contains(p.UserId))
+                    .ToDictionaryAsync(p => p.UserId, p => p);
+                ViewBag.UserProfiles = userProfiles;
+
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -448,7 +456,10 @@ namespace DACS_TimeManagement.Controllers
                 await NotifyProjectUsersAboutNewTaskAsync(task, userId);
 
                 var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-                var userName = currentUser?.UserName ?? "U";
+                var profile = await _context.UserProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.UserId == userId);
+                var displayName = !string.IsNullOrEmpty(profile?.FullName) ? profile.FullName : (currentUser?.UserName ?? "User");
+                var avatarUrl = profile?.AvatarUrl;
+                var assigneeInitial = !string.IsNullOrEmpty(displayName) ? displayName.Substring(0, 1).ToUpper() : "U";
 
                 return Json(new { 
                     success = true, 
@@ -457,8 +468,9 @@ namespace DACS_TimeManagement.Controllers
                         title = task.Title,
                         priorityClass = "pastel-warning",
                         priorityText = task.Priority.ToString(),
-                        assigneeInitial = userName.Substring(0, 1).ToUpper(),
-                        assigneeName = userName,
+                        assigneeInitial = assigneeInitial,
+                        assigneeName = displayName,
+                        assigneeAvatar = avatarUrl,
                         endDate = task.EndDate.ToString("MMM dd, yyyy"),
                         progress = task.Progress
                     }

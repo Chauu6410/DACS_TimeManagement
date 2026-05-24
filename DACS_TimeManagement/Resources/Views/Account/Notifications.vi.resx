@@ -139,8 +139,221 @@
   <data name="Task Creation Request" xml:space="preserve">
     <value>Yêu cầu tạo công việc</value>
   </data>
-  <data name="Task Change Request" xml:space="preserve">
-    <value>Yêu cầu thay đổi công việc</value>
+  <data name="System Ready" xml:space="preserve">
+    <value>Hệ thống sẵn sàng</value>
+  </data>
+  <data name="Security Alert" xml:space="preserve">
+    <value>Cảnh báo bảo mật</value>
+  </data>
+  <data name="Project Milestone" xml:space="preserve">
+    <value>Cột mốc dự án</value>
+  </data>
+  <data name="Task Due Soon" xml:space="preserve">
+    <value>Công việc sắp đến hạn</value>
+  </data>
+  <data name="Team Update" xml:space="preserve">
+    <value>Cập nhật nhóm</value>
+  </data>
+  <data name="Meeting Reminder" xml:space="preserve">
+    <value>Nhắc nhở cuộc họp</value>
+  </data>
+  <data name="Code Review Request" xml:space="preserve">
+    <value>Yêu cầu đánh giá mã</value>
+  </data>
+  <data name="API Gateway Update" xml:space="preserve">
+    <value>Cập nhật API Gateway</value>
+  </data>
+  <data name="Performance Alert" xml:space="preserve">
+    <value>Cảnh báo hiệu suất</value>
+  </data>
+  <data name="Deployment Success" xml:space="preserve">
+    <value>Triển khai thành công</value>
+  </data>
+  <data name="Welcome Admin" xml:space="preserve">
+    <value>Chào mừng Quản trị viên</value>
+  </data>
+  <data name="Database Alert" xml:space="preserve">
+    <value>Cảnh báo cơ sở dữ liệu</value>
+  </data>
+  <data name="Security Scan Complete" xml:space="preserve">
+    <value>Hoàn thành quét bảo mật</value>
+  </data>
+  <data name="Backup Status" xml:space="preserve">
+    <value>Trạng thái sao lưu</value>
+  </data>
+  <data name="Network Upgrade" xml:space="preserve">
+    <value>Nâng cấp mạng</value>
+  </data>
+  <data name="Cloud Migration" xml:space="preserve">
+    <value>Di chuyển đám mây</value>
+  </data>
+  <data name="Monitoring Alert" xml:space="preserve">
+    <value>Cảnh báo giám sát</value>
+  </data>
+  <data name="DevOps Pipeline" xml:space="preserve">
+    <value>Đường ống DevOps</value>
+  </data>
+  <data name="Disaster Recovery Test" xml:space="preserve">
+    <value>Kiểm tra khôi phục thảm họa</value>
+  </data>
+  <data name="System Maintenance" xml:space="preserve">
+    <value>Bảo trì hệ thống</value>
+  </data>
+  <data name="Welcome!" xml:space="preserve">
+    <value>Chào mừng!</value>
+  </data>
+  <data name="Learning Progress" xml:space="preserve">
+    <value>Tiến độ học tập</value>
+  </data>
+  <data name="New Member Joined" xml:space="preserve">
+    <value>Thành viên mới tham gia</value>
+  </data>
+  <data name="Goal Achievement" xml:space="preserve">
+    <value>Đạt được mục tiêu</value>
+  </data>
+  <data name="Workshop Reminder" xml:space="preserve">
+    <value>Nhắc nhở hội thảo</value>
+  </data>
+  <data name="Code Review Feedback" xml:space="preserve">
+    <value>Phản hồi đánh giá mã</value>
+  </data>
+  <data name="Blog Post Published" xml:space="preserve">
+    <value>Bài viết Blog đã đăng</value>
+  </data>
+  <data name="App Store Submission" xml:space="preserve">
+    <value>Nộp ứng dụng App Store</value>
+  </data>
+  <data name="Hackathon Registration" xml:space="preserve">
+    <value>Đăng ký Hackathon</value>
+  </data>
+  <data name="Task Completed" xml:space="preserve">
+    <value>Công việc đã hoàn thành</value>
+  </data>
+  <data name="Milestone Reached" xml:space="preserve">
+    <value>Đạt cột mốc</value>
+  </data>
+  <data name="Goal Reminder" xml:space="preserve">
+    <value>Nhắc nhở mục tiêu</value>
+  </data>
+  <data name="Comment on Task" xml:space="preserve">
+    <value>Bình luận trên công việc</value>
+  </data>
+  <data name="Welcome to TimeMaster! The platform is fully configured." xml:space="preserve">
+    <value>Chào mừng bạn đến với TimeMaster! Nền tảng đã được cấu hình đầy đủ.</value>
+  </data>
+  <data name="New login detected from an unrecognised device. Please verify." xml:space="preserve">
+    <value>Phát hiện đăng nhập mới từ thiết bị lạ. Vui lòng xác minh.</value>
+  </data>
+  <data name="TimeMaster Management System reached 75% completion!" xml:space="preserve">
+    <value>Hệ thống quản lý TimeMaster đã đạt 75% hoàn thành!</value>
+  </data>
+  <data name="'Deploy to staging environment' is due in 2 days." xml:space="preserve">
+    <value>'Triển khai môi trường staging' sẽ đến hạn trong 2 ngày.</value>
+  </data>
+  <data name="3 new tasks assigned to you in Mobile App Development." xml:space="preserve">
+    <value>Có 3 công việc mới được giao cho bạn trong dự án Phát triển ứng dụng di động.</value>
+  </data>
+  <data name="Sprint Planning meeting starts in 1 hour." xml:space="preserve">
+    <value>Cuộc họp Lập kế hoạch Sprint bắt đầu sau 1 giờ nữa.</value>
+  </data>
+  <data name="New pull request requires your review." xml:space="preserve">
+    <value>Có yêu cầu kéo (pull request) mới cần bạn đánh giá.</value>
+  </data>
+  <data name="API Gateway Implementation project updated by team member." xml:space="preserve">
+    <value>Dự án Triển khai API Gateway đã được cập nhật bởi một thành viên nhóm.</value>
+  </data>
+  <data name="Customer Analytics Dashboard showing high load." xml:space="preserve">
+    <value>Bảng điều khiển Phân tích khách hàng đang tải cao.</value>
+  </data>
+  <data name="E-commerce Platform successfully deployed to production." xml:space="preserve">
+    <value>Nền tảng thương mại điện tử đã được triển khai thành công lên sản phẩm.</value>
+  </data>
+  <data name="Welcome to TimeMaster! Your admin account is ready." xml:space="preserve">
+    <value>Chào mừng bạn đến với TimeMaster! Tài khoản quản trị của bạn đã sẵn sàng.</value>
+  </data>
+  <data name="Database performance metrics require attention." xml:space="preserve">
+    <value>Các chỉ số hiệu suất cơ sở dữ liệu cần được chú ý.</value>
+  </data>
+  <data name="Security audit scan completed. 3 issues found." xml:space="preserve">
+    <value>Hoàn tất quét kiểm tra bảo mật. Phát hiện 3 sự cố.</value>
+  </data>
+  <data name="Daily backup completed successfully." xml:space="preserve">
+    <value>Sao lưu hàng ngày đã hoàn tất thành công.</value>
+  </data>
+  <data name="Network Infrastructure Upgrade project at 60% completion." xml:space="preserve">
+    <value>Dự án Nâng cấp cơ sở hạ tầng mạng đạt 60% hoàn thành.</value>
+  </data>
+  <data name="AWS migration for 2 applications completed." xml:space="preserve">
+    <value>Quá trình di chuyển lên AWS cho 2 ứng dụng đã hoàn tất.</value>
+  </data>
+  <data name="CPU usage exceeded 80% on production server." xml:space="preserve">
+    <value>Mức sử dụng CPU vượt quá 80% trên máy chủ sản phẩm.</value>
+  </data>
+  <data name="CI/CD pipeline deployed successfully." xml:space="preserve">
+    <value>Đường ống CI/CD đã được triển khai thành công.</value>
+  </data>
+  <data name="DR drill scheduled for next week. Please review procedures." xml:space="preserve">
+    <value>Buổi diễn tập DR được lên lịch vào tuần tới. Vui lòng xem lại quy trình.</value>
+  </data>
+  <data name="Scheduled maintenance window approved for this weekend." xml:space="preserve">
+    <value>Khung thời gian bảo trì định kỳ đã được phê duyệt cho cuối tuần này.</value>
+  </data>
+  <data name="Welcome to TimeMaster, Hương! Start with your first project." xml:space="preserve">
+    <value>Chào mừng bạn đến với TimeMaster, Hương! Hãy bắt đầu với dự án đầu tiên của bạn.</value>
+  </data>
+  <data name="'Build workout logging screen' is due in 2 days." xml:space="preserve">
+    <value>'Xây dựng màn hình nhật ký tập luyện' sẽ đến hạn trong 2 ngày.</value>
+  </data>
+  <data name="You've completed 5 out of 8 tasks in .NET Learning Plan!" xml:space="preserve">
+    <value>Bạn đã hoàn thành 5 trên 8 công việc trong Kế hoạch học tập .NET!</value>
+  </data>
+  <data name="A team member joined your 'Fitness Tracker App' project." xml:space="preserve">
+    <value>Một thành viên đã tham gia dự án 'Ứng dụng theo dõi thể dục' của bạn.</value>
+  </data>
+  <data name="Congratulations! You've reached your weekly coding goal." xml:space="preserve">
+    <value>Xin chúc mừng! Bạn đã đạt được mục tiêu lập trình hàng tuần của mình.</value>
+  </data>
+  <data name="ASP.NET Core Workshop starts tomorrow at 10 AM." xml:space="preserve">
+    <value>Hội thảo ASP.NET Core sẽ bắt đầu vào ngày mai lúc 10 giờ sáng.</value>
+  </data>
+  <data name="Your code review received positive feedback from mentor." xml:space="preserve">
+    <value>Đánh giá mã của bạn đã nhận được phản hồi tích cực từ người hướng dẫn.</value>
+  </data>
+  <data name="Your first blog post is now live on the platform!" xml:space="preserve">
+    <value>Bài viết blog đầu tiên của bạn hiện đã trực tuyến trên nền tảng!</value>
+  </data>
+  <data name="Fitness Tracker App submitted to TestFlight successfully." xml:space="preserve">
+    <value>Ứng dụng theo dõi thể dục đã được nộp lên TestFlight thành công.</value>
+  </data>
+  <data name="You're registered for the React Native Hackathon!" xml:space="preserve">
+    <value>Bạn đã đăng ký tham gia React Native Hackathon!</value>
+  </data>
+  <data name="Great job! 'Implement nutrition API' marked as complete." xml:space="preserve">
+    <value>Làm tốt lắm! 'Tích hợp API dinh dưỡng' đã được đánh dấu hoàn thành.</value>
+  </data>
+  <data name="Weather Forecast App project updated with new features." xml:space="preserve">
+    <value>Dự án Ứng dụng dự báo thời tiết đã được cập nhật các tính năng mới.</value>
+  </data>
+  <data name="Welcome to TimeMaster! Your portfolio project is ready." xml:space="preserve">
+    <value>Chào mừng bạn đến với TimeMaster! Dự án hồ sơ năng lực của bạn đã sẵn sàng.</value>
+  </data>
+  <data name="Your SEO project has reached 50% progress. Great work!" xml:space="preserve">
+    <value>Dự án SEO của bạn đã đạt tiến độ 50%. Làm tốt lắm!</value>
+  </data>
+  <data name="Welcome to TimeMaster! Start tracking your goals today." xml:space="preserve">
+    <value>Chào mừng bạn đến với TimeMaster! Hãy bắt đầu theo dõi mục tiêu của bạn ngay hôm nay.</value>
+  </data>
+  <data name="You haven't logged any progress on 'Reading Challenge' today." xml:space="preserve">
+    <value>Bạn chưa ghi nhận tiến độ nào cho 'Thách thức đọc sách' hôm nay.</value>
+  </data>
+  <data name="Welcome to TimeMaster! Your team projects are ready." xml:space="preserve">
+    <value>Chào mừng bạn đến với TimeMaster! Các dự án nhóm của bạn đã sẵn sàng.</value>
+  </data>
+  <data name="Sprint review for 'Q2 Sprint Planning' is due tomorrow." xml:space="preserve">
+    <value>Đánh giá sprint cho 'Lập kế hoạch Sprint Q2' sẽ đến hạn vào ngày mai.</value>
+  </data>
+  <data name="Admin left a comment on 'Optimise existing pages'." xml:space="preserve">
+    <value>Quản trị viên đã để lại bình luận trên 'Tối ưu hóa các trang hiện tại'.</value>
   </data>
 </root>
 
