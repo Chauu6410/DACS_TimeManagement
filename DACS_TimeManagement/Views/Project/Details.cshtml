@@ -1274,10 +1274,43 @@
 
         function processAITasks(text) {
             const streamOutput = document.getElementById('aiStreamOutput');
-            const match = text.match(/```json-tasks\s+([\s\S]*?)```/);
-            if (match && match[1]) {
+            if (!streamOutput) return;
+
+            let jsonText = null;
+
+            // 1. Try finding in DOM if already parsed to HTML
+            const codeEl = streamOutput.querySelector('code.language-json-tasks') || 
+                           streamOutput.querySelector('code.language-json');
+            if (codeEl) {
+                jsonText = codeEl.textContent;
+                // If it's a standard JSON block but contains tasks, we should hide its parent <pre> element!
+                if (codeEl.classList.contains('language-json') && jsonText.includes('"key"') && jsonText.includes('"title"')) {
+                    const preEl = codeEl.closest('pre');
+                    if (preEl) preEl.style.setProperty('display', 'none', 'important');
+                }
+            }
+
+            // 2. Try parsing from raw Markdown text if DOM search didn't find it
+            if (!jsonText && text) {
+                let match = text.match(/```json-tasks\s+([\s\S]*?)```/);
+                if (match && match[1]) {
+                    jsonText = match[1];
+                } else {
+                    match = text.match(/```json\s+([\s\S]*?)```/);
+                    if (match && match[1] && match[1].includes('"key"') && match[1].includes('"title"')) {
+                        jsonText = match[1];
+                    } else {
+                        const arrayMatch = text.match(/(\[\s*\{\s*"key"[\s\S]*?\}\s*\])/);
+                        if (arrayMatch && arrayMatch[1]) {
+                            jsonText = arrayMatch[1];
+                        }
+                    }
+                }
+            }
+
+            if (jsonText) {
                 try {
-                    const tasks = JSON.parse(match[1]);
+                    const tasks = JSON.parse(jsonText.trim());
                     if (tasks && tasks.length > 0) {
                         // Remove old suggested tasks UI if exists
                         const oldUI = document.getElementById('aiSuggestedTasksContainer');
@@ -1379,6 +1412,9 @@
                     // Nếu là Markdown thô, tiến hành parse
                     output.innerHTML = marked.parse(content);
                     processAITasks(content);
+                } else if (content && content.startsWith('<')) {
+                    // Nếu đã là HTML, vẫn chạy xử lý task bằng cách truyền content rỗng để nó dùng DOM parser
+                    processAITasks('');
                 } else if (!content) {
                     // Nếu trống, kiểm tra xem có bản dịch ở ngôn ngữ khác không
                     const viExists = @(string.IsNullOrEmpty(Model.AIStrategyVi) ? "false" : "true");

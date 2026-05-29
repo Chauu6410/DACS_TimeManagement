@@ -21,10 +21,11 @@ namespace DACS_TimeManagement.Services
 
         private static readonly string[] FallbackModels = new[]
         {
-            "gemini-1.5-flash",
+            "gemini-2.5-flash",
             "gemini-2.0-flash",
-            "gemini-1.5-flash-8b",
-            "gemini-1.5-pro"
+            "gemini-flash-latest",
+            "gemini-2.5-pro",
+            "gemini-3.5-flash"
         };
 
         public GeminiService(HttpClient httpClient, IConfiguration configuration, ILogger<GeminiService> logger)
@@ -53,22 +54,8 @@ namespace DACS_TimeManagement.Services
             return await GenerateContentInternal(prompt, 0.2, cancellationToken);
         }
 
-        // Public helper used by callers that can cast to concrete implementation
-        public async Task<string> GenerateContentWithTemperature(string prompt, double temperature, CancellationToken cancellationToken = default)
+        public async Task<string> GenerateContent(string prompt, double temperature, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrEmpty(_apiKey))
-            {
-                _logger.LogError("Gemini API Key is missing.");
-                return "Lỗi: Chưa cấu hình API Key cho dịch vụ AI.";
-            }
-
-            // Log kích thước prompt thực tế trước khi gửi
-            int charCount = prompt.Length;
-            int byteCount = Encoding.UTF8.GetByteCount(prompt);
-            _logger.LogInformation("Sending prompt: {Chars} chars, {Bytes} bytes", charCount, byteCount);
-
-            var url = $"https://generativelanguage.googleapis.com/{_apiVersion}/models/{_model}:generateContent?key={_apiKey}";
-
             return await GenerateContentInternal(prompt, temperature, cancellationToken);
         }
 
@@ -111,11 +98,15 @@ namespace DACS_TimeManagement.Services
 
                 response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
                 
-                if (response.StatusCode == HttpStatusCode.TooManyRequests && retryCount < maxRetries)
+                // Retry for both 429 (Rate Limit) and 503 (Service Unavailable)
+                if ((response.StatusCode == HttpStatusCode.TooManyRequests || 
+                     response.StatusCode == HttpStatusCode.ServiceUnavailable) && 
+                    retryCount < maxRetries)
                 {
                     retryCount++;
                     var backoffMs = (int)(Math.Pow(2, retryCount) * 1000) + new Random().Next(0, 500);
-                    _logger.LogWarning("Gemini Stream API Rate Limit hit (429). Retrying {Count}/{Max} after {Delay}ms...", retryCount, maxRetries, backoffMs);
+                    _logger.LogWarning("Gemini Stream API {Status} hit. Retrying {Count}/{Max} after {Delay}ms...", 
+                        response.StatusCode, retryCount, maxRetries, backoffMs);
                     await Task.Delay(backoffMs, cancellationToken);
                     continue;
                 }
@@ -210,11 +201,15 @@ namespace DACS_TimeManagement.Services
                         response = await _httpClient.PostAsync(url, content, cancellationToken).ConfigureAwait(false);
                         responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                        if (response.StatusCode == HttpStatusCode.TooManyRequests && retryCount < maxRetries)
+                        // Retry for both 429 (Rate Limit) and 503 (Service Unavailable)
+                        if ((response.StatusCode == HttpStatusCode.TooManyRequests || 
+                             response.StatusCode == HttpStatusCode.ServiceUnavailable) && 
+                            retryCount < maxRetries)
                         {
                             retryCount++;
-                            var backoffMs = (int)(Math.Pow(2, retryCount) * 500) + new Random().Next(0, 200);
-                            _logger.LogWarning("Gemini API Rate Limit hit (429) for model {Model}. Retrying {Count}/{Max} after {Delay}ms...", modelName, retryCount, maxRetries, backoffMs);
+                            var backoffMs = (int)(Math.Pow(2, retryCount) * 1000) + new Random().Next(0, 500);
+                            _logger.LogWarning("Gemini API {Status} for model {Model}. Retrying {Count}/{Max} after {Delay}ms...", 
+                                response.StatusCode, modelName, retryCount, maxRetries, backoffMs);
                             await Task.Delay(backoffMs, cancellationToken);
                             continue;
                         }
@@ -276,12 +271,20 @@ namespace DACS_TimeManagement.Services
                 // If it is service unavailable (503) or rate limit exceeded (429), try next model
                 if (response.StatusCode == HttpStatusCode.ServiceUnavailable || response.StatusCode == HttpStatusCode.TooManyRequests)
                 {
+                    _logger.LogInformation("Trying next fallback model due to {Status} error", response.StatusCode);
                     continue;
                 }
 
                 // If it's another critical error (like Unauthorized 401 or BadRequest 400), don't try fallback models
                 // because the API key or prompt itself is invalid, which won't change with a different model.
-                return lastError;
+                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    return lastError;
+                }
+                
+                // For other errors, also try fallback models
+                _logger.LogInformation("Trying next fallback model due to error: {Error}", lastError);
+                continue;
             }
 
             return lastError ?? "Không thể kết nối đến dịch vụ AI sau nhiều lần thử.";
@@ -318,7 +321,8 @@ namespace DACS_TimeManagement.Services
             return statusCode switch
             {
                 HttpStatusCode.NotFound => "Lỗi 404: Không tìm thấy Model hoặc Endpoint. Kiểm tra cấu hình ModelName." + detailedMessage,
-                HttpStatusCode.TooManyRequests => "Lỗi 429: Bạn đã vượt quá hạn mức yêu cầu (Quota). Vui lòng đợi khoảng 1 phút rồi thử lại. " + detailedMessage,
+                HttpStatusCode.TooManyRequests => "Lỗi 429: Bạn đã vượt quá hạn mức yêu cầu (Quota). Vui lòng đợi 1-2 phút rồi thử lại. " + detailedMessage,
+                HttpStatusCode.ServiceUnavailable => "Lỗi 503: Dịch vụ AI đang quá tải. Model đang có nhu cầu cao. Vui lòng thử lại sau vài phút. " + detailedMessage,
                 HttpStatusCode.Unauthorized => "Lỗi 401: API Key không hợp lệ." + detailedMessage,
                 HttpStatusCode.Forbidden => "Lỗi 403: Bị từ chối truy cập." + detailedMessage,
                 _ => $"Lỗi hệ thống ({statusCode}): Vui lòng liên hệ quản trị viên." + detailedMessage

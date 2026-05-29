@@ -8,6 +8,7 @@ using DACS_TimeManagement.DTOs;
 using DACS_TimeManagement.Services.Interfaces;
 using DACS_TimeManagement.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace DACS_TimeManagement.Controllers
 {
@@ -17,11 +18,19 @@ namespace DACS_TimeManagement.Controllers
     {
         private readonly IGeminiService _geminiService;
         private readonly ApplicationDbContext _db;
+        private readonly ILogger<AIController> _logger;
+        private readonly IAITaskService _aiTaskService;
 
-        public AIController(IGeminiService geminiService, ApplicationDbContext db)
+        public AIController(
+            IGeminiService geminiService, 
+            ApplicationDbContext db, 
+            ILogger<AIController> logger,
+            IAITaskService aiTaskService)
         {
             _geminiService = geminiService;
             _db = db;
+            _logger = logger;
+            _aiTaskService = aiTaskService;
         }
 
         [HttpPost("generate")]
@@ -209,44 +218,80 @@ Details: {request.Project?.Detail ?? "N/A"}
                 string goalText = isVi
                     ? @"Nhiệm vụ: Phân tích dự án và lập kế hoạch thực hiện tối ưu.
 Yêu cầu:
-1. Đánh giá độ phức tạp của dự án.
-2. Phân tích SWOT (Điểm mạnh/Yếu/Cơ hội/Thách thức).
-3. Đề xuất lộ trình thực hiện với các giai đoạn cụ thể.
-4. Gợi ý 3-5 tác vụ quan trọng cần làm ngay.
+1. Đánh giá độ phức tạp của dự án (Dễ/Trung bình/Khó/Rất khó).
+2. Phân tích SWOT ngắn gọn (Điểm mạnh/Yếu/Cơ hội/Thách thức).
+3. Đề xuất lộ trình thực hiện với 3-5 giai đoạn cụ thể (milestones).
+4. Gợi ý 5-8 tác vụ quan trọng cần làm, được sắp xếp theo thứ tự ưu tiên.
 5. Đưa ra 3 lời khuyên thực tế để quản lý dự án hiệu quả.
 
-BẮT BUỘC: Cuối bản kế hoạch, bạn PHẢI thêm một khối mã JSON để hệ thống có thể tạo các tác vụ mẫu:
+BẮT BUỘC: Cuối bản kế hoạch, bạn PHẢI thêm một khối mã JSON để hệ thống có thể tạo các tác vụ:
 ```json-tasks
 [
-  { ""key"": ""task_1"", ""title"": ""Tên task 1"", ""description"": ""Mô tả ngắn gọn 1"" },
-  { ""key"": ""task_2"", ""title"": ""Tên task 2"", ""description"": ""Mô tả ngắn gọn 2"" }
+  { 
+    ""key"": ""task_1"", 
+    ""title"": ""Tên task ngắn gọn"", 
+    ""description"": ""Mô tả chi tiết task này"",
+    ""priority"": ""High"",
+    ""estimatedDays"": 3,
+    ""category"": ""Planning""
+  },
+  { 
+    ""key"": ""task_2"", 
+    ""title"": ""Tên task 2"", 
+    ""description"": ""Mô tả task 2"",
+    ""priority"": ""Medium"",
+    ""estimatedDays"": 5,
+    ""category"": ""Development""
+  }
 ]
 ```
-Ghi chú: 
-- Nếu đây là dự án mới, hãy tạo các task mới với key (task_1, task_2,...).
-- KHÔNG thêm các lời giải thích hay lưu ý ngoài lề về việc thiếu dữ liệu json-tasks. Chỉ tập trung vào bản kế hoạch và khối mã JSON.
+Ghi chú quan trọng: 
+- Tạo 5-8 tasks cụ thể, thực tế và có thể thực hiện được
+- Priority: Low, Medium, High, hoặc Urgent
+- Category: Planning, Design, Development, Testing, Deployment, Documentation
+- estimatedDays: Số ngày ước tính để hoàn thành (1-30)
+- Key phải unique: task_1, task_2, task_3...
+- KHÔNG thêm giải thích ngoài lề. Chỉ tập trung vào kế hoạch và JSON.
 
-Định dạng: Sử dụng Markdown chuyên nghiệp. Trả lời bằng tiếng Việt."
+Định dạng: Sử dụng Markdown chuyên nghiệp, emoji phù hợp. Trả lời bằng tiếng Việt."
                     : @"Task: Analyze the project and create an optimal implementation plan.
 Requirements:
-1. Assess project complexity.
-2. Brief SWOT analysis.
-3. Propose a roadmap.
-4. Suggest 3-5 critical tasks.
-5. Give 3 practical tips.
+1. Assess project complexity (Easy/Medium/Hard/Very Hard).
+2. Brief SWOT analysis (Strengths/Weaknesses/Opportunities/Threats).
+3. Propose a roadmap with 3-5 specific milestones.
+4. Suggest 5-8 critical tasks, prioritized by importance.
+5. Give 3 practical project management tips.
 
 MANDATORY: At the end of the plan, add a JSON code block for task templates:
 ```json-tasks
 [
-  { ""key"": ""task_1"", ""title"": ""Task name 1"", ""description"": ""Description 1"" },
-  { ""key"": ""task_2"", ""title"": ""Task name 2"", ""description"": ""Description 2"" }
+  { 
+    ""key"": ""task_1"", 
+    ""title"": ""Short task name"", 
+    ""description"": ""Detailed task description"",
+    ""priority"": ""High"",
+    ""estimatedDays"": 3,
+    ""category"": ""Planning""
+  },
+  { 
+    ""key"": ""task_2"", 
+    ""title"": ""Task name 2"", 
+    ""description"": ""Task description 2"",
+    ""priority"": ""Medium"",
+    ""estimatedDays"": 5,
+    ""category"": ""Development""
+  }
 ]
 ```
-Note:
-- If this is a new project, generate new tasks with keys (task_1, task_2,...).
-- DO NOT add meta-comments or notes about missing json-tasks blocks. Focus only on the strategy and the JSON block.
+Important notes:
+- Create 5-8 specific, realistic, actionable tasks
+- Priority: Low, Medium, High, or Urgent
+- Category: Planning, Design, Development, Testing, Deployment, Documentation
+- estimatedDays: Estimated days to complete (1-30)
+- Key must be unique: task_1, task_2, task_3...
+- DO NOT add meta-comments. Focus only on the strategy and JSON.
 
-Format: Use professional Markdown. Answer in English.";
+Format: Use professional Markdown with appropriate emojis. Answer in English.";
 
                 string existingTasksInfo = isVi ? "Các tác vụ hiện có: " : "Existing tasks: ";
                 if (project.Tasks != null && project.Tasks.Any())
@@ -266,29 +311,42 @@ Format: Use professional Markdown. Answer in English.";
                 string prompt = _geminiService.BuildAdvancedPrompt(context, goalText, userInput);
 
                 var fullResult = new System.Text.StringBuilder();
+                var hasError = false;
+                
                 await foreach (var chunk in _geminiService.StreamGenerateContent(prompt, 0.5, cancellationToken))
                 {
+                    // Check if chunk contains error message
+                    if (chunk.StartsWith("Lỗi") || chunk.StartsWith("Error"))
+                    {
+                        hasError = true;
+                        var errorJson = System.Text.Json.JsonSerializer.Serialize(new { error = chunk });
+                        await Response.WriteAsync($"data: {errorJson}\n\n", cancellationToken);
+                        await Response.Body.FlushAsync(cancellationToken);
+                        break;
+                    }
+                    
                     fullResult.Append(chunk);
                     var escapedChunk = System.Text.Json.JsonSerializer.Serialize(chunk);
                     await Response.WriteAsync($"data: {escapedChunk}\n\n", cancellationToken);
                     await Response.Body.FlushAsync(cancellationToken);
                 }
 
-                // Save to DB after successful stream
-                if (fullResult.Length > 0)
+                // Save to DB after successful stream (only if no error)
+                if (!hasError && fullResult.Length > 0)
                 {
                     if (isVi)
                     {
                         project.AIStrategyVi = fullResult.ToString();
-                        project.AIStrategyEn = null; // Clear stale English version to force re-translation
+                        project.AIStrategyEn = null;
                     }
                     else
                     {
                         project.AIStrategyEn = fullResult.ToString();
-                        project.AIStrategyVi = null; // Clear stale Vietnamese version to force re-translation
+                        project.AIStrategyVi = null;
                     }
                     
                     await _db.SaveChangesAsync(cancellationToken);
+                    _logger.LogInformation("Successfully saved AI strategy for project {ProjectId}", projectId);
                 }
             }
             catch (Exception ex)
@@ -354,8 +412,39 @@ Format: Use professional Markdown. Answer in English.";
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error translating strategy");
                 return StatusCode(500, new { error = ex.Message });
             }
+        }
+
+        [HttpPost("extract-tasks")]
+        public IActionResult ExtractTasksFromStrategy([FromBody] ExtractTasksRequestDTO request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.StrategyText))
+                {
+                    return BadRequest(new { error = "Strategy text is required" });
+                }
+
+                var tasks = _aiTaskService.ExtractTasksFromMarkdown(request.StrategyText);
+                
+                return Ok(new { 
+                    success = true, 
+                    tasks = tasks,
+                    count = tasks.Count 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error extracting tasks from strategy");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+        private List<SuggestedTaskDTO> ExtractTasksFromMarkdown(string markdown)
+        {
+            return _aiTaskService.ExtractTasksFromMarkdown(markdown);
         }
 
         [HttpPost("import-tasks")]
@@ -364,70 +453,31 @@ Format: Use professional Markdown. Answer in English.";
             try
             {
                 var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
-                var project = await _db.Set<Project>().FirstOrDefaultAsync(p => p.Id == request.ProjectId && (p.UserId == userId || p.Members.Any(pm => pm.UserId == userId)));
-                if (project == null) return NotFound();
                 
-                // Find or create a default BoardList (column) for tasks
-                var boardList = await _db.Set<BoardList>()
-                    .Where(bl => bl.ProjectId == project.Id)
-                    .OrderBy(bl => bl.Position)
-                    .FirstOrDefaultAsync();
-
-                if (boardList == null)
+                if (request.Tasks == null || !request.Tasks.Any())
                 {
-                    boardList = new BoardList 
-                    { 
-                        Name = "To Do", 
-                        ProjectId = project.Id, 
-                        Position = 0 
-                    };
-                    _db.Set<BoardList>().Add(boardList);
-                    await _db.SaveChangesAsync();
+                    return BadRequest(new { error = "No tasks provided" });
                 }
 
-                var tasksToAdd = new List<WorkTask>();
-                var existingTaskKeys = await _db.Set<WorkTask>()
-                    .Where(t => t.ProjectId == project.Id && t.AITaskKey != null)
-                    .Select(t => t.AITaskKey)
-                    .ToListAsync();
-                
-                var existingTaskTitles = await _db.Set<WorkTask>()
-                    .Where(t => t.ProjectId == project.Id)
-                    .Select(t => t.Title.ToLower().Trim())
-                    .ToListAsync();
+                var (success, count, message) = await _aiTaskService.ImportTasksToProject(
+                    request.ProjectId, 
+                    userId, 
+                    request.Tasks);
 
-                foreach (var taskDto in request.Tasks)
+                if (!success)
                 {
-                    // Check by Key first (for cross-language sync)
-                    if (!string.IsNullOrEmpty(taskDto.Key) && existingTaskKeys.Contains(taskDto.Key)) continue;
-
-                    // Fallback to Title check
-                    var normalizedTitle = taskDto.Title.ToLower().Trim();
-                    if (existingTaskTitles.Contains(normalizedTitle)) continue; 
-
-                    tasksToAdd.Add(new WorkTask
-                    {
-                        ProjectId = project.Id,
-                        BoardListId = boardList.Id, 
-                        UserId = userId,
-                        Title = taskDto.Title,
-                        Description = taskDto.Description,
-                        AITaskKey = taskDto.Key, // Store the unique key
-                        Status = Models.TaskStatus.Todo,
-                        Priority = Models.Priority.Medium,
-                        StartDate = DateTime.Now,
-                        EndDate = DateTime.Now.AddDays(7),
-                        Position = 0
-                    });
+                    return BadRequest(new { error = message });
                 }
 
-                await _db.Set<WorkTask>().AddRangeAsync(tasksToAdd);
-                await _db.SaveChangesAsync();
-
-                return Ok(new { success = true, count = tasksToAdd.Count });
+                return Ok(new { 
+                    success = true, 
+                    count = count,
+                    message = message
+                });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error importing tasks for project {ProjectId}", request.ProjectId);
                 return StatusCode(500, new { error = ex.Message });
             }
         }
@@ -438,6 +488,11 @@ Format: Use professional Markdown. Answer in English.";
         public int? ProjectId { get; set; }
         public int? GoalId { get; set; }
         public string TargetLang { get; set; }
+    }
+
+    public class ExtractTasksRequestDTO
+    {
+        public string StrategyText { get; set; }
     }
 
     public class ImportTasksRequestDTO
@@ -451,5 +506,8 @@ Format: Use professional Markdown. Answer in English.";
         public string Key { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public string Priority { get; set; } = "Medium";
+        public int EstimatedDays { get; set; } = 7;
+        public string Category { get; set; } = "General";
     }
 }
