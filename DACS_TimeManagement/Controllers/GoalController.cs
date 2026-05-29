@@ -595,5 +595,89 @@ namespace DACS_TimeManagement.Controllers
 
             return RedirectToAction(nameof(Details), new { id = history.GoalId });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetOceanCollection()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Console.WriteLine($">>> GetOceanCollection called. UserId: {userId}");
+            if (string.IsNullOrEmpty(userId)) return Json(new { success = false });
+
+            var logs = await _db.TimeLogs
+                .AsNoTracking()
+                .Include(tl => tl.WorkTask)
+                .Include(tl => tl.Goal)
+                .Where(tl => tl.IsFocusSession && tl.Note != null)
+                .ToListAsync();
+
+            Console.WriteLine($">>> Total focus sessions found in DB: {logs.Count}");
+
+            var userLogs = logs.Where(tl => 
+                (tl.WorkTask != null && tl.WorkTask.UserId == userId) || 
+                (tl.Goal != null && tl.Goal.UserId == userId)
+            ).ToList();
+
+            Console.WriteLine($">>> User focus sessions found: {userLogs.Count}");
+
+            var collection = new Dictionary<string, int>
+            {
+                { "coral", 0 },
+                { "clownfish", 0 },
+                { "octopus", 0 },
+                { "turtle", 0 },
+                { "whale", 0 },
+                { "ship", 0 }
+            };
+
+            foreach (var log in userLogs)
+            {
+                var note = log.Note;
+                if (string.IsNullOrEmpty(note)) continue;
+                
+                Console.WriteLine($">>> Parsing note: {note}");
+
+                if (note.Contains("San hô hồng") || note.Contains("Pink Coral")) collection["coral"]++;
+                else if (note.Contains("Cá Nemo") || note.Contains("Clownfish")) collection["clownfish"]++;
+                else if (note.Contains("Bạch tuộc") || note.Contains("Octopus")) collection["octopus"]++;
+                else if (note.Contains("Rùa biển") || note.Contains("Sea Turtle")) collection["turtle"]++;
+                else if (note.Contains("Cá voi xanh") || note.Contains("Blue Whale")) collection["whale"]++;
+                else if (note.Contains("Tàu cổ chìm") || note.Contains("Ancient Galleon")) collection["ship"]++;
+            }
+
+            Console.WriteLine($">>> Collection counts: coral={collection["coral"]}, clownfish={collection["clownfish"]}, octopus={collection["octopus"]}, turtle={collection["turtle"]}, whale={collection["whale"]}, ship={collection["ship"]}");
+
+            return Json(new { success = true, collection });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DiagnosticData()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            
+            var allFocusLogs = await _db.TimeLogs
+                .AsNoTracking()
+                .Include(tl => tl.WorkTask)
+                .Include(tl => tl.Goal)
+                .Where(tl => tl.IsFocusSession)
+                .Select(tl => new {
+                    tl.Id,
+                    tl.Note,
+                    tl.WorkTaskId,
+                    TaskTitle = tl.WorkTask != null ? tl.WorkTask.Title : "No Task",
+                    TaskUserId = tl.WorkTask != null ? tl.WorkTask.UserId : "No Task UserId",
+                    tl.GoalId,
+                    GoalTitle = tl.Goal != null ? tl.Goal.Title : "No Goal",
+                    GoalUserId = tl.Goal != null ? tl.Goal.UserId : "No Goal UserId"
+                })
+                .ToListAsync();
+
+            return Json(new {
+                currentUserId = userId,
+                currentUserEmail = user != null ? user.Email : "Not found",
+                allFocusLogsCount = allFocusLogs.Count,
+                allFocusLogs = allFocusLogs
+            });
+        }
     }
 }

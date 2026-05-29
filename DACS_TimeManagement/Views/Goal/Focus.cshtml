@@ -816,6 +816,38 @@
                 renderAquarium();
             }
 
+            function syncOceanWithDb() {
+                console.log(">>> syncOceanWithDb triggered...");
+                fetch('/Goal/GetOceanCollection')
+                    .then(response => {
+                        console.log(">>> Received response status:", response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(">>> Received data from DB:", data);
+                        if (data && data.success && data.collection) {
+                            const localCol = getCollection();
+                            console.log(">>> Current local collection:", localCol);
+                            let changed = false;
+                            for (const [key, count] of Object.entries(data.collection)) {
+                                if ((localCol[key] || 0) < count) {
+                                    console.log(`>>> Updating local creature [${key}]: ${(localCol[key] || 0)} -> ${count}`);
+                                    localCol[key] = count;
+                                    changed = true;
+                                }
+                            }
+                            if (changed) {
+                                saveCollection(localCol);
+                                renderAquarium();
+                                console.log(">>> Saved updated collection and re-rendered aquarium.");
+                            } else {
+                                console.log(">>> No update needed. Local is already equal or higher than DB.");
+                            }
+                        }
+                    })
+                    .catch(err => console.error("Error syncing ocean with database:", err));
+            }
+
             function renderAquarium() {
                 const col = getCollection();
                 aquariumCreaturesContainer.innerHTML = '';
@@ -1517,6 +1549,7 @@
                 SoundManager.playPlopSound();
                 aquariumOverlay.classList.add('show');
                 renderAquarium();
+                syncOceanWithDb();
             });
 
             btnCloseAquarium.addEventListener('click', () => {

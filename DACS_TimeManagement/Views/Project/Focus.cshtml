@@ -1322,6 +1322,37 @@ animation: glowPulse 2s ease-in-out infinite;
             function getCollection() { const data = localStorage.getItem(collectionKey); return data ? JSON.parse(data) : { coral: 0, clownfish: 0, octopus: 0, turtle: 0, whale: 0, ship: 0 }; }
             function saveCollection(col) { localStorage.setItem(collectionKey, JSON.stringify(col)); }
             function addCreature(type) { const col = getCollection(); col[type] = (col[type] || 0) + 1; saveCollection(col); renderAquarium(); }
+            function syncOceanWithDb() {
+                console.log(">>> syncOceanWithDb triggered...");
+                fetch('/Goal/GetOceanCollection')
+                    .then(response => {
+                        console.log(">>> Received response status:", response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(">>> Received data from DB:", data);
+                        if (data && data.success && data.collection) {
+                            const localCol = getCollection();
+                            console.log(">>> Current local collection:", localCol);
+                            let changed = false;
+                            for (const [key, count] of Object.entries(data.collection)) {
+                                if ((localCol[key] || 0) < count) {
+                                    console.log(`>>> Updating local creature [${key}]: ${(localCol[key] || 0)} -> ${count}`);
+                                    localCol[key] = count;
+                                    changed = true;
+                                }
+                            }
+                            if (changed) {
+                                saveCollection(localCol);
+                                renderAquarium();
+                                console.log(">>> Saved updated collection and re-rendered aquarium.");
+                            } else {
+                                console.log(">>> No update needed. Local is already equal or higher than DB.");
+                            }
+                        }
+                    })
+                    .catch(err => console.error("Error syncing ocean with database:", err));
+            }
             function renderAquarium() {
                 const col = getCollection();
                 aquariumCreaturesContainer.innerHTML = '';
@@ -1515,7 +1546,7 @@ animation: glowPulse 2s ease-in-out infinite;
             const soundButtons = document.querySelectorAll('.sound-btn-group button'); soundButtons.forEach(btn => { btn.addEventListener('click', function() { SoundManager.playPlopSound(); soundButtons.forEach(b => b.classList.remove('active')); this.classList.add('active'); SoundManager.setMode(this.dataset.sound); }); });
             function initBubbles(containerId, isBig) { const emitter = document.getElementById(containerId); if (!emitter) return; setInterval(() => { if (document.hidden) return; const bubble = document.createElement('div'); bubble.className = isBig ? 'bg-bubble big' : 'bg-bubble'; const size = (isBig ? 10 : 5) + Math.random() * 15; bubble.style.width = `${size}px`; bubble.style.height = `${size}px`; bubble.style.left = `${Math.random() * 100}%`; const duration = 6 + Math.random() * 8; bubble.style.animationDuration = `${duration}s`; bubble.style.opacity = 0.2 + Math.random() * 0.4; emitter.appendChild(bubble); setTimeout(() => bubble.remove(), duration * 1000); }, 350); }
             initBubbles('bgBubbles', false); initBubbles('aquariumBubbles', true);
-            btnOpenAquarium.addEventListener('click', () => { SoundManager.playPlopSound(); aquariumOverlay.classList.add('show'); renderAquarium(); });
+            btnOpenAquarium.addEventListener('click', () => { SoundManager.playPlopSound(); aquariumOverlay.classList.add('show'); renderAquarium(); syncOceanWithDb(); });
             btnCloseAquarium.addEventListener('click', () => { SoundManager.playPlopSound(); aquariumOverlay.classList.remove('show'); });
             btnResetAquarium.addEventListener('click', () => { SoundManager.playPlopSound(); Swal.fire({ title: isVi ? 'Đặt lại Đại dương?' : 'Reset Ocean?', text: isVi ? 'Tất cả sinh vật biển bạn thu hoạch được sẽ bị xóa sạch! Bạn chắc chắn chứ?' : 'All harvested sea creatures will be cleared forever! Are you sure?', icon: 'warning', showCancelButton: true, confirmButtonText: isVi ? 'Xóa sạch' : 'Clear All', cancelButtonText: isVi ? 'Huỷ' : 'Cancel', confirmButtonColor: '#d33', customClass: { popup: 'rounded-5 glass-premium shadow-lg' } }).then((res) => { if (res.isConfirmed) { localStorage.removeItem(collectionKey); renderAquarium(); Swal.fire({ icon: 'success', title: isVi ? 'Đã dọn dẹp!' : 'Cleared!', text: isVi ? 'Đại dương đã được đưa về trạng thái nguyên sơ.' : 'Your ocean has been returned to its pristine state.', timer: 1500, showConfirmButton: false, customClass: { popup: 'rounded-5 glass-premium shadow' } }); } }); });
             fullScreenBtn.addEventListener('click', function() { SoundManager.playPlopSound(); if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.error(err)); else document.exitFullscreen(); });

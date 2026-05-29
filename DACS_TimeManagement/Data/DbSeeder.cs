@@ -25,6 +25,34 @@ namespace DACS_TimeManagement.Data
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
+            // ─── CHECK & SEED NOX OCEAN FOCUS SESSIONS IF MISSING FOR huongphanngocquynh@gmail.com ───
+            try
+            {
+                var adminUser = await userManager.FindByEmailAsync("huongphanngocquynh@gmail.com");
+                if (adminUser != null)
+                {
+                    bool needsNoxOceanSeeding = false;
+                    var userProjects = await context.Projects.Where(p => p.UserId == adminUser.Id).ToListAsync();
+                    foreach (var proj in userProjects)
+                    {
+                        int countLogs = await context.TimeLogs.CountAsync(tl => tl.IsFocusSession && tl.Note.Contains("🌊 Nox Ocean Focus") && tl.WorkTask.ProjectId == proj.Id);
+                        if (countLogs < 6)
+                        {
+                            needsNoxOceanSeeding = true;
+                            break;
+                        }
+                    }
+                    if (needsNoxOceanSeeding || !userProjects.Any())
+                    {
+                        await SeedNoxOceanData(context, adminUser.Id);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($">>> Error checking/seeding Nox Ocean focus sessions: {ex.Message}");
+            }
+
             // ─── OPTIMIZATION: FAST-PATH GUARD ──────────────────────────────────────────
             // If the database is already fully initialized and seeded, we return immediately.
             // This bypasses context.Database.EnsureCreatedAsync(), UserManager, and RoleManager checks,
@@ -539,6 +567,212 @@ namespace DACS_TimeManagement.Data
                 });
             }
             await context.SaveChangesAsync();
+
+            // Seed Nox Ocean data for admin1
+            await SeedNoxOceanData(context, admin1.Id);
+        }
+
+        private static async Task SeedNoxOceanData(ApplicationDbContext context, string userId)
+        {
+            Console.WriteLine(">>> Seeding Nox Ocean Focus Sessions for huongphanngocquynh@gmail.com...");
+
+            var userProjects = await context.Projects.Where(p => p.UserId == userId).ToListAsync();
+            if (!userProjects.Any())
+            {
+                var defaultProject = new Project
+                {
+                    Name = "TimeMaster Management System",
+                    Description = "Enterprise time-management platform with AES-256 encryption.",
+                    CreatedDate = DateTime.Now.AddDays(-30),
+                    UserId = userId
+                };
+                context.Projects.Add(defaultProject);
+                await context.SaveChangesAsync();
+
+                var listNames = new[] { "To Do", "In Progress", "Testing", "Done" };
+                foreach (var name in listNames)
+                {
+                    context.BoardLists.Add(new BoardList { Name = name, Position = Array.IndexOf(listNames, name), ProjectId = defaultProject.Id });
+                }
+                await context.SaveChangesAsync();
+                userProjects.Add(defaultProject);
+            }
+
+            foreach (var project in userProjects)
+            {
+                Console.WriteLine($">>> Seeding Nox Ocean for project: {project.Name} (Id: {project.Id})");
+
+                // Find or create a goal
+                var goal = await context.PersonalGoals.FirstOrDefaultAsync(g => g.UserId == userId && g.ProjectId == project.Id);
+                if (goal == null)
+                {
+                    goal = new PersonalGoal
+                    {
+                        Title          = $"Complete: {project.Name}",
+                        Description    = $"Achieve all milestones for the '{project.Name}' project on time.",
+                        Type           = GoalType.TimeBased,
+                        TargetHours    = 60,
+                        CompletedHours = 0,
+                        CompletedTasks = 0,
+                        StartDate      = project.CreatedDate,
+                        TargetDate     = project.CreatedDate.AddDays(60),
+                        Status         = GoalStatus.OnTrack,
+                        CreatedAt      = project.CreatedDate,
+                        ProjectId      = project.Id,
+                        UserId         = userId,
+                        LastUpdated    = DateTime.Now
+                    };
+                    context.PersonalGoals.Add(goal);
+                    await context.SaveChangesAsync();
+                }
+
+                // Check if this project already has focus sessions seeded
+                int existingCount = await context.TimeLogs.CountAsync(tl => tl.IsFocusSession && tl.Note.Contains("🌊 Nox Ocean Focus") && tl.WorkTask.ProjectId == project.Id);
+                if (existingCount >= 6)
+                {
+                    Console.WriteLine($">>> Project {project.Name} already has focus sessions. Skipping.");
+                    continue;
+                }
+
+                // Find or create tasks
+                var tasks = await context.WorkTasks.Where(t => t.ProjectId == project.Id).ToListAsync();
+                if (!tasks.Any())
+                {
+                    var list = await context.BoardLists.FirstOrDefaultAsync(b => b.ProjectId == project.Id && b.Name == "Done") 
+                               ?? await context.BoardLists.FirstOrDefaultAsync(b => b.ProjectId == project.Id);
+                    
+                    if (list == null)
+                    {
+                        list = new BoardList { Name = "Done", Position = 0, ProjectId = project.Id };
+                        context.BoardLists.Add(list);
+                        await context.SaveChangesAsync();
+                    }
+
+                    var defaultTasks = new[] { "Setup project architecture", "Implement authentication", "Optimize query performance", "Integrate Nox Ocean Game" };
+                    foreach (var tTitle in defaultTasks)
+                    {
+                        var task = new WorkTask
+                        {
+                            Title       = tTitle,
+                            Description = $"Description for {tTitle}",
+                            StartDate   = project.CreatedDate.AddDays(2),
+                            EndDate     = project.CreatedDate.AddDays(10),
+                            Color       = "#0dcaf0",
+                            Priority    = Priority.High,
+                            Status      = DACS_TimeManagement.Models.TaskStatus.Completed,
+                            Progress    = 100,
+                            ProjectId   = project.Id,
+                            BoardListId = list.Id,
+                            UserId      = userId,
+                            AssigneeId  = userId
+                        };
+                        context.WorkTasks.Add(task);
+                        tasks.Add(task);
+                    }
+                    await context.SaveChangesAsync();
+                }
+
+                // Seed 12 distinct focus sessions from the last 15 days, using different ocean creatures
+                var rng = new Random();
+                var creatures = new[]
+                {
+                    (Type: "coral", NameVi: "San hô hồng", NameEn: "Pink Coral", Min: 10, Duration: 15),
+                    (Type: "clownfish", NameVi: "Cá Nemo", NameEn: "Clownfish", Min: 25, Duration: 30),
+                    (Type: "octopus", NameVi: "Bạch tuộc", NameEn: "Octopus", Min: 45, Duration: 50),
+                    (Type: "turtle", NameVi: "Rùa biển", NameEn: "Sea Turtle", Min: 60, Duration: 70),
+                    (Type: "whale", NameVi: "Cá voi xanh", NameEn: "Blue Whale", Min: 90, Duration: 100),
+                    (Type: "ship", NameVi: "Tàu cổ chìm", NameEn: "Ancient Galleon", Min: 120, Duration: 130),
+                };
+
+                var workNotes = new[]
+                {
+                    "Nghiên cứu cấu trúc thư mục dự án",
+                    "Hoàn thành thiết kế giao diện Kanban",
+                    "Tối ưu hóa các truy vấn SQL chậm",
+                    "Viết unit test cho GoalController",
+                    "Cấu hình các bộ lọc bảo mật AES-256",
+                    "Tích hợp SignalR thông báo thời gian thực",
+                    "Sửa lỗi hiển thị biểu đồ tiến độ",
+                    "Viết tài liệu hướng dẫn sử dụng API",
+                    "Hoàn tất localization tiếng Anh và tiếng Việt",
+                    "Tối ưu hóa hiệu ứng glassmorphism trong chế độ Focus",
+                    "Khắc phục rò rỉ bộ nhớ của bộ đếm thời gian",
+                    "Tái cấu trúc mã nguồn lớp dịch vụ GoalService"
+                };
+
+                double cumulativeHours = goal.CompletedHours;
+                var startDate = DateTime.Now.Date.AddDays(-14);
+
+                for (int i = 0; i < 12; i++)
+                {
+                    var creature = creatures[i % creatures.Length];
+                    var date = startDate.AddDays(i).AddHours(9 + rng.Next(0, 8)); // Business hours
+                    var durationSecs = creature.Duration * 60;
+                    var durationHours = creature.Duration / 60.0;
+                    var task = tasks[i % tasks.Count];
+
+                    int hrs = creature.Duration / 60;
+                    int mins = creature.Duration % 60;
+                    
+                    string formatTime(int secs)
+                    {
+                        int h = secs / 3600;
+                        int m = (secs % 3600) / 60;
+                        int s = secs % 60;
+                        return $"{h.ToString().PadLeft(2, '0')}:{m.ToString().PadLeft(2, '0')}:{s.ToString().PadLeft(2, '0')}";
+                    }
+                    
+                    string formattedTime = formatTime(durationSecs);
+                    string titleStrVi = $"Đã nuôi dưỡng {creature.NameVi}";
+                    string titleStrEn = $"Grew {creature.NameEn}";
+                    
+                    string finalNoteVi = $"🌊 Nox Ocean Focus [{creature.Duration}m 00s] - [Focus {formattedTime} - {titleStrVi}] {workNotes[i]}";
+                    string finalNoteEn = $"🌊 Nox Ocean Focus [{creature.Duration}m 00s] - [Focus {formattedTime} - {titleStrEn}] Focused on: {workNotes[i]}";
+
+                    string finalNote = i % 2 == 0 ? finalNoteVi : finalNoteEn;
+
+                    var timeLog = new TimeLog
+                    {
+                        WorkTaskId = task.Id,
+                        LogDate = date,
+                        DurationHours = durationHours,
+                        Note = finalNote,
+                        IsFocusSession = true,
+                        GoalId = goal.Id
+                    };
+                    context.TimeLogs.Add(timeLog);
+                    cumulativeHours += durationHours;
+
+                    double currentProgress = goal.TargetHours.HasValue && goal.TargetHours.Value > 0
+                        ? (cumulativeHours / goal.TargetHours.Value) * 100
+                        : 0;
+                    currentProgress = Math.Min(100, Math.Round(currentProgress, 1));
+
+                    context.GoalProgressHistories.Add(new GoalProgressHistory
+                    {
+                        GoalId = goal.Id,
+                        Progress = currentProgress,
+                        RecordedAt = date,
+                        Note = finalNote
+                    });
+                }
+
+                goal.CompletedHours = cumulativeHours;
+                goal.CurrentValue = cumulativeHours;
+                goal.LastUpdated = DateTime.UtcNow;
+                if (goal.CompletedHours >= (goal.TargetHours ?? 40))
+                {
+                    goal.Status = GoalStatus.Completed;
+                }
+                else
+                {
+                    goal.Status = GoalStatus.OnTrack;
+                }
+
+                context.PersonalGoals.Update(goal);
+                await context.SaveChangesAsync();
+                Console.WriteLine($">>> Successfully seeded 12 focus sessions for project: {project.Name}!");
+            }
         }
 
         // ─── Helper ─────────────────────────────────────────────────────────────────────
